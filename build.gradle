@@ -46,6 +46,9 @@ dependencies {
 
     // MySQL
     runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
+
+    // 테스트용 H2 DB
+    runtimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {

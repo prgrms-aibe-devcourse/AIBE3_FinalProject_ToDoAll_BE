@@ -13,7 +13,7 @@ public enum UserErrorCase implements ErrorCase {
     INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, 4002, "허용되지 않은 사용자 권한입니다.");
 
     private final HttpStatus httpStatus;
-    private final int errorCode;
+    private final Integer errorCode;
     private final String message;
 
     @Override

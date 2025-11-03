@@ -4,7 +4,7 @@ public record ResumeResponseDto(
         Long id,
         String name,
         String email,
-        String phone,
+        String phoneNumber,
         String address,
         String education,
         String experience,

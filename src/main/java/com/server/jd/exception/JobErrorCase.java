@@ -1,16 +1,14 @@
-package com.server.auth.exception;
+package com.server.jd.exception;
 
 import com.server.global.exception.ErrorCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
-public enum AuthErrorCase implements ErrorCase {
+public enum JobErrorCase implements ErrorCase {
 
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 4010, "인증이 필요합니다."),
-    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 4011, "리프레시 토큰이 유효하지 않습니다."),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, 4040, "존재하지 않는 사용자입니다."),
-    WRONG_PASSWORD(HttpStatus.UNAUTHORIZED, 4012, "비밀번호가 일치하지 않습니다.");
+    JOB_NOT_FOUND(HttpStatus.NOT_FOUND, 6001, "해당 채용공고를 찾을 수 없습니다."),
+    INVALID_JOB_STATUS(HttpStatus.BAD_REQUEST, 6002, "유효하지 않은 공고 상태입니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;
@@ -31,4 +29,3 @@ public enum AuthErrorCase implements ErrorCase {
         return message;
     }
 }
-

@@ -46,8 +46,9 @@ public class JobDescription extends BaseEntity {
     // 마감일
     private LocalDate deadline;
 
-    // 공고 상태 (DRAFT, OPEN, CLOSED)
-    private String status;
+    // 공고상태
+    @Enumerated(EnumType.STRING)
+    private JobStatus status;
 
     // 필수 스킬 목록 (예시: React, Java 등)
     @ElementCollection

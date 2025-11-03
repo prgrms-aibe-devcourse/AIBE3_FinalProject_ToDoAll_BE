@@ -1,6 +1,7 @@
 package com.server.jd.service;
 
 import com.server.jd.domain.JobDescription;
+import com.server.jd.domain.JobStatus;
 import com.server.jd.dto.JobDescriptionCreateRequestDto;
 import com.server.jd.repository.JobDescriptionRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class JobDescriptionService {
                 .requiredSkills(request.requiredSkills())
                 .preferredSkills(request.preferredSkills())
                 .welfare(request.welfare())
-                .status("DRAFT") // 최초 생성은 무조건 초안 상태
+                .status(JobStatus.DRAFT) // 최초 생성은 무조건 초안 상태
                 .applicantCount(0L) // 신규 공고이므로 지원자 수는 0
                 .build();
 

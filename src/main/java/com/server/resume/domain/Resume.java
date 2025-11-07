@@ -4,48 +4,58 @@ import com.server.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Resume extends BaseEntity {
 
-    // 필드는 모두 예시입니다. (본인이 필요한것들은 수정 및 추가하기)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 이름
     private String name;
 
-    // 이메일
+    private String gender;
+
+    private LocalDate birthDate;
+
     private String email;
 
-    // 연락처
-    private String phoneNumber;
+    private String phone;
 
-    // 주소
     private String address;
 
-    // 학력 사항 (예시: 잡다대학교 컴퓨터공학과 졸업)
-    private String education;
+    private String detailAddress;
 
-    // 경력 사항 (예시: 잡다주식회사 프론트엔드 개발 3년 등)
-    private String experience;
+    @ElementCollection
+    @CollectionTable(name = "resume_education", joinColumns = @JoinColumn(name = "resume_id"))
+    private List<String> education;
 
-    // 보유 기술 스택 (예시: React, Java, AWS 등)
-    private String skills;
+    @ElementCollection
+    @CollectionTable(name = "resume_experience", joinColumns = @JoinColumn(name = "resume_id"))
+    private List<String> experience;
 
-    // 자격증, 수상 내역 등
-    private String certifications;
+    @ElementCollection
+    @CollectionTable(name = "resume_skills", joinColumns = @JoinColumn(name = "resume_id"))
+    private List<String> skills;
 
-    // 이력서 PDF 파일 경로 (S3 등 외부 저장소 링크)
+    @ElementCollection
+    @CollectionTable(name = "resume_activities", joinColumns = @JoinColumn(name = "resume_id"))
+    private List<String> activities;
+
+    @ElementCollection
+    @CollectionTable(name = "resume_certifications", joinColumns = @JoinColumn(name = "resume_id"))
+    private List<String> certifications;
+
     private String resumeFileUrl;
 
-    // 포트폴리오 파일 경로 (S3 등 외부 저장소 링크)
     private String portfolioFileUrl;
 
-    // TODO: 이력서 작성자 (userId) - 유저 관련 연관 관계 매핑 필요합니다.
-    private Long userId;
+    @Enumerated(EnumType.STRING)
+    private ResumeStatus status;
 }

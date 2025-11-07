@@ -8,7 +8,6 @@ public record JobDescriptionResponseDto(
         Long id,
         String title,
         String department,
-        String region,
         String workType,
         String experience,
         String education,

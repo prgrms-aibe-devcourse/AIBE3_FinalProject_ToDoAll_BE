@@ -7,7 +7,6 @@ public record JobDescriptionCreateRequestDto(
         // 필드는 필요하다면 본인이 직접 수정 및 추가
         String title,
         String department,
-        String region,
         String workType,
         String experience,
         String education,

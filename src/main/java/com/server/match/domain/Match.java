@@ -29,7 +29,7 @@ public class Match extends BaseEntity {
     @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
 
-    private LocalDateTime appliedAt; // 지원 일시 
+    private LocalDateTime appliedAt; // 지원 일시
 
     private Float matchScore; // 매칭 점수
 

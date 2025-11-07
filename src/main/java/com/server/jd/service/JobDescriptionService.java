@@ -21,7 +21,6 @@ public class JobDescriptionService {
         JobDescription jd = JobDescription.builder()
                 .title(request.title())
                 .department(request.department())
-                .region(request.region())
                 .workType(request.workType())
                 .experience(request.experience())
                 .education(request.education())

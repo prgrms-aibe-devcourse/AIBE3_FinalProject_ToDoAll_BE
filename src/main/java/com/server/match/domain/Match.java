@@ -1,11 +1,10 @@
-package com.server.interview.domain;
+package com.server.match.domain;
 
 import com.server.global.entity.BaseEntity;
 import com.server.jd.domain.JobDescription;
 import com.server.resume.domain.Resume;
 import jakarta.persistence.*;
 import lombok.*;
-import com.server.user.domain.User;
 
 import java.time.LocalDateTime;
 
@@ -14,32 +13,29 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Interview extends BaseEntity {
+public class Match extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // JD 연관관계
+    // JD 연관관계 (ManyToOne)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "jd_id", nullable = false)
     private JobDescription jobDescription;
 
-    // Resume 연관관계
+    // Resume 연관관계 (ManyToOne)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
 
-    // Organizer (생성자, 주최자)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizer_id", nullable = false)
-    private User organizer;
+    private LocalDateTime appliedAt; // 지원 일시
 
-    private LocalDateTime scheduledAt; // 예정 면접 시간
-
-    @Enumerated(EnumType.STRING)
-    private InterviewStatus status;
+    private Float matchScore; // 매칭 점수
 
     @Lob
-    private String summary; // 면접 요약
+    private String recommendationReason; // 추천 사유
+
+    @Enumerated(EnumType.STRING)
+    private MatchStatus status;
 }

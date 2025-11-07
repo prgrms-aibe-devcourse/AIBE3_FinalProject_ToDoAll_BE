@@ -1,0 +1,33 @@
+package com.server.interview.domain;
+
+import com.server.global.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+public class InterviewQuestion extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "interview_id", nullable = false)
+    private Interview interview;
+
+    // 질문 유형 (CORE, TECH, BEHAVIOR)
+    @Enumerated(EnumType.STRING)
+    private QuestionType type;
+
+    // 질문 내용
+    @Column(columnDefinition = "TEXT")
+    private String questionText;
+
+    // 답변 내용
+    @Column(columnDefinition = "TEXT")
+    private String answer;
+}

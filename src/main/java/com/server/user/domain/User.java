@@ -2,19 +2,21 @@ package com.server.user.domain;
 
 import com.server.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDate;
 
-@Getter
 @Entity
+@Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class User extends BaseEntity {
 
-    // 예시입니다. 유저 관련 각 필드는 ERD를 참고해서 본인이 수정해주세요.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "userId")
-    private Long userId;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -25,7 +27,14 @@ public class User extends BaseEntity {
 
     private String nickname;
 
+    @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Column(name = "birth_date")
     private LocalDate birthDate;
+
+    private String gender;
+
+    @Column(name = "company_name")
+    private String companyName;
 }

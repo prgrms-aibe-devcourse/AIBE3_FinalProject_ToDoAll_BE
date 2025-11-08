@@ -11,7 +11,6 @@ permissions:
   pull-requests: write
 
 env:
-  MODEL: gpt-4o
   MAX_TOKENS: '2000'
   MAX_FILES: '40'
   MAX_LINES: '1800'
@@ -88,6 +87,30 @@ jobs:
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
           echo "head=$HEAD" >> "$GITHUB_OUTPUT"
           echo "pr=$PR" >> "$GITHUB_OUTPUT"
+
+      - name: Decide Model
+        id: model
+        run: |
+          set -euo pipefail
+
+          MODEL="gpt-4o-mini"
+
+          PR=${{ steps.shas.outputs.pr }}
+
+          LABELS=$(gh pr view $PR --json labels --jq '.labels[].name')
+
+          if echo "$LABELS" | grep -qi "high-priority"; then
+            MODEL="gpt-4o"
+          fi
+
+          LINES=$(git diff --unified=0 "${{ steps.shas.outputs.base }}" "${{ steps.shas.outputs.head }}" | grep -E '^(\+|\-)' | wc -l | tr -d ' ')
+          if (( LINES > 400 )); then
+            MODEL="gpt-4o"
+          fi
+
+          echo "model=$MODEL" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Filter files
         id: files
@@ -226,7 +249,9 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           set -euo pipefail
-
+          
+          MODEL=${{ steps.model.outputs.model }}
+          
           PAYLOAD=$(jq -n \
             --arg model "$MODEL" \
             --arg sys "$(cat system.txt)" \

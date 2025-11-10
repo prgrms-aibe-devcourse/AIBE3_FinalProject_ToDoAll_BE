@@ -10,6 +10,7 @@ class ServerApplicationTests {
 
     @Test
     void contextLoads() {
+        System.out.println("Active profile: " + System.getProperty("spring.profiles.active"));
     }
 
 }

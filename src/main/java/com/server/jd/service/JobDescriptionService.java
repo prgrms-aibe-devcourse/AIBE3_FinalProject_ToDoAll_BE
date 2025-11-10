@@ -7,6 +7,7 @@ import com.server.jd.dto.JobDescriptionListResponseDto;
 import com.server.jd.repository.JobDescriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +60,7 @@ public class JobDescriptionService {
                         .deadline(e.getDeadline())
                         .build())
                 .toList();
+        return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
     }
 
     private Map<Long, List<String>> collectSkills(List<Long> ids, int limit) {

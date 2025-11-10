@@ -70,8 +70,8 @@ jobs:
             sleep 3
           done
 
-      - name: Build without Tests
-        run: ./gradlew clean build -x test --stacktrace
+      - name: Build and Test
+        run: ./gradlew clean build --stacktrace
 
       - name: Build Docker Compose (dev)
         run: |

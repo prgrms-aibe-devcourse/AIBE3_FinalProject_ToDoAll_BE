@@ -7,9 +7,7 @@ import lombok.*;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class InterviewEvaluation extends BaseEntity {
 
     @Id
@@ -42,4 +40,23 @@ public class InterviewEvaluation extends BaseEntity {
     // 면접 결과 (PASS, HOLD, FAIL)
     @Enumerated(EnumType.STRING)
     private InterviewResult result;
+
+
+    public static InterviewEvaluation of(Interview interview,
+                                         User evaluator,
+                                         Integer scoreTech,
+                                         Integer scoreComm,
+                                         Integer scoreOverall,
+                                         String comment,
+                                         InterviewResult result) {
+        InterviewEvaluation eval = new InterviewEvaluation();
+        eval.interview = interview;
+        eval.evaluator = evaluator;
+        eval.scoreTech = scoreTech;
+        eval.scoreComm = scoreComm;
+        eval.scoreOverall = scoreOverall;
+        eval.comment = comment;
+        eval.result = result;
+        return eval;
+    }
 }

@@ -11,9 +11,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Interview extends BaseEntity {
 
     @Id
@@ -42,4 +40,20 @@ public class Interview extends BaseEntity {
 
     @Lob
     private String summary; // 면접 요약
+
+    public static Interview of(JobDescription jobDescription,
+                               Resume resume,
+                               User organizer,
+                               LocalDateTime scheduledAt,
+                               InterviewStatus status,
+                               String summary) {
+        Interview interview = new Interview();
+        interview.jobDescription = jobDescription;
+        interview.resume = resume;
+        interview.organizer = organizer;
+        interview.scheduledAt = scheduledAt;
+        interview.status = status;
+        interview.summary = summary;
+        return interview;
+    }
 }

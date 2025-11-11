@@ -8,9 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class InterviewParticipant {
 
     @Id
@@ -36,4 +34,18 @@ public class InterviewParticipant {
 
     // 퇴장 시간
     private LocalDateTime leftAt;
+
+    public static InterviewParticipant of(Interview interview,
+                                          User user,
+                                          InterviewRole role,
+                                          LocalDateTime joinedAt,
+                                          LocalDateTime leftAt) {
+        InterviewParticipant participant = new InterviewParticipant();
+        participant.interview = interview;
+        participant.user = user;
+        participant.role = role;
+        participant.joinedAt = joinedAt;
+        participant.leftAt = leftAt;
+        return participant;
+    }
 }

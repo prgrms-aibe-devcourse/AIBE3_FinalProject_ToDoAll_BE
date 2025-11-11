@@ -30,4 +30,16 @@ public class InterviewQuestion extends BaseEntity {
     // 답변 내용
     @Column(columnDefinition = "TEXT")
     private String answer;
+
+    public static InterviewQuestion of(Interview interview,
+                                       QuestionType type,
+                                       String questionText,
+                                       String answer) {
+        InterviewQuestion question = new InterviewQuestion();
+        question.interview = interview;
+        question.type = type;
+        question.questionText = questionText;
+        question.answer = answer;
+        return question;
+    }
 }

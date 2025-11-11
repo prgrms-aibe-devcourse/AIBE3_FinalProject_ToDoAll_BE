@@ -3,15 +3,16 @@ package com.server.jd.domain;
 import com.server.global.entity.BaseEntity;
 import com.server.user.domain.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name="job_descriptions")
+@Table(name = "job_descriptions")
 public class JobDescription extends BaseEntity {
 
     @Id
@@ -42,43 +43,37 @@ public class JobDescription extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private JobStatus status;
 
-    @ElementCollection
-    @CollectionTable(name = "job_required_skills", joinColumns = @JoinColumn(name = "job_description_id"))
-    @Column(name = "skill")
-    private List<String> requiredSkills;
-
-    @ElementCollection
-    @CollectionTable(name = "job_preferred_skills", joinColumns = @JoinColumn(name = "job_description_id"))
-    @Column(name = "skill")
-    private List<String> preferredSkills;
-
     @Lob
     private String welfare;
 
-    private Long applicantCount;
+    private String location;
 
-    // 작성자 (User 엔티티 참조)
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
+
+    @Column(nullable = false)
+    private long applicantCount = 0; // 기본값 0
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-
-    public static JobDescription of(String title,
-                                    String department,
-                                    String workType,
-                                    String experience,
-                                    String education,
-                                    String salary,
-                                    String description,
-                                    LocalDate startDate,
-                                    LocalDate deadline,
-                                    JobStatus status,
-                                    List<String> requiredSkills,
-                                    List<String> preferredSkills,
-                                    String welfare,
-                                    Long applicantCount,
-                                    User author) {
-
+    public static JobDescription of(
+            String title,
+            String department,
+            String workType,
+            String experience,
+            String education,
+            String salary,
+            String description,
+            LocalDate startDate,
+            LocalDate deadline,
+            JobStatus status,
+            String welfare,
+            String location,
+            String thumbnailUrl,
+            User author
+    ) {
         JobDescription jd = new JobDescription();
         jd.title = title;
         jd.department = department;
@@ -90,11 +85,16 @@ public class JobDescription extends BaseEntity {
         jd.startDate = startDate;
         jd.deadline = deadline;
         jd.status = status;
-        jd.requiredSkills = requiredSkills;
-        jd.preferredSkills = preferredSkills;
         jd.welfare = welfare;
-        jd.applicantCount = applicantCount;
+        jd.location = location;
+        jd.thumbnailUrl = thumbnailUrl;
+        jd.applicantCount = 0L;
         jd.author = author;
         return jd;
+    }
+
+    // 지원자 수 증가 메서드
+    public void increaseApplicantCount() {
+        this.applicantCount++;
     }
 }

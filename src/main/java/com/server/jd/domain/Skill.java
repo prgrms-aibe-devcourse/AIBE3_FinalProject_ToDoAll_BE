@@ -1,4 +1,4 @@
-package com.server.global.entity;
+package com.server.jd.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

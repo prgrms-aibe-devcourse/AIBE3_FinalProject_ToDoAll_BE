@@ -70,6 +70,7 @@ public class JobDescription extends BaseEntity {
             LocalDate deadline,
             JobStatus status,
             String welfare,
+            Long applicantCount,
             String location,
             String thumbnailUrl,
             User author
@@ -86,9 +87,9 @@ public class JobDescription extends BaseEntity {
         jd.deadline = deadline;
         jd.status = status;
         jd.welfare = welfare;
+        jd.applicantCount = applicantCount;
         jd.location = location;
         jd.thumbnailUrl = thumbnailUrl;
-        jd.applicantCount = 0L;
         jd.author = author;
         return jd;
     }

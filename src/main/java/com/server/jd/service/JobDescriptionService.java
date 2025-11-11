@@ -5,13 +5,11 @@ import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.JobStatus;
 import com.server.jd.dto.JobDescriptionCreateRequestDto;
 import com.server.jd.dto.JobDescriptionListResponseDto;
+import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.user.domain.User;
-import com.server.user.exception.UserErrorCase;
 import com.server.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.service.spi.ServiceException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +30,7 @@ public class JobDescriptionService {
     @Transactional
     public Long createDraft(JobDescriptionCreateRequestDto request) {
         User author = userRepository.findById(request.authorId())
-                .orElseThrow(() ->  new ApplicationException(UserErrorCase.USER_NOT_FOUND));
+                .orElseThrow(() ->  new ApplicationException(JobErrorCase.AUTHOR_NOT_FOUND));
 
         JobDescription jd = JobDescription.of(
                 request.title(),

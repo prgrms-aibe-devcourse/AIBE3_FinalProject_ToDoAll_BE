@@ -5,13 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Dashboard extends BaseEntity {
 
     @Id
@@ -38,4 +38,22 @@ public class Dashboard extends BaseEntity {
 
     // 다가오는 면접 수
     private Integer upcomingInterviews;
+
+    public static Dashboard of(Integer totalJobs,
+                               Integer totalResumes,
+                               Integer totalMatches,
+                               Integer totalInterviews,
+                               Integer completedInterviews,
+                               Integer completedHires,
+                               Integer upcomingInterviews) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.totalJobs = totalJobs;
+        dashboard.totalResumes = totalResumes;
+        dashboard.totalMatches = totalMatches;
+        dashboard.totalInterviews = totalInterviews;
+        dashboard.completedInterviews = completedInterviews;
+        dashboard.completedHires = completedHires;
+        dashboard.upcomingInterviews = upcomingInterviews;
+        return dashboard;
+    }
 }

@@ -21,6 +21,9 @@ public class JobDescriptionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10")int size
     ) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Size must be greater than 0");
+        }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         return jobService.getList(pageable, 5);
     }

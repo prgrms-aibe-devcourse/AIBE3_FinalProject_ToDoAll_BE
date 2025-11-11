@@ -2,14 +2,16 @@ package com.server.resume.domain;
 
 import com.server.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "resumes")
 public class Resume extends BaseEntity {
 
     @Id
@@ -20,6 +22,7 @@ public class Resume extends BaseEntity {
 
     private String gender;
 
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     private String email;
@@ -28,30 +31,13 @@ public class Resume extends BaseEntity {
 
     private String address;
 
+    @Column(name = "detail_address")
     private String detailAddress;
 
-    @ElementCollection
-    @CollectionTable(name = "resume_education", joinColumns = @JoinColumn(name = "resume_id"))
-    private List<String> education;
-
-    @ElementCollection
-    @CollectionTable(name = "resume_experience", joinColumns = @JoinColumn(name = "resume_id"))
-    private List<String> experience;
-
-    @ElementCollection
-    @CollectionTable(name = "resume_skills", joinColumns = @JoinColumn(name = "resume_id"))
-    private List<String> skills;
-
-    @ElementCollection
-    @CollectionTable(name = "resume_activities", joinColumns = @JoinColumn(name = "resume_id"))
-    private List<String> activities;
-
-    @ElementCollection
-    @CollectionTable(name = "resume_certifications", joinColumns = @JoinColumn(name = "resume_id"))
-    private List<String> certifications;
-
+    @Column(name = "resume_file_url")
     private String resumeFileUrl;
 
+    @Column(name = "portfolio_file_url")
     private String portfolioFileUrl;
 
     @Enumerated(EnumType.STRING)
@@ -64,11 +50,6 @@ public class Resume extends BaseEntity {
                             String phone,
                             String address,
                             String detailAddress,
-                            List<String> education,
-                            List<String> experience,
-                            List<String> skills,
-                            List<String> activities,
-                            List<String> certifications,
                             String resumeFileUrl,
                             String portfolioFileUrl,
                             ResumeStatus status) {
@@ -80,11 +61,6 @@ public class Resume extends BaseEntity {
         resume.phone = phone;
         resume.address = address;
         resume.detailAddress = detailAddress;
-        resume.education = education;
-        resume.experience = experience;
-        resume.skills = skills;
-        resume.activities = activities;
-        resume.certifications = certifications;
         resume.resumeFileUrl = resumeFileUrl;
         resume.portfolioFileUrl = portfolioFileUrl;
         resume.status = status;

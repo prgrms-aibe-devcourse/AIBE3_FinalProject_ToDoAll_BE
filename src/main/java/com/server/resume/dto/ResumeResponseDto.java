@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record ResumeResponseDto(
+        // 여기 아마 엔티티 필드 바껴서 다시 맞춰줘야 할거같아요
         Long id,
         String name,
         String gender,

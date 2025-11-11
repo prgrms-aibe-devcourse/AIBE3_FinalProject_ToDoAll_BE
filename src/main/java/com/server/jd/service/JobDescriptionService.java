@@ -1,12 +1,18 @@
 package com.server.jd.service;
 
+import com.server.jd.domain.Skill;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
+import com.server.jd.domain.JobPreferredSkill;
+import com.server.jd.domain.JobRequiredSkill;
 import com.server.jd.domain.JobStatus;
 import com.server.jd.dto.JobDescriptionCreateRequestDto;
 import com.server.jd.dto.JobDescriptionListResponseDto;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.jd.repository.JobPreferredSkillRepository;
+import com.server.jd.repository.JobRequiredSkillRepository;
+import com.server.jd.repository.SkillRepository;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +31,15 @@ public class JobDescriptionService {
 
     private final JobDescriptionRepository jobRepository;
     private final UserRepository userRepository;
+    private final SkillRepository skillRepository;
+    private final JobRequiredSkillRepository jobRequiredSkillRepository;
+    private final JobPreferredSkillRepository jobPreferredSkillRepository;
 
     // JD 초안 생성 서비스 로직 (지원자 수 0 초기화 및 공고 생성 (본인이 원하는대로 수정)
     @Transactional
     public Long createDraft(JobDescriptionCreateRequestDto request) {
         User author = userRepository.findById(request.authorId())
-                .orElseThrow(() ->  new ApplicationException(JobErrorCase.AUTHOR_NOT_FOUND));
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.AUTHOR_NOT_FOUND));
 
         JobDescription jd = JobDescription.of(
                 request.title(),
@@ -40,17 +49,33 @@ public class JobDescriptionService {
                 request.education(),
                 request.salary(),
                 request.description(),
-                null,  // startDate는 초안 단계에서 null
+                null, // 초안이므로 null
                 request.deadline(),
                 JobStatus.DRAFT,
-                request.requiredSkills(),
-                request.preferredSkills(),
                 request.welfare(),
-                0L,
+                0L, // 지원자 수 초기값
+                request.location(),
+                request.thumbnailUrl(),
                 author
         );
 
-        return jobRepository.save(jd).getId();
+        jobRepository.save(jd);
+
+        // 필수 기술 매핑
+        List<Skill> requiredSkills = skillRepository.findAllById(request.requiredSkillIds());
+        List<JobRequiredSkill> requiredSkillEntities = requiredSkills.stream()
+                .map(skill -> JobRequiredSkill.of(jd, skill))
+                .toList();
+        jobRequiredSkillRepository.saveAll(requiredSkillEntities);
+
+        // 우대 기술 매핑
+        List<Skill> preferredSkills = skillRepository.findAllById(request.preferredSkillIds());
+        List<JobPreferredSkill> preferredSkillEntities = preferredSkills.stream()
+                .map(skill -> JobPreferredSkill.of(jd, skill))
+                .toList();
+        jobPreferredSkillRepository.saveAll(preferredSkillEntities);
+
+        return jd.getId();
     }
 
     public Page<JobDescriptionListResponseDto> getList(Pageable pageable, int skillLimit) {

@@ -15,5 +15,6 @@ public record JobDescriptionCreateRequestDto(
         LocalDate deadline,
         List<String> requiredSkills,
         List<String> preferredSkills,
-        String welfare
+        String welfare,
+        Long authorId
 ) {}

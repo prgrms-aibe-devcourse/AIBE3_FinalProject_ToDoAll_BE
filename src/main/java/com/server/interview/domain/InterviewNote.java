@@ -28,11 +28,16 @@ public class InterviewNote extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    public static InterviewNote of(Interview interview, User author, String content) {
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private InterviewNoteStatus status; // 질문 상태
+
+    public static InterviewNote of(Interview interview, User author, String content, InterviewNoteStatus status) {
         InterviewNote note = new InterviewNote();
         note.interview = interview;
         note.author = author;
         note.content = content;
+        note.status = status;
         return note;
     }
 }

@@ -4,7 +4,9 @@ import com.server.global.entity.BaseEntity;
 import com.server.jd.domain.JobDescription;
 import com.server.resume.domain.Resume;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -18,22 +20,22 @@ public class Match extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // JD 연관관계 (ManyToOne)
+    // JD 참조
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "jd_id", nullable = false)
     private JobDescription jobDescription;
 
-    // Resume 연관관계 (ManyToOne)
+    // 이력서 참조
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
 
-    private LocalDateTime appliedAt; // 지원 일시
+    private LocalDateTime appliedAt;
 
-    private Float matchScore; // 매칭 점수
+    private Float matchScore;
 
     @Lob
-    private String recommendationReason; // 추천 사유
+    private String recommendationReason;
 
     @Enumerated(EnumType.STRING)
     private MatchStatus status;

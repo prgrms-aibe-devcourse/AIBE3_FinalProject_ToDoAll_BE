@@ -6,9 +6,7 @@ import lombok.*;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class InterviewQuestion extends BaseEntity {
 
     @Id

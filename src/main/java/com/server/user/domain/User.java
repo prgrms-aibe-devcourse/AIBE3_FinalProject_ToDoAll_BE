@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -36,6 +37,18 @@ public class User extends BaseEntity {
     @Column(name = "company_name")
     private String companyName;
 
+    private String position;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EmailStatus status;
+
+    @Column(name = "email_token", unique = true)
+    private String emailToken;
+
+    @Column(name = "email_expiry")
+    private LocalDateTime emailExpiry;
+
     public static User of(String email,
                           String password,
                           String name,
@@ -43,7 +56,8 @@ public class User extends BaseEntity {
                           String phoneNumber,
                           LocalDate birthDate,
                           String gender,
-                          String companyName) {
+                          String companyName,
+                          String position) {
         User user = new User();
         user.email = email;
         user.password = password;
@@ -53,6 +67,8 @@ public class User extends BaseEntity {
         user.birthDate = birthDate;
         user.gender = gender;
         user.companyName = companyName;
+        user.position = position;
+        user.status = EmailStatus.UNVERIFIED;
         return user;
     }
 }

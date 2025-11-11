@@ -1,11 +1,17 @@
 package com.server.jd.service;
 
+import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.JobStatus;
 import com.server.jd.dto.JobDescriptionCreateRequestDto;
 import com.server.jd.dto.JobDescriptionListResponseDto;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.user.domain.User;
+import com.server.user.exception.UserErrorCase;
+import com.server.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -20,26 +26,31 @@ import java.util.stream.Collectors;
 public class JobDescriptionService {
 
     private final JobDescriptionRepository jobRepository;
-
+    private final UserRepository userRepository;
 
     // JD 초안 생성 서비스 로직 (지원자 수 0 초기화 및 공고 생성 (본인이 원하는대로 수정)
     @Transactional
     public Long createDraft(JobDescriptionCreateRequestDto request) {
-        JobDescription jd = JobDescription.builder()
-                .title(request.title())
-                .department(request.department())
-                .workType(request.workType())
-                .experience(request.experience())
-                .education(request.education())
-                .salary(request.salary())
-                .description(request.description())
-                .deadline(request.deadline())
-                .requiredSkills(request.requiredSkills())
-                .preferredSkills(request.preferredSkills())
-                .welfare(request.welfare())
-                .status(JobStatus.DRAFT) // 최초 생성은 무조건 초안 상태
-                .applicantCount(0L) // 신규 공고이므로 지원자 수는 0
-                .build();
+        User author = userRepository.findById(request.authorId())
+                .orElseThrow(() ->  new ApplicationException(UserErrorCase.USER_NOT_FOUND));
+
+        JobDescription jd = JobDescription.of(
+                request.title(),
+                request.department(),
+                request.workType(),
+                request.experience(),
+                request.education(),
+                request.salary(),
+                request.description(),
+                null,  // startDate는 초안 단계에서 null
+                request.deadline(),
+                JobStatus.DRAFT,
+                request.requiredSkills(),
+                request.preferredSkills(),
+                request.welfare(),
+                0L,
+                author
+        );
 
         return jobRepository.save(jd).getId();
     }

@@ -10,8 +10,6 @@ import java.time.LocalDate;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class User extends BaseEntity {
 
     @Id
@@ -37,4 +35,24 @@ public class User extends BaseEntity {
 
     @Column(name = "company_name")
     private String companyName;
+
+    public static User of(String email,
+                          String password,
+                          String name,
+                          String nickname,
+                          String phoneNumber,
+                          LocalDate birthDate,
+                          String gender,
+                          String companyName) {
+        User user = new User();
+        user.email = email;
+        user.password = password;
+        user.name = name;
+        user.nickname = nickname;
+        user.phoneNumber = phoneNumber;
+        user.birthDate = birthDate;
+        user.gender = gender;
+        user.companyName = companyName;
+        return user;
+    }
 }

@@ -10,9 +10,8 @@ import java.util.List;
 
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name="job_descriptions")
 public class JobDescription extends BaseEntity {
 
     @Id
@@ -62,4 +61,40 @@ public class JobDescription extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
+
+
+    public static JobDescription of(String title,
+                                    String department,
+                                    String workType,
+                                    String experience,
+                                    String education,
+                                    String salary,
+                                    String description,
+                                    LocalDate startDate,
+                                    LocalDate deadline,
+                                    JobStatus status,
+                                    List<String> requiredSkills,
+                                    List<String> preferredSkills,
+                                    String welfare,
+                                    Long applicantCount,
+                                    User author) {
+
+        JobDescription jd = new JobDescription();
+        jd.title = title;
+        jd.department = department;
+        jd.workType = workType;
+        jd.experience = experience;
+        jd.education = education;
+        jd.salary = salary;
+        jd.description = description;
+        jd.startDate = startDate;
+        jd.deadline = deadline;
+        jd.status = status;
+        jd.requiredSkills = requiredSkills;
+        jd.preferredSkills = preferredSkills;
+        jd.welfare = welfare;
+        jd.applicantCount = applicantCount;
+        jd.author = author;
+        return jd;
+    }
 }

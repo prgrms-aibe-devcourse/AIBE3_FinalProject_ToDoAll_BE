@@ -10,9 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Table(name = "matches")
 public class Match extends BaseEntity {
 
@@ -39,4 +37,20 @@ public class Match extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
+
+    public static Match of(JobDescription jobDescription,
+                           Resume resume,
+                           LocalDateTime appliedAt,
+                           Float matchScore,
+                           String recommendationReason,
+                           MatchStatus status) {
+        Match match = new Match();
+        match.jobDescription = jobDescription;
+        match.resume = resume;
+        match.appliedAt = appliedAt;
+        match.matchScore = matchScore;
+        match.recommendationReason = recommendationReason;
+        match.status = status;
+        return match;
+    }
 }

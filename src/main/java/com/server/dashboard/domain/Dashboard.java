@@ -18,37 +18,32 @@ public class Dashboard extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 총 채용공고 수
-    private Integer totalJobs;
+    private Integer totalJobs;             // 총 채용공고 수
+    private Integer totalActiveJobs;       // 총 활성공고 수
+    private Integer totalResumes;          // 총 등록 이력서 수
+    private Integer totalActiveResumes;    // 활성공고에 지원된 이력서 수
+    private Integer totalMatches;          // 총 매칭 수
+    private Integer totalInterviews;       // 총 면접 수
+    private Integer completedInterviews;   // 완료된 면접 수
+    private Integer completedHires;        // 최종 채용 완료 수
+    private Integer upcomingInterviews;    // 다가오는 면접 수
 
-    // 총 이력서 수
-    private Integer totalResumes;
-
-    // 총 매칭 수
-    private Integer totalMatches;
-
-    // 총 면접 수
-    private Integer totalInterviews;
-
-    // 완료된 면접 수
-    private Integer completedInterviews;
-
-    // 최종 채용 완료 수
-    private Integer completedHires;
-
-    // 다가오는 면접 수
-    private Integer upcomingInterviews;
-
-    public static Dashboard of(Integer totalJobs,
-                               Integer totalResumes,
-                               Integer totalMatches,
-                               Integer totalInterviews,
-                               Integer completedInterviews,
-                               Integer completedHires,
-                               Integer upcomingInterviews) {
+    public static Dashboard of(
+            Integer totalJobs,
+            Integer totalActiveJobs,
+            Integer totalResumes,
+            Integer totalActiveResumes,
+            Integer totalMatches,
+            Integer totalInterviews,
+            Integer completedInterviews,
+            Integer completedHires,
+            Integer upcomingInterviews
+    ) {
         Dashboard dashboard = new Dashboard();
         dashboard.totalJobs = totalJobs;
+        dashboard.totalActiveJobs = totalActiveJobs;
         dashboard.totalResumes = totalResumes;
+        dashboard.totalActiveResumes = totalActiveResumes;
         dashboard.totalMatches = totalMatches;
         dashboard.totalInterviews = totalInterviews;
         dashboard.completedInterviews = completedInterviews;

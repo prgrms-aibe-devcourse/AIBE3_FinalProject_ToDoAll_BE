@@ -44,7 +44,7 @@ public class ResumeEducation {
     private Double gpa; // 학점
 
     @Column(name = "gpa_scale")
-    private Double gpaScale; // 기준 학점 
+    private Double gpaScale; // 기준 학점
 
     public static ResumeEducation of(Resume resume,
                                      String educationLevel,

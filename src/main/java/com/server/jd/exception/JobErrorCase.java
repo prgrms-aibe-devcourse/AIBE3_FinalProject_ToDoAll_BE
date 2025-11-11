@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 public enum JobErrorCase implements ErrorCase {
 
     JOB_NOT_FOUND(HttpStatus.NOT_FOUND, 6001, "해당 채용공고를 찾을 수 없습니다."),
-    INVALID_JOB_STATUS(HttpStatus.BAD_REQUEST, 6002, "유효하지 않은 공고 상태입니다.");
+    INVALID_JOB_STATUS(HttpStatus.BAD_REQUEST, 6002, "유효하지 않은 공고 상태입니다."),
+    AUTHOR_NOT_FOUND(HttpStatus.NOT_FOUND, 6003, "작성자 ID에 해당하는 유저를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;

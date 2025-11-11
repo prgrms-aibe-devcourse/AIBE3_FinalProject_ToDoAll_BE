@@ -7,9 +7,7 @@ import lombok.*;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class InterviewNote extends BaseEntity {
 
     @Id
@@ -29,4 +27,12 @@ public class InterviewNote extends BaseEntity {
     // 면접 노트 내용
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    public static InterviewNote of(Interview interview, User author, String content) {
+        InterviewNote note = new InterviewNote();
+        note.interview = interview;
+        note.author = author;
+        note.content = content;
+        return note;
+    }
 }

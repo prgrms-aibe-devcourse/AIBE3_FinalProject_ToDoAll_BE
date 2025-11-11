@@ -20,23 +20,23 @@ public class ResumeService {
     // 이력서 생성 관련
     @Transactional
     public Long createResume(ResumeCreateRequestDto request) {
-        Resume resume = Resume.builder()
-                .name(request.name())
-                .gender(request.gender())
-                .birthDate(request.birthDate())
-                .email(request.email())
-                .phone(request.phone())
-                .address(request.address())
-                .detailAddress(request.detailAddress())
-                .education(request.education())
-                .experience(request.experience())
-                .skills(request.skills())
-                .activities(request.activities())
-                .certifications(request.certifications())
-                .resumeFileUrl(request.resumeFileUrl())
-                .portfolioFileUrl(request.portfolioFileUrl())
-                .status(ResumeStatus.NEW) // 기본값 NEW
-                .build();
+        Resume resume = Resume.of(
+                request.name(),
+                request.gender(),
+                request.birthDate(),
+                request.email(),
+                request.phone(),
+                request.address(),
+                request.detailAddress(),
+                request.education(),
+                request.experience(),
+                request.skills(),
+                request.activities(),
+                request.certifications(),
+                request.resumeFileUrl(),
+                request.portfolioFileUrl(),
+                ResumeStatus.NEW
+        );
 
         return resumeRepository.save(resume).getId();
     }

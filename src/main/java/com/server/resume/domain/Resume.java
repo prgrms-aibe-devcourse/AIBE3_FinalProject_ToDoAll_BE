@@ -9,8 +9,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Resume extends BaseEntity {
 
@@ -58,4 +56,38 @@ public class Resume extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private ResumeStatus status;
+
+    public static Resume of(String name,
+                            String gender,
+                            LocalDate birthDate,
+                            String email,
+                            String phone,
+                            String address,
+                            String detailAddress,
+                            List<String> education,
+                            List<String> experience,
+                            List<String> skills,
+                            List<String> activities,
+                            List<String> certifications,
+                            String resumeFileUrl,
+                            String portfolioFileUrl,
+                            ResumeStatus status) {
+        Resume resume = new Resume();
+        resume.name = name;
+        resume.gender = gender;
+        resume.birthDate = birthDate;
+        resume.email = email;
+        resume.phone = phone;
+        resume.address = address;
+        resume.detailAddress = detailAddress;
+        resume.education = education;
+        resume.experience = experience;
+        resume.skills = skills;
+        resume.activities = activities;
+        resume.certifications = certifications;
+        resume.resumeFileUrl = resumeFileUrl;
+        resume.portfolioFileUrl = portfolioFileUrl;
+        resume.status = status;
+        return resume;
+    }
 }

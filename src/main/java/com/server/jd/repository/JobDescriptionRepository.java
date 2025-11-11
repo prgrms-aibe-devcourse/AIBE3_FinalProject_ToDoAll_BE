@@ -11,10 +11,9 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
     List<JobDescription> findAllByStatus(String status);
 
     @Query("""
-            select jd.id as jobId, s
-            from JobDescription jd
-            join jd.requiredSkills s
-            where jd.id in :ids
-            """)
+        select jrs.job.id as jobId, jrs.skill.name
+        from JobRequiredSkill jrs
+        where jrs.job.id in :ids
+    """)
     List<Object[]> findRequiredSkillsByJobIds(Collection<Long> ids);
 }

@@ -15,8 +15,8 @@ public class InterviewEvaluation extends BaseEntity {
     private Long id;
 
     // 평가 대상 면접
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interview_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "interview_id", nullable = false, unique = true)
     private Interview interview;
 
     // 평가자 (User)

@@ -142,7 +142,7 @@ public class JobDescriptionService {
                 .thumbnailUrl(jd.getThumbnailUrl())
                 .description(jd.getDescription())
                 .preferredSkills(preferred)
-                .welfare(jd.getWelfare())
+                .benefits(jd.getWelfare())
                 .experience(jd.getExperience())
                 .education(jd.getEducation())
                 .workType(jd.getWorkType())

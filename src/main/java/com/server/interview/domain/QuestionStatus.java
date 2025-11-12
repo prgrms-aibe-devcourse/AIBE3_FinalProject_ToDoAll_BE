@@ -1,6 +1,6 @@
 package com.server.interview.domain;
 
-public enum InterviewNoteStatus {
+public enum QuestionStatus {
     PENDING,
     DONE
 }

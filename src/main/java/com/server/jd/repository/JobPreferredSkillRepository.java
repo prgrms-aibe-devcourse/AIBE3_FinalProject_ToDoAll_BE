@@ -1,6 +1,7 @@
 package com.server.jd.repository;
 
 import com.server.jd.domain.JobPreferredSkill;
+import com.server.jd.repository.projection.SkillByJobProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -13,5 +14,12 @@ public interface JobPreferredSkillRepository extends JpaRepository<JobPreferredS
         from JobPreferredSkill jps
         where jps.job.id in :ids
     """)
-    List<Object[]> findPreferredSkillsByJobIds(Collection<Long> ids);
+    List<SkillByJobProjection> findPreferredSkillsByJobIds(Collection<Long> ids);
+
+    @Query("""
+        select jps.skill.name
+        from JobPreferredSkill jps
+        where jps.job.id = :id
+    """)
+    List<String> findPreferredSkillNamesByJobId(Long id);
 }

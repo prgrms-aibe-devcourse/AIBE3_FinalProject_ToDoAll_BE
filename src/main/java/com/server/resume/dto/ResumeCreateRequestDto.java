@@ -4,8 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record ResumeCreateRequestDto(
-        // 여기 아마 엔티티 필드 바껴서 다시 맞춰줘야 할거같아요
         String name,
+        Long jobId,
+        String jobTitle,
         String gender,
         LocalDate birthDate,
         String email,

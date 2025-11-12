@@ -16,4 +16,11 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
         where jrs.job.id in :ids
     """)
     List<Object[]> findRequiredSkillsByJobIds(Collection<Long> ids);
+
+    @Query("""
+        select jps.job.id as jobId, jps.skill.name
+        from JobPreferredSkill jps
+        where jps.job.id in :ids
+    """)
+    List<Object[]> findPreferredSkillsByJobIds(Collection<Long> ids);
 }

@@ -1,5 +1,7 @@
 package com.server.jd.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,7 +18,7 @@ public record JobDescriptionResponseDto(
         LocalDate deadline,
         List<String> requiredSkills,
         List<String> preferredSkills,
-        String welfare,
+        @JsonProperty("benefits") String welfare,
         String status,
         Long applicantCount
 ) {}

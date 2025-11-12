@@ -9,11 +9,4 @@ import java.util.List;
 
 public interface JobDescriptionRepository extends JpaRepository<JobDescription, Long> {
     List<JobDescription> findAllByStatus(String status);
-
-    @Query("""
-        select jrs.job.id as jobId, jrs.skill.name
-        from JobRequiredSkill jrs
-        where jrs.job.id in :ids
-    """)
-    List<Object[]> findRequiredSkillsByJobIds(Collection<Long> ids);
 }

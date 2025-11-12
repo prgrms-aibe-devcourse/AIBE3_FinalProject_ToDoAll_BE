@@ -1,0 +1,14 @@
+package com.server.resume.service;
+
+
+import com.server.resume.repository.ResumeRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+
+@Service
+@RequiredArgsConstructor
+public class ResumeEducationService {
+
+    private final ResumeRepository resumeRepository;
+}

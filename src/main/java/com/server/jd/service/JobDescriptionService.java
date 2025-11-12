@@ -7,12 +7,14 @@ import com.server.jd.domain.JobPreferredSkill;
 import com.server.jd.domain.JobRequiredSkill;
 import com.server.jd.domain.JobStatus;
 import com.server.jd.dto.JobDescriptionCreateRequestDto;
+import com.server.jd.dto.JobDescriptionDetailResponseDto;
 import com.server.jd.dto.JobDescriptionListResponseDto;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.jd.repository.JobPreferredSkillRepository;
 import com.server.jd.repository.JobRequiredSkillRepository;
 import com.server.jd.repository.SkillRepository;
+import com.server.jd.repository.projection.SkillByJobProjection;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -78,42 +80,64 @@ public class JobDescriptionService {
         return jd.getId();
     }
 
+    @Transactional(readOnly = true)
     public Page<JobDescriptionListResponseDto> getList(Pageable pageable, int skillLimit) {
         Page<JobDescription> page = jobRepository.findAll(pageable);
         List<Long> ids = page.stream().map(JobDescription::getId).toList();
-        Map<Long, List<String>> skillsMap = collectSkills(ids, skillLimit);
+
+        Map<Long, List<String>> requiredMap = jobRequiredSkillRepository
+                .findRequiredSkillsByJobIds(ids).stream()
+                .collect(Collectors.groupingBy(
+                        SkillByJobProjection::getJobId,
+                        Collectors.mapping(SkillByJobProjection::getSkillName, Collectors.toList())
+                ));
+
         List<JobDescriptionListResponseDto> content = page.stream()
                 .map(e -> JobDescriptionListResponseDto.builder()
                         .id(e.getId())
                         .title(e.getTitle())
-                        .location(null)
+                        .location(e.getLocation())
                         .applicantCount(Optional.ofNullable(e.getApplicantCount()).orElse(0L))
                         .status(e.getStatus())
-                        .requiredSkills(skillsMap.getOrDefault(e.getId(), List.of()))
+                        .requiredSkills(requiredMap.getOrDefault(e.getId(), List.of())
+                                .stream().distinct().limit(skillLimit).toList())
                         .startDate(e.getStartDate())
                         .deadline(e.getDeadline())
                         .build())
                 .toList();
+
         return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
     }
 
-    private Map<Long, List<String>> collectSkills(List<Long> ids, int limit) {
-        if (ids.isEmpty()) return Map.of();
+    @Transactional(readOnly = true)
+    public JobDescriptionDetailResponseDto getDetail(Long id) {
+        JobDescription jd = jobRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
 
-        Map<Long, List<String>> map = new HashMap<>();
+        List<String> required = jobRequiredSkillRepository
+                .findRequiredSkillNamesByJobId(id).stream().distinct().toList();
 
-        jobRepository.findRequiredSkillsByJobIds(ids).forEach(row -> {
-            Long id = (Long) row[0];
-            String skill = (String) row[1];
-            map.computeIfAbsent(id, k -> new ArrayList<>()).add(skill);
-        });
+        List<String> preferred = jobPreferredSkillRepository
+                .findPreferredSkillNamesByJobId(id).stream().distinct().toList();
 
-        map.replaceAll((k, v) -> v.stream()
-                .filter(Objects::nonNull)
-                .distinct()
-                .limit(limit)
-                .collect(Collectors.toList()));
-
-        return map;
+        return JobDescriptionDetailResponseDto.builder()
+                .id(jd.getId())
+                .title(jd.getTitle())
+                .location(jd.getLocation())
+                .applicantCount(jd.getApplicantCount())
+                .status(jd.getStatus())
+                .skills(required)
+                .startDate(jd.getStartDate())
+                .deadline(jd.getDeadline())
+                .thumbnailUrl(jd.getThumbnailUrl())
+                .description(jd.getDescription())
+                .preferredSkills(preferred)
+                .benefits(jd.getWelfare())
+                .experience(jd.getExperience())
+                .education(jd.getEducation())
+                .workType(jd.getWorkType())
+                .salary(jd.getSalary())
+                .department(jd.getDepartment())
+                .build();
     }
 }

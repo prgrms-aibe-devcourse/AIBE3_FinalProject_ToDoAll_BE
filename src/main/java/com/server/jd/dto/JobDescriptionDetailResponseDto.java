@@ -1,10 +1,12 @@
 package com.server.jd.dto;
 
 import com.server.jd.domain.JobStatus;
+import lombok.Builder;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Builder
 public record JobDescriptionDetailResponseDto(
         Long id,
         String title,

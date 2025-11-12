@@ -7,6 +7,7 @@ import com.server.jd.domain.JobPreferredSkill;
 import com.server.jd.domain.JobRequiredSkill;
 import com.server.jd.domain.JobStatus;
 import com.server.jd.dto.JobDescriptionCreateRequestDto;
+import com.server.jd.dto.JobDescriptionDetailResponseDto;
 import com.server.jd.dto.JobDescriptionListResponseDto;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -78,6 +79,7 @@ public class JobDescriptionService {
         return jd.getId();
     }
 
+    @Transactional
     public Page<JobDescriptionListResponseDto> getList(Pageable pageable, int skillLimit) {
         Page<JobDescription> page = jobRepository.findAll(pageable);
         List<Long> ids = page.stream().map(JobDescription::getId).toList();
@@ -115,5 +117,37 @@ public class JobDescriptionService {
                 .collect(Collectors.toList()));
 
         return map;
+    }
+
+    @Transactional
+    public JobDescriptionDetailResponseDto getDetail(Long id) {
+        JobDescription jd = jobRepository.findById(id).orElseThrow(
+                () -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND)
+        );
+        List<String> required = jobRequiredSkillRepository
+                .findRequiredSkillsByJobIds(List.of(id)).stream()
+                .map(r -> (String) r[1]).distinct().toList();
+        List<String> preferred = jobPreferredSkillRepository
+                .findPreferredSkillsByJobIds(List.of(id)).stream()
+                .map(r -> (String) r[1]).distinct().toList();
+        return JobDescriptionDetailResponseDto.builder()
+                .id(jd.getId())
+                .title(jd.getTitle())
+                .location(jd.getLocation())
+                .applicantCount(jd.getApplicantCount())
+                .status(jd.getStatus())
+                .skills(required)
+                .startDate(jd.getStartDate())
+                .deadline(jd.getDeadline())
+                .thumbnailUrl(jd.getThumbnailUrl())
+                .description(jd.getDescription())
+                .preferredSkills(preferred)
+                .welfare(jd.getWelfare())
+                .experience(jd.getExperience())
+                .education(jd.getEducation())
+                .workType(jd.getWorkType())
+                .salary(jd.getSalary())
+                .department(jd.getDepartment())
+                .build();
     }
 }

@@ -19,7 +19,7 @@ public record JobDescriptionDetailResponseDto(
         LocalDate startDate,
         LocalDate deadline,
         JobStatus status,
-        String welfare,
+        String benefits,
         Long applicantCount,
         String location,
         String thumbnailUrl,

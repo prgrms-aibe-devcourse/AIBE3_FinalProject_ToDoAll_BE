@@ -14,6 +14,7 @@ import com.server.jd.repository.JobDescriptionRepository;
 import com.server.jd.repository.JobPreferredSkillRepository;
 import com.server.jd.repository.JobRequiredSkillRepository;
 import com.server.jd.repository.SkillRepository;
+import com.server.jd.repository.projection.SkillByJobProjection;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -79,57 +80,46 @@ public class JobDescriptionService {
         return jd.getId();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<JobDescriptionListResponseDto> getList(Pageable pageable, int skillLimit) {
         Page<JobDescription> page = jobRepository.findAll(pageable);
         List<Long> ids = page.stream().map(JobDescription::getId).toList();
-        Map<Long, List<String>> skillsMap = collectSkills(ids, skillLimit);
+
+        Map<Long, List<String>> requiredMap = jobRequiredSkillRepository
+                .findRequiredSkillsByJobIds(ids).stream()
+                .collect(Collectors.groupingBy(
+                        SkillByJobProjection::getJobId,
+                        Collectors.mapping(SkillByJobProjection::getSkillName, Collectors.toList())
+                ));
+
         List<JobDescriptionListResponseDto> content = page.stream()
                 .map(e -> JobDescriptionListResponseDto.builder()
                         .id(e.getId())
                         .title(e.getTitle())
-                        .location(null)
+                        .location(e.getLocation())
                         .applicantCount(Optional.ofNullable(e.getApplicantCount()).orElse(0L))
                         .status(e.getStatus())
-                        .requiredSkills(skillsMap.getOrDefault(e.getId(), List.of()))
+                        .requiredSkills(requiredMap.getOrDefault(e.getId(), List.of())
+                                .stream().distinct().limit(skillLimit).toList())
                         .startDate(e.getStartDate())
                         .deadline(e.getDeadline())
                         .build())
                 .toList();
+
         return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
     }
 
-    private Map<Long, List<String>> collectSkills(List<Long> ids, int limit) {
-        if (ids.isEmpty()) return Map.of();
-
-        Map<Long, List<String>> map = new HashMap<>();
-
-        jobRequiredSkillRepository.findRequiredSkillsByJobIds(ids).forEach(row -> {
-            Long id = (Long) row[0];
-            String skill = (String) row[1];
-            map.computeIfAbsent(id, k -> new ArrayList<>()).add(skill);
-        });
-
-        map.replaceAll((k, v) -> v.stream()
-                .filter(Objects::nonNull)
-                .distinct()
-                .limit(limit)
-                .collect(Collectors.toList()));
-
-        return map;
-    }
-
-    @Transactional
+    @Transactional(readOnly = true)
     public JobDescriptionDetailResponseDto getDetail(Long id) {
-        JobDescription jd = jobRepository.findById(id).orElseThrow(
-                () -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND)
-        );
+        JobDescription jd = jobRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+
         List<String> required = jobRequiredSkillRepository
-                .findRequiredSkillsByJobIds(List.of(id)).stream()
-                .map(r -> (String) r[1]).distinct().toList();
+                .findRequiredSkillNamesByJobId(id).stream().distinct().toList();
+
         List<String> preferred = jobPreferredSkillRepository
-                .findPreferredSkillsByJobIds(List.of(id)).stream()
-                .map(r -> (String) r[1]).distinct().toList();
+                .findPreferredSkillNamesByJobId(id).stream().distinct().toList();
+
         return JobDescriptionDetailResponseDto.builder()
                 .id(jd.getId())
                 .title(jd.getTitle())

@@ -21,7 +21,7 @@ public record ResumeResponseDto(
         List<String> education,
         List<String> experience,
         List<ResumeSkillResponseDto> skills,
-        List<String> activities,
+        List<ResumeActivityResponseDto> activities,
         List<String> certifications,
         String resumeFileUrl,
         String portfolioFileUrl,
@@ -58,7 +58,9 @@ public record ResumeResponseDto(
                 resume.getSkills().stream()
                         .map(ResumeSkillResponseDto::fromEntity)
                         .collect(Collectors.toList()),
-                activities,
+                resume.getActivities().stream()
+                        .map(ResumeActivityResponseDto::fromEntity)
+                        .collect(Collectors.toList()),
                 certifications,
                 resume.getResumeFileUrl(),
                 resume.getPortfolioFileUrl(),

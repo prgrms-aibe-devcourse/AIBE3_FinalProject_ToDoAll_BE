@@ -19,7 +19,7 @@ public record ResumeResponseDto(
         String address,
         String detailAddress,
         List<String> education,
-        List<String> experience,
+        List<ResumeExperienceResponseDto> experience,
         List<ResumeSkillResponseDto> skills,
         List<ResumeActivityResponseDto> activities,
         List<ResumeCertificationResponseDto> certifications,
@@ -54,7 +54,9 @@ public record ResumeResponseDto(
                 resume.getAddress(),
                 resume.getDetailAddress(),
                 education,
-                experience,
+                resume.getExperiences().stream()
+                        .map(ResumeExperienceResponseDto::fromEntity)
+                        .collect(Collectors.toList()),
                 resume.getSkills().stream()
                         .map(ResumeSkillResponseDto::fromEntity)
                         .collect(Collectors.toList()),

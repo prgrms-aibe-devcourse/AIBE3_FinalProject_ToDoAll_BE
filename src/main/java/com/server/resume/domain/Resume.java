@@ -1,6 +1,7 @@
 package com.server.resume.domain;
 
 import com.server.global.entity.BaseEntity;
+import com.server.jd.domain.JobDescription;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -18,6 +19,10 @@ public class Resume extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "jd_id")
+    private JobDescription jobDescription;
 
     private String name;
 

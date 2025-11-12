@@ -33,6 +33,14 @@ public class Interview extends BaseEntity {
     @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;
 
+    // InterviewNote 연관관계
+    @OneToOne(mappedBy = "interview")
+    private InterviewNote interviewNote;
+
+    // InterviewNote 연관관계
+    @OneToOne(mappedBy = "interview")
+    private InterviewEvaluation interviewEvaluation;
+
     private LocalDateTime scheduledAt; // 예정 면접 시간
 
     @Enumerated(EnumType.STRING)

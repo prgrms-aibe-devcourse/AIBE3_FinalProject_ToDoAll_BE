@@ -34,11 +34,11 @@ public class Interview extends BaseEntity {
     private User organizer;
 
     // InterviewNote 연관관계
-    @OneToOne(mappedBy = "interview")
+    @OneToOne(mappedBy = "interview", cascade = CascadeType.ALL)
     private InterviewNote interviewNote;
 
     // InterviewNote 연관관계
-    @OneToOne(mappedBy = "interview")
+    @OneToOne(mappedBy = "interview", cascade = CascadeType.ALL)
     private InterviewEvaluation interviewEvaluation;
 
     private LocalDateTime scheduledAt; // 예정 면접 시간

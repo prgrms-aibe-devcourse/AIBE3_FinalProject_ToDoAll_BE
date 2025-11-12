@@ -8,34 +8,34 @@ import lombok.Getter;
 @Getter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse<T> {
+public class CommonResponse<T> {
 
     private final Integer errorCode;
     private final String message;
     private final T data;
 
-    public static <T> ApiResponse<T> success(T data) {
-        return ApiResponse.<T>builder()
+    public static <T> CommonResponse<T> success(T data) {
+        return CommonResponse.<T>builder()
                 .message("success")
                 .data(data)
                 .build();
     }
 
-    public static ApiResponse<?> success() {
-        return ApiResponse.builder()
+    public static CommonResponse<?> success() {
+        return CommonResponse.builder()
                 .message("success")
                 .build();
     }
 
-    public static ApiResponse<?> error(ErrorCase errorCase) {
-        return ApiResponse.builder()
+    public static CommonResponse<?> error(ErrorCase errorCase) {
+        return CommonResponse.builder()
                 .errorCode(errorCase.getErrorCode())
                 .message(errorCase.getMessage())
                 .build();
     }
 
-    public static ApiResponse<?> error(int errorCode, String message) {
-        return ApiResponse.builder()
+    public static CommonResponse<?> error(int errorCode, String message) {
+        return CommonResponse.builder()
                 .errorCode(errorCode)
                 .message(message)
                 .build();

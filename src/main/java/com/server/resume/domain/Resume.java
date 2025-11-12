@@ -73,7 +73,8 @@ public class Resume extends BaseEntity {
 
 
 
-    public static Resume of(String name,
+    public static Resume of(JobDescription jobDescription,
+                            String name,
                             String gender,
                             LocalDate birthDate,
                             String email,
@@ -84,6 +85,7 @@ public class Resume extends BaseEntity {
                             String portfolioFileUrl,
                             ResumeStatus status) {
         Resume resume = new Resume();
+        resume.jobDescription = jobDescription;
         resume.name = name;
         resume.gender = gender;
         resume.birthDate = birthDate;

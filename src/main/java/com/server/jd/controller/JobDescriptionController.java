@@ -1,7 +1,7 @@
 package com.server.jd.controller;
 
 
-import com.server.global.response.ApiResponse;
+import com.server.global.response.CommonResponse;
 import com.server.jd.dto.JobDescriptionDetailResponseDto;
 import com.server.jd.dto.JobDescriptionListResponseDto;
 import com.server.jd.service.JobDescriptionService;
@@ -20,7 +20,7 @@ public class JobDescriptionController {
     private final JobDescriptionService jobService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<JobDescriptionListResponseDto>>> list(
+    public ResponseEntity<CommonResponse<Page<JobDescriptionListResponseDto>>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10")int size
     ) {
@@ -28,11 +28,11 @@ public class JobDescriptionController {
             throw new IllegalArgumentException("Size must be greater than 0");
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        return ResponseEntity.ok(ApiResponse.success(jobService.getList(pageable, 5)));
+        return ResponseEntity.ok(CommonResponse.success(jobService.getList(pageable, 5)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<JobDescriptionDetailResponseDto>> get(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(jobService.getDetail(id)));
+    public ResponseEntity<CommonResponse<JobDescriptionDetailResponseDto>> get(@PathVariable Long id) {
+        return ResponseEntity.ok(CommonResponse.success(jobService.getDetail(id)));
     }
 }

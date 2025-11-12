@@ -1,6 +1,7 @@
 package com.server.jd.controller;
 
 
+import com.server.jd.dto.JobDescriptionDetailResponseDto;
 import com.server.jd.dto.JobDescriptionListResponseDto;
 import com.server.jd.service.JobDescriptionService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,5 +28,10 @@ public class JobDescriptionController {
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         return jobService.getList(pageable, 5);
+    }
+
+    @GetMapping("/{id}")
+    public JobDescriptionDetailResponseDto get(@PathVariable Long id) {
+        return jobService.getDetail(id);
     }
 }

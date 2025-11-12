@@ -102,7 +102,7 @@ public class JobDescriptionService {
 
         Map<Long, List<String>> map = new HashMap<>();
 
-        jobRepository.findRequiredSkillsByJobIds(ids).forEach(row -> {
+        jobRequiredSkillRepository.findRequiredSkillsByJobIds(ids).forEach(row -> {
             Long id = (Long) row[0];
             String skill = (String) row[1];
             map.computeIfAbsent(id, k -> new ArrayList<>()).add(skill);

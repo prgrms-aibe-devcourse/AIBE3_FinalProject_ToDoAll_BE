@@ -1,10 +1,13 @@
 package com.server.resume.domain;
 
 import com.server.global.entity.BaseEntity;
+import com.server.jd.domain.JobDescription;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +21,10 @@ public class Resume extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "jd_id")
+    private JobDescription jobDescription;
 
     private String name;
 
@@ -45,22 +52,29 @@ public class Resume extends BaseEntity {
     private ResumeStatus status;
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<ResumeEducation> educations;
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<ResumeExperience> experiences;
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<ResumeSkill> skills;
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<ResumeActivity> activities;
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<ResumeCertification> certifications;
 
 
-    public static Resume of(String name,
+
+    public static Resume of(JobDescription jobDescription,
+                            String name,
                             String gender,
                             LocalDate birthDate,
                             String email,
@@ -71,6 +85,7 @@ public class Resume extends BaseEntity {
                             String portfolioFileUrl,
                             ResumeStatus status) {
         Resume resume = new Resume();
+        resume.jobDescription = jobDescription;
         resume.name = name;
         resume.gender = gender;
         resume.birthDate = birthDate;

@@ -15,7 +15,7 @@ public class InterviewNote extends BaseEntity {
     private Long id;
 
     // 면접 ID (FK)
-    @OneToOne(optional = false)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interview_id", nullable = false, unique = true)
     private Interview interview;
 

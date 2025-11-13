@@ -131,4 +131,5 @@ public class ResumeService {
 
         return ResumeResponseDto.fromEntity(resume);
     }
+
 }

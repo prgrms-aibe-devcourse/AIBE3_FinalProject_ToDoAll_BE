@@ -1,5 +1,6 @@
 package com.server.global.config.security.jwt;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -13,12 +14,21 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private final JwtProperties jwtProperties;
     private final Key signingKey;
+    private final long accessExp = 3600000L; // 1시간
+    private final long refreshExp = 604800000L; // 7일
 
-    public JwtTokenProvider(JwtProperties jwtProperties) {
-        this.jwtProperties = jwtProperties;
-        this.signingKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
+    public JwtTokenProvider() {
+        String secret = Dotenv.configure()
+                .ignoreIfMissing()
+                .load()
+                .get("JWT_SECRET");
+
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET이 .env에 정의되어 있지 않습니다.");
+        }
+
+        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(Long userId, String role) {
@@ -26,7 +36,7 @@ public class JwtTokenProvider {
                 .setSubject(String.valueOf(userId))
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessExp()))
+                .setExpiration(new Date(System.currentTimeMillis() + accessExp))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -35,7 +45,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshExp()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExp))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -53,13 +63,12 @@ public class JwtTokenProvider {
         if (!validateToken(token)) {
             throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
         }
-        String subject = Jwts.parserBuilder()
+        return Long.parseLong(Jwts.parserBuilder()
                 .setSigningKey(signingKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject();
-        return Long.parseLong(subject);
+                .getSubject());
     }
 
     public Long getTokenExpiry(String token) {

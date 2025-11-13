@@ -44,5 +44,6 @@ application.yml
 
 ### QueryDSL ###
 /build/generated/
+/src/main/generated/
 
 

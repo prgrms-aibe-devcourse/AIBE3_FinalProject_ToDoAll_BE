@@ -22,7 +22,8 @@ public class ResumeEducation {
     private Resume resume;
 
     @Column(name = "education_level")
-    private String educationLevel;
+    @Enumerated(EnumType.STRING)
+    private EducationLevel educationLevel;
 
     @Column(name = "school_name")
     private String schoolName;
@@ -39,7 +40,8 @@ public class ResumeEducation {
     private LocalDate graduationDate;
 
     @Column(name = "attendance_type")
-    private String attendanceType; // 주간, 야간 등
+    @Enumerated(EnumType.STRING)
+    private AttendanceType attendanceType; // 주간, 야간 등
 
     private Double gpa; // 학점
 
@@ -47,13 +49,13 @@ public class ResumeEducation {
     private Double gpaScale; // 기준 학점
 
     public static ResumeEducation of(Resume resume,
-                                     String educationLevel,
+                                     EducationLevel educationLevel,
                                      String schoolName,
                                      String major,
                                      Boolean isGraduated,
                                      LocalDate admissionDate,
                                      LocalDate graduationDate,
-                                     String attendanceType,
+                                     AttendanceType attendanceType,
                                      Double gpa,
                                      Double gpaScale) {
         ResumeEducation edu = new ResumeEducation();

@@ -29,15 +29,22 @@ public class InterviewQuestion extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String answer;
 
+    // 질문 상태
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private QuestionStatus status;
+
     public static InterviewQuestion of(Interview interview,
                                        QuestionType type,
                                        String questionText,
-                                       String answer) {
+                                       String answer,
+                                       QuestionStatus status) {
         InterviewQuestion question = new InterviewQuestion();
         question.interview = interview;
         question.type = type;
         question.questionText = questionText;
         question.answer = answer;
+        question.status = status;
         return question;
     }
 }

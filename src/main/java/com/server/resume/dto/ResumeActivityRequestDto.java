@@ -1,10 +1,11 @@
 package com.server.resume.dto;
 
-import com.server.resume.domain.ProficiencyLevel;
-import com.server.resume.domain.ResumeActivity;
+import com.server.resume.domain.ResumeActivityType;
+
+import java.time.LocalDate;
 
 public record ResumeActivityRequestDto(
         String title,
-        ProficiencyLevel proficiencyLevel,
+        ResumeActivityType type,
         String organization
 ) { }

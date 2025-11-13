@@ -3,6 +3,7 @@ package com.server.resume.controller;
 import com.server.global.response.CommonResponse;
 import com.server.jd.dto.JobDescriptionDetailResponseDto;
 import com.server.resume.domain.Resume;
+import com.server.resume.dto.ResumeCreateRequestDto;
 import com.server.resume.dto.ResumeResponseDto;
 import com.server.resume.service.ResumeService;
 import lombok.RequiredArgsConstructor;
@@ -21,4 +22,8 @@ public class ResumeController {
         return ResponseEntity.ok(CommonResponse.success(resumeService.getResumeById(resumeId)));
     }
 
+    @PostMapping("")
+    public ResponseEntity<CommonResponse<ResumeResponseDto>> createResume(@RequestBody ResumeCreateRequestDto resume) {
+        return ResponseEntity.ok(CommonResponse.success(resumeService.createResume(resume)));
+    }
 }

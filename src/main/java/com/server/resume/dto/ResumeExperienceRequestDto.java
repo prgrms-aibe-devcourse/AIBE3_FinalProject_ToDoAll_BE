@@ -1,6 +1,6 @@
 package com.server.resume.dto;
 
-import com.server.resume.domain.ProficiencyLevel;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

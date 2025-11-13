@@ -5,7 +5,9 @@ import com.server.jd.domain.JobDescription;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.match.domain.Match;
 import com.server.match.domain.MatchStatus;
+import com.server.match.dto.MatchListResponseDto;
 import com.server.match.dto.MatchRequestDto;
+import com.server.match.dto.MatchSearchCondition;
 import com.server.match.exception.MatchErrorCase;
 import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.Resume;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -46,5 +49,10 @@ public class MatchService {
         );
 
         return matchRepository.save(match);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MatchListResponseDto> getMatchedResumes(MatchSearchCondition condition) {
+        return matchRepository.searchMatches(condition).getContent();
     }
 }

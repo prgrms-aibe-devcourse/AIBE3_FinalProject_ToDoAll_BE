@@ -26,4 +26,10 @@ public class ResumeController {
     public ResponseEntity<CommonResponse<ResumeResponseDto>> createResume(@RequestBody ResumeCreateRequestDto resume) {
         return ResponseEntity.ok(CommonResponse.success(resumeService.createResume(resume)));
     }
+
+    @DeleteMapping("/{resumeId}")
+    public ResponseEntity<CommonResponse<String>> deleteResume(@PathVariable Long resumeId) {
+        resumeService.deleteResume(resumeId);
+        return ResponseEntity.ok(CommonResponse.success("이력서 삭제 성공"));
+    }
 }

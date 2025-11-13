@@ -122,4 +122,13 @@ public class ResumeService {
 
     }
 
+    @Transactional
+    public ResumeResponseDto deleteResume(Long resumeId) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        resumeRepository.delete(resume);
+
+        return ResumeResponseDto.fromEntity(resume);
+    }
 }

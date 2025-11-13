@@ -11,11 +11,11 @@ public record MatchSearchCondition(
         Integer offset
 ) {
     public int getPage() {
-        return offset != null ? offset / getPageSize() : 0;
+        return offset != null && offset >= 0 ? offset / getPageSize() : 0;
     }
 
     public int getPageSize() {
-        return limit != null ? limit : 20;
+        return limit != null && offset >= 0 ? limit : 20;
     }
 
     public MatchSortType getSortSafe() {

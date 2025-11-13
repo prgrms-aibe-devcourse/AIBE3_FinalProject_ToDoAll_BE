@@ -16,6 +16,6 @@ public record JobDescriptionCreateRequestDto(
         String location,
         String thumbnailUrl,
         Long authorId,
-        List<Long> requiredSkillIds,
-        List<Long> preferredSkillIds
+        List<String> requiredSkills,
+        List<String> preferredSkills
 ) {}

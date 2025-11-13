@@ -1,5 +1,6 @@
 package com.server.match.controller;
 
+import com.server.global.exception.ApplicationException;
 import com.server.global.response.CommonResponse;
 import com.server.match.domain.Match;
 import com.server.match.domain.MatchSortType;
@@ -8,6 +9,7 @@ import com.server.match.dto.MatchListResponseDto;
 import com.server.match.dto.MatchRequestDto;
 import com.server.match.dto.MatchResponseDto;
 import com.server.match.dto.MatchSearchCondition;
+import com.server.match.exception.MatchErrorCase;
 import com.server.match.service.MatchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -54,7 +56,7 @@ public class MatchController {
             @RequestParam(required = false, defaultValue = "0") Integer offset
     ) {
         if (jdId == null || jdId <= 0) {
-            throw new IllegalArgumentException("유효하지 않은 JD ID입니다.");
+            throw new ApplicationException(MatchErrorCase.JD_INVALID_ID);
         }
 
         MatchSearchCondition condition = new MatchSearchCondition(jdId, status, sort, limit, offset);

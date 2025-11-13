@@ -142,5 +142,10 @@ public class Resume extends BaseEntity {
         this.certifications.add(cert);
     }
 
+    public void updateStatus(ResumeStatus newStatus) {
+        this.status = newStatus;
+    }
+
+
 
 }

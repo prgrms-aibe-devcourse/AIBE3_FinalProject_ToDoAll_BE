@@ -132,4 +132,14 @@ public class ResumeService {
         return ResumeResponseDto.fromEntity(resume);
     }
 
+    @Transactional
+    public ResumeStatusUpdateResponseDto updateResumeStatus(Long resumeId, ResumeStatusUpdateDto request) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        resume.updateStatus(request.resumeStatus());
+
+        return ResumeStatusUpdateResponseDto.from(resume.getId(), resume.getStatus());
+    }
+
 }

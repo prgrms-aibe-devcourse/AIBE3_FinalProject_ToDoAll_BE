@@ -2,6 +2,7 @@ package com.server.resume.service;
 
 
 import com.server.resume.domain.*;
+import com.server.resume.dto.ResumeCreateRequestDto;
 import com.server.resume.dto.ResumeResponseDto;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
@@ -31,4 +32,6 @@ public class ResumeService {
         );
 
     }
+
+
 }

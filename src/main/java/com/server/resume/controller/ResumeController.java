@@ -20,4 +20,5 @@ public class ResumeController {
     public ResponseEntity<CommonResponse<ResumeResponseDto>> getResume(@PathVariable Long resumeId) {
         return ResponseEntity.ok(CommonResponse.success(resumeService.getResumeById(resumeId)));
     }
+
 }

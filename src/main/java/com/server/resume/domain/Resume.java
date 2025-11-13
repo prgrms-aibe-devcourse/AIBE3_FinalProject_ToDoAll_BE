@@ -24,9 +24,10 @@ public class Resume extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "jd_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "jd_id", nullable = false)
     private JobDescription jobDescription;
+
 
     private String name;
 
@@ -143,6 +144,9 @@ public class Resume extends BaseEntity {
     }
 
     public void updateStatus(ResumeStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("이력서 상태는 null일 수 없습니다.");
+        }
         this.status = newStatus;
     }
 

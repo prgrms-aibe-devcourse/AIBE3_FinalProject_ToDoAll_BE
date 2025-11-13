@@ -11,7 +11,7 @@ import java.util.Date;
 
 public record ResumeEducationRequestDto(
 
-        @NotBlank(message = "학력을 입력해주세요.")
+        @NotNull(message = "학력을 선택해주세요.")
         EducationLevel educationLevel,
 
         @NotBlank(message = "학교 이름을 입력해주세요.")
@@ -19,10 +19,10 @@ public record ResumeEducationRequestDto(
 
         String major,
 
-        @NotBlank(message = "졸업 여부를 입력해주세요.")
+        @NotNull(message = "졸업 여부를 입력해주세요.")
         Boolean isGraduated,
 
-        @NotBlank(message = "입학일을 입력해주세요.")
+        @NotNull(message = "입학일을 입력해주세요.")
         LocalDate admissionDate,
 
         LocalDate graduationDate,

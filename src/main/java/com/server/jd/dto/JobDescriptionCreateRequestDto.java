@@ -12,7 +12,7 @@ public record JobDescriptionCreateRequestDto(
         String salary,
         String description,
         LocalDate deadline,
-        String welfare,
+        String benefits,
         String location,
         String thumbnailUrl,
         Long authorId,

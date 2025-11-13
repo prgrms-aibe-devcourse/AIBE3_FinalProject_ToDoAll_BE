@@ -54,7 +54,7 @@ public class JobDescriptionService {
                 null, // 초안이므로 null
                 request.deadline(),
                 JobStatus.DRAFT,
-                request.welfare(),
+                request.benefits(),
                 0L, // 지원자 수 초기값
                 request.location(),
                 request.thumbnailUrl(),

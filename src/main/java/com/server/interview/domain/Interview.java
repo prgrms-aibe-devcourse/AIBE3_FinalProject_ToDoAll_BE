@@ -37,7 +37,7 @@ public class Interview extends BaseEntity {
     @OneToOne(mappedBy = "interview", cascade = CascadeType.ALL)
     private InterviewNote interviewNote;
 
-    // InterviewNote 연관관계
+    // InterviewEvaluation 연관관계
     @OneToOne(mappedBy = "interview", cascade = CascadeType.ALL)
     private InterviewEvaluation interviewEvaluation;
 
@@ -53,15 +53,13 @@ public class Interview extends BaseEntity {
                                Resume resume,
                                User organizer,
                                LocalDateTime scheduledAt,
-                               InterviewStatus status,
-                               String summary) {
+                               InterviewStatus status) {
         Interview interview = new Interview();
         interview.jobDescription = jobDescription;
         interview.resume = resume;
         interview.organizer = organizer;
         interview.scheduledAt = scheduledAt;
         interview.status = status;
-        interview.summary = summary;
         return interview;
     }
 }

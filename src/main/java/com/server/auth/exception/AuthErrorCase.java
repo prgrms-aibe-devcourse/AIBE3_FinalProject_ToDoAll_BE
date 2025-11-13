@@ -1,9 +1,11 @@
 package com.server.auth.exception;
 
 import com.server.global.exception.ErrorCase;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
+@Getter
 @RequiredArgsConstructor
 public enum AuthErrorCase implements ErrorCase {
 

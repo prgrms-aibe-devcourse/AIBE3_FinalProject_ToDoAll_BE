@@ -53,7 +53,7 @@ public class JobDescriptionService {
                 request.description(),
                 null, // 초안이므로 null
                 request.deadline(),
-                JobStatus.DRAFT,
+                JobStatus.OPEN,
                 request.benefits(),
                 0L, // 지원자 수 초기값
                 request.location(),

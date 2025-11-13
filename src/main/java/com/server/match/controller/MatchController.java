@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,7 +50,7 @@ public class MatchController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     public CommonResponse<List<MatchListResponseDto>> getMatchedResumes(
-            @RequestParam Long jdId,
+            @RequestParam @NotNull Long jdId,
             @RequestParam(required = false) MatchStatus status,
             @RequestParam(required = false, defaultValue = "LATEST") MatchSortType sort,
             @RequestParam(required = false, defaultValue = "20") Integer limit,

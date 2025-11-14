@@ -55,7 +55,7 @@ public class Interview extends BaseEntity {
     private String summary; // 면접 요약
 
     @OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InterviewQuestion> memos = new ArrayList<>();
+    private List<InterviewQuestion> questions = new ArrayList<>();
 
     public static Interview of(JobDescription jobDescription,
                                Resume resume,

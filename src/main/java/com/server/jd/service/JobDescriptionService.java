@@ -1,14 +1,13 @@
 package com.server.jd.service;
 
+import com.server.global.response.CommonResponse;
 import com.server.jd.domain.Skill;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.JobPreferredSkill;
 import com.server.jd.domain.JobRequiredSkill;
 import com.server.jd.domain.JobStatus;
-import com.server.jd.dto.JobDescriptionCreateRequestDto;
-import com.server.jd.dto.JobDescriptionDetailResponseDto;
-import com.server.jd.dto.JobDescriptionListResponseDto;
+import com.server.jd.dto.*;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.jd.repository.JobPreferredSkillRepository;
@@ -139,5 +138,18 @@ public class JobDescriptionService {
                 .salary(jd.getSalary())
                 .department(jd.getDepartment())
                 .build();
+    }
+
+    @Transactional
+    public JobDescriptionStatusResponseDto updateStatus(
+            Long id,
+            JobDescriptionStatusRequestDto request
+    ) {
+        JobDescription jd = jobRepository.findById(id).orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+        jd.updateStatus(request.status());
+        return new JobDescriptionStatusResponseDto(
+                jd.getId(),
+                jd.getStatus()
+        );
     }
 }

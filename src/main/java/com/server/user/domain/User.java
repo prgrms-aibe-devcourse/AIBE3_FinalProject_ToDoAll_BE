@@ -71,4 +71,35 @@ public class User extends BaseEntity {
         user.status = EmailStatus.UNVERIFIED;
         return user;
     }
+    // 회원가입 전용 메서드
+    public static User createForSignup(
+            String email,
+            String encodedPassword,
+            String name,
+            String nickname,
+            String companyName,
+            String position
+    ) {
+        User user = new User();
+        user.email = email;
+        user.password = encodedPassword;
+        user.name = name;
+        user.nickname = nickname;
+        user.companyName = companyName;
+        user.position = position;
+        user.status = EmailStatus.VERIFIED;
+        return user;
+    }
+
+    // 마이페이지에서 추가/수정할 수 있는 프로필 정보 업데이트
+    public void updateProfile(String phoneNumber, LocalDate birthDate, String gender) {
+        this.phoneNumber = phoneNumber;
+        this.birthDate = birthDate;
+        this.gender = gender;
+    }
+
+    // 비밀번호 변경
+    public void changePassword(String encodedNewPassword) {
+        this.password = encodedNewPassword;
+    }
 }

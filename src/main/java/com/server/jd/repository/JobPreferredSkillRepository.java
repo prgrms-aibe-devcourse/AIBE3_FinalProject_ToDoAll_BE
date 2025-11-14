@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface JobPreferredSkillRepository extends JpaRepository<JobPreferredSkill, Long> {
     @Query("""
-        select jps.job.id as jobId, jps.skill.name
+        select jps.job.id as jobId, jps.skill.name as skillName
         from JobPreferredSkill jps
         where jps.job.id in :ids
     """)

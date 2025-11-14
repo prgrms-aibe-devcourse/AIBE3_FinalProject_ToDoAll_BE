@@ -1,11 +1,11 @@
 package com.server.jd.controller;
 
 
+import com.amazonaws.Response;
 import com.server.global.response.CommonResponse;
-import com.server.jd.dto.JobDescriptionCreateRequestDto;
-import com.server.jd.dto.JobDescriptionDetailResponseDto;
-import com.server.jd.dto.JobDescriptionListResponseDto;
+import com.server.jd.dto.*;
 import com.server.jd.service.JobDescriptionService;
+import com.server.jd.service.SkillQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,12 +16,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/jd")
 public class JobDescriptionController {
     private final JobDescriptionService jobService;
+    private final SkillQueryService skillQueryService;
 
     @GetMapping
     public ResponseEntity<CommonResponse<Page<JobDescriptionListResponseDto>>> list(
@@ -46,5 +48,20 @@ public class JobDescriptionController {
         return ResponseEntity
                 .created(URI.create("/api/v1/jd/" + id))
                 .body(CommonResponse.success(id));
+    }
+
+    @GetMapping("/skills")
+    public ResponseEntity<CommonResponse<List<SkillResponseDto>>> getSkills() {
+        List<SkillResponseDto> Skills = skillQueryService.getSkills();
+        return ResponseEntity.ok(CommonResponse.success(Skills));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<CommonResponse<JobDescriptionStatusResponseDto>> updateStatus(
+            @PathVariable Long id,
+            @RequestBody JobDescriptionStatusRequestDto request
+    ) {
+        JobDescriptionStatusResponseDto dto = jobService.updateStatus(id, request);
+        return ResponseEntity.ok(CommonResponse.success(dto));
     }
 }

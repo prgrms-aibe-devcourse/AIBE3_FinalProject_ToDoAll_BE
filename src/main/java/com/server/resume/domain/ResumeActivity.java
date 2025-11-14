@@ -28,23 +28,15 @@ public class ResumeActivity {
 
     private String organization;
 
-    private LocalDate startDate;
-
-    private LocalDate endDate;
-
     public static ResumeActivity of(Resume resume,
                                     String title,
                                     ResumeActivityType type,
-                                    String organization,
-                                    LocalDate startDate,
-                                    LocalDate endDate) {
+                                    String organization) {
         ResumeActivity activity = new ResumeActivity();
         activity.resume = resume;
         activity.title = title;
         activity.type = type;
         activity.organization = organization;
-        activity.startDate = startDate;
-        activity.endDate = endDate;
         return activity;
     }
 }

@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface JobRequiredSkillRepository extends JpaRepository<JobRequiredSkill, Long> {
     @Query("""
-        select jrs.job.id as jobId, jrs.skill.name
+        select jrs.job.id as jobId, jrs.skill.name as skillName
         from JobRequiredSkill jrs
         where jrs.job.id in :ids
     """)

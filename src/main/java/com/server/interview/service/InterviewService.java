@@ -17,12 +17,13 @@ import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -68,7 +69,7 @@ public class InterviewService {
 
         // filter로 organizer 제외 + HashSet으로 중복 참여자 제외
         Set<Long> uniqueIds = ids.stream()
-                .filter(id -> !id.equals(organizer.getId()))
+                .filter(id -> !Objects.equals(id, organizer.getId())) //Objects.equals(a, b) -> 절대 NPE가 발생하지 않는 equals 비교
                 .collect(Collectors.toSet()); //Collectors.toSet() → 실제 구현은 HashSet
 
         // observer가 존재 하지 않으면 생성 X

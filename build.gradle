@@ -51,7 +51,7 @@ dependencies {
     implementation 'com.mysql:mysql-connector-j'
 
     // 테스트용 H2 DB
-    testImplementation 'com.h2database:h2'
+    testImplementation 'com.h2database:h2:1.4.200'
 
     // S3
     implementation 'com.amazonaws:aws-java-sdk-s3:1.12.681'

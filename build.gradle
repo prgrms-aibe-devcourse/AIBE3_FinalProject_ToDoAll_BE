@@ -73,6 +73,10 @@ dependencies {
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+
+    //이메일 발송
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 }
 
 tasks.named('test') {

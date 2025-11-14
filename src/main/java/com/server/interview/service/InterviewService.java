@@ -5,8 +5,7 @@ import com.server.interview.domain.Interview;
 import com.server.interview.domain.InterviewParticipant;
 import com.server.interview.domain.InterviewRole;
 import com.server.interview.domain.InterviewStatus;
-import com.server.interview.dto.InterviewCreateRequestDto;
-import com.server.interview.dto.InterviewCreateResponseDto;
+import com.server.interview.dto.*;
 import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.interview.repository.InterviewRepository;
 import com.server.jd.domain.JobDescription;
@@ -41,10 +40,10 @@ public class InterviewService {
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
 
         //********************* 인터뷰 생성 로직 *************************//
-        JobDescription jobDescription = jobDescriptionRepository.findById(interviewCreateRequestDto.jd_id()).orElseThrow(
+        JobDescription jobDescription = jobDescriptionRepository.findById(interviewCreateRequestDto.jdId()).orElseThrow(
                 () -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND)
         );
-        Resume resume = resumeRepository.findById(interviewCreateRequestDto.resume_id()).orElseThrow(
+        Resume resume = resumeRepository.findById(interviewCreateRequestDto.resumeId()).orElseThrow(
                 ()->new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND)
         );
 
@@ -65,7 +64,7 @@ public class InterviewService {
         interviewParticipantRepository.save(organizerPart);
 
         // observer 준비
-        List<Long> ids = interviewCreateRequestDto.participant_ids();
+        List<Long> ids = interviewCreateRequestDto.participantIds();
 
         // filter로 organizer 제외 + HashSet으로 중복 참여자 제외
         Set<Long> uniqueIds = ids.stream()
@@ -89,6 +88,52 @@ public class InterviewService {
         }
         //********************* 인터뷰 참여자 생성 로직 *************************//
 
-        return new  InterviewCreateResponseDto(interview.getId());
+        return new InterviewCreateResponseDto(interview.getId());
     }
+
+    @Transactional
+    public InterviewListResponseDto getInterviews(InterviewSearchCondition condition) {
+
+        Long jdId = condition.jdId();
+        String status =
+                condition.status().equals("ALL") ? null : condition.status();
+        int limit = condition.limit() == null ? 6 : condition.limit();
+        Long cursor = condition.cursor();
+        String sort = condition.sort() == null ? "createdAt,desc" : condition.sort();
+
+        // 검색
+        List<Interview> interviews = interviewRepository.searchInterviews(
+                jdId,
+                status,
+                cursor,
+                sort,
+                limit + 1 // hasNext 판단용
+        );
+
+        boolean hasNext = interviews.size() > limit;
+        Long nextCursor = null;
+
+        if (hasNext) {
+            Interview last = interviews.get(limit - 1);
+            nextCursor = last.getId();
+        }
+
+        // 응답에 나갈 데이터는 limit만큼 자르기
+        interviews = interviews.stream().limit(limit).toList();
+
+        List<InterviewSummaryDto> summaries = interviews.stream()
+                .map(i -> new InterviewSummaryDto(
+                        i.getId(),
+                        i.getJobDescription().getId(),
+                        i.getJobDescription().getTitle(),
+                        i.getResume().getName(),
+                        i.getStatus().name(),
+                        i.getScheduledAt(),
+                        i.getCreatedAt()
+                ))
+                .toList();
+
+        return new InterviewListResponseDto(summaries, nextCursor, hasNext);
+    }
+
 }

@@ -27,6 +27,10 @@ public enum AuthErrorCase implements ErrorCase {
 
     // 400 - 검증 실패
     AUTH_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, 3001, "요청 데이터 형식이 올바르지 않습니다."),
+    EMAIL_AUTH_TOKEN_INVALID(HttpStatus.BAD_REQUEST, 2101, "유효하지 않은 이메일 인증 토큰입니다."),
+    EMAIL_AUTH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, 2102, "만료된 이메일 인증 토큰입니다."),
+    EMAIL_AUTH_ALREADY_VERIFIED(HttpStatus.BAD_REQUEST, 2103, "이미 인증이 완료된 토큰입니다."),
+
 
     // 500 - 서버 오류
     AUTH_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 9999, "서버 내부 오류가 발생했습니다.");

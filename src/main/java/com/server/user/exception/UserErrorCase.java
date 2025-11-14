@@ -18,6 +18,8 @@ public enum UserErrorCase implements ErrorCase {
 
     // 400 - 요청 형식/정책 위반
     USER_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, 3001, "요청 데이터 형식이 올바르지 않습니다."),
+    PASSWORD_EQUALS_EMAIL_ID(HttpStatus.BAD_REQUEST, 3003, "비밀번호에 이메일 아이디를 그대로 사용할 수 없습니다."),
+
 
     // 401 - 인증 필요
     USER_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 2001, "인증이 필요합니다."),

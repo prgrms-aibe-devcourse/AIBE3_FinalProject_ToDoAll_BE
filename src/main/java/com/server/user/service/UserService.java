@@ -87,7 +87,9 @@ public class UserService {
         // 이메일
         if (email != null) {
             String localPart = email.split("@")[0].toLowerCase();
-            if (localPart.length() >= 3) needles.add(localPart);
+            if (localPart.length() >= 3) needles.add(localPart); {
+                throw ApplicationException.from(UserErrorCase.PASSWORD_EQUALS_EMAIL_ID);
+            }
         }
 
         boolean containsPII = needles.stream()

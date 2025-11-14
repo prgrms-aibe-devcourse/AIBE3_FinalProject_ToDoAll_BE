@@ -38,14 +38,12 @@ public class InterviewParticipant {
     public static InterviewParticipant of(Interview interview,
                                           User user,
                                           InterviewRole role,
-                                          LocalDateTime joinedAt,
-                                          LocalDateTime leftAt) {
+                                          LocalDateTime joinedAt) {
         InterviewParticipant participant = new InterviewParticipant();
         participant.interview = interview;
         participant.user = user;
         participant.role = role;
         participant.joinedAt = joinedAt;
-        participant.leftAt = leftAt;
         return participant;
     }
 }

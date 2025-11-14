@@ -3,11 +3,15 @@ package com.server.interview.domain;
 import com.server.global.entity.BaseEntity;
 import com.server.jd.domain.JobDescription;
 import com.server.resume.domain.Resume;
-import jakarta.persistence.*;
-import lombok.*;
 import com.server.user.domain.User;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -24,6 +28,7 @@ public class Interview extends BaseEntity {
     private JobDescription jobDescription;
 
     // Resume 연관관계
+    // 하나의 이력서에 1차, 2차 인터뷰가 생길 수 있으니 ManyToOne으로 설정
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
@@ -34,11 +39,11 @@ public class Interview extends BaseEntity {
     private User organizer;
 
     // InterviewNote 연관관계
-    @OneToOne(mappedBy = "interview", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "interview", cascade = CascadeType.ALL, orphanRemoval = true)
     private InterviewNote interviewNote;
 
-    // InterviewNote 연관관계
-    @OneToOne(mappedBy = "interview", cascade = CascadeType.ALL)
+    // InterviewEvaluation 연관관계
+    @OneToOne(mappedBy = "interview", cascade = CascadeType.ALL, orphanRemoval = true)
     private InterviewEvaluation interviewEvaluation;
 
     private LocalDateTime scheduledAt; // 예정 면접 시간
@@ -49,19 +54,20 @@ public class Interview extends BaseEntity {
     @Lob
     private String summary; // 면접 요약
 
+    @OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InterviewQuestion> questions = new ArrayList<>();
+
     public static Interview of(JobDescription jobDescription,
                                Resume resume,
                                User organizer,
                                LocalDateTime scheduledAt,
-                               InterviewStatus status,
-                               String summary) {
+                               InterviewStatus status) {
         Interview interview = new Interview();
         interview.jobDescription = jobDescription;
         interview.resume = resume;
         interview.organizer = organizer;
         interview.scheduledAt = scheduledAt;
         interview.status = status;
-        interview.summary = summary;
         return interview;
     }
 }

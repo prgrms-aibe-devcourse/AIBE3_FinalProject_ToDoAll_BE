@@ -3,24 +3,19 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/jobda_db
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: ${MYSQL_ROOT_PASSWORD}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
   jpa:
     hibernate:
       ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+
   data:
     redis:
-      host: localhost
+      host: 127.0.0.1
       port: 6379
 
 jwt:
   secret: ${JWT_SECRET}
-  access-exp: 3600000
-  refresh-exp: 604800000
-
-logging:
-  level:
-    org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql.BasicBinder: trace

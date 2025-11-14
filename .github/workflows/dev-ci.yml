@@ -15,7 +15,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: jobda_db
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
         ports:
           - 3306:3306
         options: >-
@@ -36,12 +36,12 @@ jobs:
 
     env:
       SPRING_PROFILES_ACTIVE: ci
-      SPRING_DATA_REDIS_HOST: 127.0.0.1
-      SPRING_DATA_REDIS_PORT: 6379
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/jobda_db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      SPRING_DATA_REDIS_HOST: 127.0.0.1
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
     steps:
       - name: Checkout source
@@ -65,7 +65,7 @@ jobs:
               echo "MySQL is READY!"
               break
             fi
-            echo "Still waiting for MySQL..."
+            echo "Still waiting..."
             sleep 3
           done
 

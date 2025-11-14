@@ -92,4 +92,14 @@ sourceSets {
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-parameters"
     options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+    dependsOn 'generateQueryDSL'
+}
+
+tasks.register("generateQueryDSL", JavaCompile) {
+    group = "build"
+    description = "Generates QueryDSL Q-classes"
+    source = sourceSets.main.java
+    classpath = configurations.annotationProcessor
+    destinationDirectory = file(querydslDir)
+    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
 }

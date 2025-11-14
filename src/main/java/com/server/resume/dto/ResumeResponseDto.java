@@ -1,6 +1,7 @@
 package com.server.resume.dto;
 
 import com.server.jd.domain.JobDescription;
+import com.server.resume.domain.Resume;
 import com.server.resume.domain.ResumeStatus;
 
 import java.time.LocalDate;
@@ -28,12 +29,7 @@ public record ResumeResponseDto(
         ResumeStatus status
 ) {
     public static ResumeResponseDto fromEntity(
-            com.server.resume.domain.Resume resume,
-            List<String> education,
-            List<String> experience,
-            List<String> skills,
-            List<String> activities,
-            List<String> certifications
+            Resume resume
     ) {
         Long jobId = null;
         String jobTitle = null;

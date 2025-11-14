@@ -1,8 +1,10 @@
 package com.server.resume.domain;
 
 import com.server.global.entity.BaseEntity;
+import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.Skill;
+import com.server.resume.exception.ResumeErrorCase;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -112,6 +114,12 @@ public class Resume extends BaseEntity {
                              AttendanceType attendanceType,
                              Double gpa,
                              Double gpaScale) {
+        if(gpa != null && gpa < 0) {
+
+        }
+        if(gpaScale != null && gpaScale < 0) {
+
+        }
         ResumeEducation edu = ResumeEducation.of(this, educationLevel, schoolName, major, isGraduated, admissionDate, graduationDate, attendanceType, gpa, gpaScale);
         this.educations.add(edu);
     }
@@ -145,11 +153,9 @@ public class Resume extends BaseEntity {
 
     public void updateStatus(ResumeStatus newStatus) {
         if (newStatus == null) {
-            throw new IllegalArgumentException("이력서 상태는 null일 수 없습니다.");
+            throw new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND);
         }
         this.status = newStatus;
     }
-
-
 
 }

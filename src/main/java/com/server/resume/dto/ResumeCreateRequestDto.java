@@ -1,6 +1,6 @@
 package com.server.resume.dto;
 
-import com.server.jd.domain.JobDescription;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -12,7 +12,7 @@ public record ResumeCreateRequestDto(
         String name,
 
         @NotNull(message = "지원 직무는 필수입니다.")
-        JobDescription jobDescription,
+        Long jobDescriptionId,
 
         @NotBlank(message = "성별은 필수입니다.")
         String gender,

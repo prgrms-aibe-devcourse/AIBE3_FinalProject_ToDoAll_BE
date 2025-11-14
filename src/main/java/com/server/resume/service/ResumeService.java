@@ -10,6 +10,7 @@ import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,12 +36,13 @@ public class ResumeService {
     @Transactional
     public ResumeResponseDto createResume(ResumeCreateRequestDto request) {
 
-        JobDescription jdEntity = null;
-        if (request.jobDescription() == null || request.jobDescription().getId() == null) {
+        if (request.jobDescriptionId() == null) {
             throw new ApplicationException(ResumeErrorCase.JD_NOT_FOUND);
         }
-        jdEntity = jobDescriptionRepository.findById(request.jobDescription().getId())
+
+        JobDescription jdEntity = jobDescriptionRepository.findById(request.jobDescriptionId())
                 .orElseThrow(() -> new ApplicationException(ResumeErrorCase.JD_NOT_FOUND));
+
 
         Resume resume = Resume.of(
                 jdEntity,
@@ -80,8 +82,6 @@ public class ResumeService {
 
         resume.updateStatus(request.resumeStatus());
 
-        resumeRepository.save(resume);
-
         return ResumeStatusUpdateResponseDto.from(resume.getId(), resume.getStatus());
     }
 
@@ -119,12 +119,13 @@ public class ResumeService {
 
     private void addSkills(Resume resume, List<ResumeSkillRequestDto> skillsList) {
         if (skillsList == null) return;
+
         for (ResumeSkillRequestDto sk : skillsList) {
-            Skill skill = skillRepository.findByName(sk.skillName())
-                    .orElseGet(() -> skillRepository.save(Skill.of(sk.skillName())));
+            Skill skill = getOrCreateSkill(sk.skillName());
             resume.addSkill(skill, sk.proficiencyLevel());
         }
     }
+
 
     private void addActivities(Resume resume, List<ResumeActivityRequestDto> activityList) {
         if (activityList == null) return;
@@ -143,4 +144,17 @@ public class ResumeService {
             resume.addCertification(cert.type(), cert.name(), cert.scoreOrLevel());
         }
     }
+
+
+    public Skill getOrCreateSkill(String skillName) {
+        return skillRepository.findByName(skillName)
+                .orElseGet(() -> {
+                    try {
+                        return skillRepository.save(Skill.of(skillName));
+                    } catch (DataIntegrityViolationException e) {
+                        return skillRepository.findByName(skillName).orElseThrow();
+                    }
+                });
+    }
+
 }

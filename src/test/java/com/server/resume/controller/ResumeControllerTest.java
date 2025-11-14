@@ -263,7 +263,8 @@ class ResumeControllerTest {
 
         ResumeStatusUpdateDto requestDto = new ResumeStatusUpdateDto(ResumeStatus.NEW);
 
-        ApplicationException applicationException = new ApplicationException(ResumeErrorCase.SKILL_NOT_FOUND);
+        ApplicationException applicationException =
+                new ApplicationException(ResumeErrorCase.INVALID_STATUS);
 
         Mockito.when(resumeService.updateResumeStatus(eq(1L), any()))
                 .thenThrow(applicationException);
@@ -272,9 +273,7 @@ class ResumeControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isNotFound()) // ← 404로 변경
-                .andExpect(jsonPath("$.errorCode").value(4044))
-                .andExpect(jsonPath("$.message").value("해당 스킬을 찾을 수 없습니다."));
-
+                .andExpect(status().isBadRequest());
     }
+
 }

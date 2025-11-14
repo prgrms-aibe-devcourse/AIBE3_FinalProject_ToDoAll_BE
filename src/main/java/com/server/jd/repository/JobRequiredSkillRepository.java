@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Collection;
 import java.util.List;
 
+
+
 public interface JobRequiredSkillRepository extends JpaRepository<JobRequiredSkill, Long> {
     @Query("""
         select jrs.job.id as jobId, jrs.skill.name

@@ -1,7 +1,10 @@
 package com.server.resume.domain;
 
 import com.server.global.entity.BaseEntity;
+import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
+import com.server.jd.domain.Skill;
+import com.server.resume.exception.ResumeErrorCase;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,6 +13,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,9 +26,10 @@ public class Resume extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "jd_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "jd_id", nullable = false)
     private JobDescription jobDescription;
+
 
     private String name;
 
@@ -53,23 +58,23 @@ public class Resume extends BaseEntity {
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    private List<ResumeEducation> educations;
+    private List<ResumeEducation> educations = new ArrayList<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    private List<ResumeExperience> experiences;
+    private List<ResumeExperience> experiences = new ArrayList<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    private List<ResumeSkill> skills;
+    private List<ResumeSkill> skills = new ArrayList<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    private List<ResumeActivity> activities;
+    private List<ResumeActivity> activities = new ArrayList<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    private List<ResumeCertification> certifications;
+    private List<ResumeCertification> certifications = new ArrayList<>();
 
 
 
@@ -98,4 +103,59 @@ public class Resume extends BaseEntity {
         resume.status = status;
         return resume;
     }
+
+
+    public void addEducation(EducationLevel educationLevel,
+                             String schoolName,
+                             String major,
+                             Boolean isGraduated,
+                             LocalDate admissionDate,
+                             LocalDate graduationDate,
+                             AttendanceType attendanceType,
+                             Double gpa,
+                             Double gpaScale) {
+        if(gpa != null && gpa < 0) {
+
+        }
+        if(gpaScale != null && gpaScale < 0) {
+
+        }
+        ResumeEducation edu = ResumeEducation.of(this, educationLevel, schoolName, major, isGraduated, admissionDate, graduationDate, attendanceType, gpa, gpaScale);
+        this.educations.add(edu);
+    }
+
+    public void addExperience(String companyName,
+                              String department,
+                              String position,
+                              LocalDate startDate,
+                              LocalDate endDate) {
+        ResumeExperience exp = ResumeExperience.of(this, companyName, department, position, startDate, endDate);
+        this.experiences.add(exp);
+    }
+
+    public void addSkill(Skill skill, ProficiencyLevel proficiencyLevel) {
+        ResumeSkill rs = ResumeSkill.of(this, skill, proficiencyLevel);
+        this.skills.add(rs);
+    }
+
+    public void addActivity(String title,
+                            ResumeActivityType type,
+                            String organization
+                            ) {
+        ResumeActivity activity = ResumeActivity.of(this, title, type, organization);
+        this.activities.add(activity);
+    }
+
+    public void addCertification(ResumeCertificationType type, String name, String scoreOrLevel) {
+        ResumeCertification cert = ResumeCertification.of(this, type, name, scoreOrLevel);
+        this.certifications.add(cert);
+    }
+
+    public void updateStatus(ResumeStatus newStatus) {
+        if (newStatus == null) {
+            throw new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND);
+        }
+        this.status = newStatus;
+    }
+
 }

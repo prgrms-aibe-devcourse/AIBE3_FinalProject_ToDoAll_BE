@@ -65,8 +65,8 @@ jobs:
             sleep 3
           done
 
-      - name: Generate QueryDSL & Build
-        run: ./gradlew clean compileQuerydsl build --stacktrace
+      - name: Build with QueryDSL
+        run: ./gradlew clean build --stacktrace
 
       - name: Build Docker Compose (dev)
         run: |

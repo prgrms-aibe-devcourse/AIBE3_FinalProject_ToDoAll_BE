@@ -19,7 +19,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p${MYSQL_ROOT_PASSWORD}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
@@ -29,10 +29,10 @@ jobs:
         ports:
           - 6379:6379
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     env:
       SPRING_PROFILES_ACTIVE: ci
@@ -58,15 +58,15 @@ jobs:
         run: |
           echo "Waiting for MySQL to be fully ready..."
           for i in {1..40}; do
-          if mysqladmin ping -h 127.0.0.1 -uroot -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" --silent; then
-           echo "MySQL is READY!"
-           break
-          fi
-          echo "Still waiting for MySQL..."
-          sleep 3
-          done               
+            if mysqladmin ping -h 127.0.0.1 -uroot -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" --silent; then
+              echo "MySQL is READY!"
+              break
+            fi
+            echo "Still waiting for MySQL..."
+            sleep 3
+          done
 
-      - name: Build with QueryDSL
+      - name: Build with QueryDSL & run tests
         run: ./gradlew clean build --stacktrace
 
       - name: Build Docker Compose (dev)

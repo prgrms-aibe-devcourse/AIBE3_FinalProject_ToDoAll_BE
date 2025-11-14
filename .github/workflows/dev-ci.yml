@@ -54,16 +54,17 @@ jobs:
       - name: Grant execute permission to Gradle wrapper
         run: chmod +x ./gradlew
 
-      - name: Wait for MySQL to be ready
+      - name: Wait for MySQL to be fully ready
         run: |
+          echo "Waiting for MySQL to be fully ready..."
           for i in {1..40}; do
-            if mysqladmin ping -h 127.0.0.1 -uroot -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" --silent; then
-              echo "MySQL is up"
-              break
-            fi
-            echo "Waiting for MySQL..."
-            sleep 3
-          done
+          if mysqladmin ping -h 127.0.0.1 -uroot -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" --silent; then
+           echo "MySQL is READY!"
+           break
+          fi
+          echo "Still waiting for MySQL..."
+          sleep 3
+          done               
 
       - name: Build with QueryDSL
         run: ./gradlew clean build --stacktrace

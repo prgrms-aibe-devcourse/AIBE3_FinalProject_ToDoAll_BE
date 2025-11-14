@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface SkillRepository extends JpaRepository<Skill, Long> {
     List<Skill> findByNameIn(Collection<String> names);
+
+    List<Skill> findAllByOrderByNameAsc();
 }

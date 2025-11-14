@@ -2,9 +2,11 @@ package com.server.jd.controller;
 
 
 import com.server.global.response.CommonResponse;
+import com.server.jd.dto.JobDescriptionCreateRequestDto;
 import com.server.jd.dto.JobDescriptionDetailResponseDto;
 import com.server.jd.dto.JobDescriptionListResponseDto;
 import com.server.jd.service.JobDescriptionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,5 +38,13 @@ public class JobDescriptionController {
     @GetMapping("/{id}")
     public ResponseEntity<CommonResponse<JobDescriptionDetailResponseDto>> get(@PathVariable Long id) {
         return ResponseEntity.ok(CommonResponse.success(jobService.getDetail(id)));
+    }
+
+    @PostMapping
+    public ResponseEntity<CommonResponse<Long>> createDraft(@Valid @RequestBody JobDescriptionCreateRequestDto request) {
+        Long id = jobService.createDraft(request);
+        return ResponseEntity
+                .created(URI.create("/api/v1/jd/" + id))
+                .body(CommonResponse.success(id));
     }
 }

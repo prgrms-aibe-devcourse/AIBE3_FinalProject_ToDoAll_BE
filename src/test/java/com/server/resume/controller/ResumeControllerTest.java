@@ -138,6 +138,74 @@ class ResumeControllerTest {
                 .andExpect(jsonPath("$.data.id").value(1L));
     }
 
+    @Test
+    @WithMockUser(username = "testUser", roles = "USER")
+    @DisplayName("POST /api/v1/resumes - 유효성 검증 실패(이름)")
+    void createResume_validationFail1() throws Exception {
+
+        ResumeCreateRequestDto invalidRequest = new ResumeCreateRequestDto(
+                "",
+                10L,
+                "M",
+                LocalDate.of(1990, 1, 1),
+                "test@test.com",
+                "01012345678",
+                "서울",
+                "강남",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                "resume-url",
+                "portfolio-url"
+        );
+
+        mockMvc.perform(post("/api/v1/resumes")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value(4001))
+                .andExpect(jsonPath("$.message").value("이름은 필수입니다."));
+        ;
+
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", roles = "USER")
+    @DisplayName("POST /api/v1/resumes - 유효성 검증 실패(지원 직무)")
+    void createResume_validationFail() throws Exception {
+
+        ResumeCreateRequestDto invalidRequest = new ResumeCreateRequestDto(
+                "홍길동",
+                null,
+                "M",
+                LocalDate.of(1990, 1, 1),
+                "test@test.com",
+                "01012345678",
+                "서울",
+                "강남",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                "resume-url",
+                "portfolio-url"
+        );
+
+        mockMvc.perform(post("/api/v1/resumes")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value(4001))
+                .andExpect(jsonPath("$.message").value("지원 직무는 필수입니다."));
+        ;
+
+    }
+
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")

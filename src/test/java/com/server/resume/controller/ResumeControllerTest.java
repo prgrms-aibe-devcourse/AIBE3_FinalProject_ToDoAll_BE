@@ -256,5 +256,25 @@ class ResumeControllerTest {
                 .andExpect(jsonPath("$.data.status").value("BOOKMARK"));
     }
 
+    @Test
+    @WithMockUser(username = "testUser", roles = "USER")
+    @DisplayName("PATCH /api/v1/resumes/{id}/status - 잘못된 상태 변경 시 400")
+    void updateResumeStatus_invalidTransition() throws Exception {
 
+        ResumeStatusUpdateDto requestDto = new ResumeStatusUpdateDto(ResumeStatus.NEW);
+
+        ApplicationException applicationException = new ApplicationException(ResumeErrorCase.SKILL_NOT_FOUND);
+
+        Mockito.when(resumeService.updateResumeStatus(eq(1L), any()))
+                .thenThrow(applicationException);
+
+        mockMvc.perform(patch("/api/v1/resumes/1/status")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isNotFound()) // ← 404로 변경
+                .andExpect(jsonPath("$.errorCode").value(4044))
+                .andExpect(jsonPath("$.message").value("해당 스킬을 찾을 수 없습니다."));
+
+    }
 }

@@ -47,4 +47,7 @@ public class JobDescriptionController {
                 .created(URI.create("/api/v1/jd/" + id))
                 .body(CommonResponse.success(id));
     }
+
+    @GetMapping("/skills")
+    public ResponseEntity<CommonResponse<>>
 }

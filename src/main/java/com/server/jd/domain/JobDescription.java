@@ -98,4 +98,7 @@ public class JobDescription extends BaseEntity {
     public void increaseApplicantCount() {
         this.applicantCount++;
     }
+    public void updateStatus(JobStatus newStatus) {
+        this.status = newStatus;
+    }
 }

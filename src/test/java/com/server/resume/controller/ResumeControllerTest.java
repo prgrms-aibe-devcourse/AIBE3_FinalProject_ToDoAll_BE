@@ -1,8 +1,10 @@
 package com.server.resume.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.server.global.exception.ApplicationException;
 import com.server.resume.domain.ResumeStatus;
 import com.server.resume.dto.*;
+import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.service.ResumeService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,6 +71,22 @@ class ResumeControllerTest {
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
+    @DisplayName("GET /api/v1/resumes - 조회 실패")
+    void getResume_fail() throws Exception {
+        ApplicationException applicationException = new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND);
+
+        Mockito.when(resumeService.getResumeById(999L))
+                .thenThrow(applicationException);
+
+        mockMvc.perform(get("/api/v1/resumes/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value(4041))
+                .andExpect(jsonPath("$.message").value("해당 이력서를 찾을 수 없습니다."));;
+    }
+
+
+    @Test
+    @WithMockUser(username = "testUser", roles = "USER")
     @DisplayName("POST /api/v1/resumes - 생성 성공")
     void createResume_success() throws Exception {
         ResumeCreateRequestDto request = new ResumeCreateRequestDto(
@@ -119,6 +137,7 @@ class ResumeControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value(1L));
     }
+
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")

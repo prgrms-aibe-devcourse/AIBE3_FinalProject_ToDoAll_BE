@@ -1,143 +1,246 @@
-//package com.server.resume.service;
-//
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.server.global.exception.ApplicationException;
-//import com.server.resume.controller.ResumeController;
-//import com.server.resume.dto.*;
-//import com.server.resume.exception.ResumeErrorCase;
-//import com.server.resume.service.ResumeService;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.Mockito;
-//
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-//import org.springframework.boot.test.mock.mockito.MockBean;
-//
-//import org.springframework.http.MediaType;
-//import org.springframework.test.web.servlet.MockMvc;
-//
-//import java.time.LocalDate;
-//
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.ArgumentMatchers.eq;
-//
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-//
-//@WebMvcTest(ResumeController.class)
-//class ResumeControllerTest {
-//
-//    @Autowired
-//    private MockMvc mockMvc;
-//
-//    @Autowired
-//    private ObjectMapper objectMapper;
-//
-//    @MockBean
-//    private ResumeService resumeService;
-//
-//    // ================================================================
-//    // 1) DTO 유효성 검증
-//    // ================================================================
-//    @Test
-//    @DisplayName("이력서 생성 실패 - 필수 필드 누락 시 400")
-//    void createResume_missingField_shouldReturn400() throws Exception {
-//
-//        // jobDescriptionId 누락 → 실패해야 함
-//        ResumeCreateRequestDto request = new ResumeCreateRequestDto(
-//                null,                      // JD ID
-//                "홍길동",                    // name
-//                "M",                        // gender
-//                LocalDate.of(1995, 1, 1),   // birthDate
-//                "test@test.com",            // email
-//                "01012345678",              // phone
-//                "서울시",                    // address
-//                "101호",                    // detailAddress
-//                null,                       // resumeFileUrl
-//                null,                       // portfolioFileUrl
-//                null,                       // education
-//                null,                       // experience
-//                null,                       // skills
-//                null                        // activities
-//        );
-//
-//        mockMvc.perform(post("/api/v1/resumes")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    // ================================================================
-//    // 2) 존재하지 않는 JD 테스트
-//    // ================================================================
-//    @Test
-//    @DisplayName("이력서 생성 실패 - 존재하지 않는 JobDescription")
-//    void createResume_jobDescriptionNotFound() throws Exception {
-//
-//        Mockito.when(resumeService.createResume(any()))
-//                .thenThrow(new ApplicationException(ResumeErrorCase.JD_NOT_FOUND));
-//
-//        ResumeCreateRequestDto request = new ResumeCreateRequestDto(
-//                999L,
-//                "홍길동",
-//                "M",
-//                LocalDate.of(1995, 1, 1),
-//                "test@test.com",
-//                "01012345678",
-//                "서울시",
-//                "101호",
-//                null,
-//                null,
-//                null,
-//                null,
-//                null,
-//                null
-//        );
-//
-//        mockMvc.perform(post("/api/v1/resumes")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isNotFound());
-//    }
-//
-//    // ================================================================
-//    // 3) 잘못된 상태 업데이트 테스트
-//    // ================================================================
-//    @Test
-//    @DisplayName("이력서 상태 수정 실패 - 잘못된 상태 값")
-//    void updateResumeStatus_invalidStatus_shouldReturn400() throws Exception {
-//
-//        Mockito.when(resumeService.updateResumeStatus(eq(1L), any()))
-//                .thenThrow(new ApplicationException(ResumeErrorCase.INVALID_STATUS));
-//
-//        ResumeStatusUpdateDto request = new ResumeStatusUpdateDto("INVALID_STATUS");
-//
-//        mockMvc.perform(patch("/api/v1/resumes/1/status")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    // ================================================================
-//    // 4) 정상 상태 업데이트 테스트
-//    // ================================================================
-//    @Test
-//    @DisplayName("이력서 상태 수정 성공")
-//    void updateResumeStatus_success() throws Exception {
-//
-//        ResumeStatusUpdateResponseDto response =
-//                new ResumeStatusUpdateResponseDto(1L, "SUBMITTED");
-//
-//        Mockito.when(resumeService.updateResumeStatus(eq(1L), any()))
-//                .thenReturn(response);
-//
-//        ResumeStatusUpdateDto request = new ResumeStatusUpdateDto("SUBMITTED");
-//
-//        mockMvc.perform(patch("/api/v1/resumes/1/status")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.data.status").value("SUBMITTED"));
-//    }
-//}
+package com.server.resume.service;
+
+import com.server.global.exception.ApplicationException;
+import com.server.jd.domain.JobDescription;
+import com.server.jd.domain.Skill;
+import com.server.jd.repository.JobDescriptionRepository;
+import com.server.jd.repository.SkillRepository;
+import com.server.resume.domain.Resume;
+import com.server.resume.domain.ResumeStatus;
+import com.server.resume.dto.*;
+import com.server.resume.exception.ResumeErrorCase;
+import com.server.resume.repository.ResumeRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.time.LocalDate;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class ResumeServiceTest {
+
+    @Mock
+    private ResumeRepository resumeRepository;
+
+    @Mock
+    private JobDescriptionRepository jobDescriptionRepository;
+
+    @Mock
+    private SkillRepository skillRepository;
+
+    @InjectMocks
+    private ResumeService resumeService;
+
+    @BeforeEach
+    void init() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    @DisplayName("getResumeById - 성공")
+    void getResumeById_success() {
+        Resume resume = mock(Resume.class);
+
+        when(resumeRepository.findByIdWithDetails(1L))
+                .thenReturn(Optional.of(resume));
+
+        resumeService.getResumeById(1L);
+
+        verify(resumeRepository).findByIdWithDetails(1L);
+    }
+
+    @Test
+    @DisplayName("getResumeById - 실패(찾을 수 없음)")
+    void getResumeById_fail() {
+        when(resumeRepository.findByIdWithDetails(1L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> resumeService.getResumeById(1L))
+                .isInstanceOf(ApplicationException.class)
+                .extracting("errorCase")
+                .isEqualTo(ResumeErrorCase.RESUME_NOT_FOUND);
+    }
+
+
+    @Test
+    @DisplayName("createResume - 성공")
+    void createResume_success() {
+        JobDescription jd = mock(JobDescription.class);
+        when(jd.getId()).thenReturn(10L);
+
+        when(jobDescriptionRepository.findById(10L))
+                .thenReturn(Optional.of(jd));
+
+        Resume savedResume = mock(Resume.class);
+        when(resumeRepository.save(any())).thenReturn(savedResume);
+
+        ResumeCreateRequestDto request = new ResumeCreateRequestDto(
+                "홍길동",
+                10L,
+                "M",
+                LocalDate.of(1990, 1, 1),
+                "test@test.com",
+                "01012345678",
+                "서울",
+                "강남",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                "resume-url",
+                "portfolio-url"
+        );
+
+        // when
+        resumeService.createResume(request);
+
+        // then
+        verify(jobDescriptionRepository).findById(10L);
+        verify(resumeRepository).save(any(Resume.class));
+    }
+
+    @Test
+    @DisplayName("createResume - 실패(JD null)")
+    void createResume_jdNull_fail() {
+        ResumeCreateRequestDto request = new ResumeCreateRequestDto(
+                "홍길동",
+                null, // JD null
+                "M",
+                LocalDate.of(1990, 1, 1),
+                "test@test.com",
+                "01012345678",
+                "서울",
+                "강남",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                "resume-url",
+                "portfolio-url"
+        );
+
+        assertThatThrownBy(() -> resumeService.createResume(request))
+                .isInstanceOf(ApplicationException.class)
+                .extracting("errorCase")
+                .isEqualTo(ResumeErrorCase.JD_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("createResume - 실패(JD를 DB에서 못 찾음)")
+    void createResume_jdNotFound_fail() {
+        when(jobDescriptionRepository.findById(10L))
+                .thenReturn(Optional.empty());
+
+        ResumeCreateRequestDto request = new ResumeCreateRequestDto(
+                "홍길동",
+                10L,
+                "M",
+                LocalDate.of(1990, 1, 1),
+                "test@test.com",
+                "01012345678",
+                "서울",
+                "강남",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                "resume-url",
+                "portfolio-url"
+        );
+
+        assertThatThrownBy(() -> resumeService.createResume(request))
+                .isInstanceOf(ApplicationException.class)
+                .extracting("errorCase")
+                .isEqualTo(ResumeErrorCase.JD_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("deleteResume - 성공")
+    void deleteResume_success() {
+        Resume resume = mock(Resume.class);
+
+        when(resumeRepository.findById(1L))
+                .thenReturn(Optional.of(resume));
+
+        resumeService.deleteResume(1L);
+
+        verify(resumeRepository).delete(resume);
+    }
+
+    @Test
+    @DisplayName("deleteResume - 실패(없음)")
+    void deleteResume_fail() {
+        when(resumeRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> resumeService.deleteResume(1L))
+                .isInstanceOf(ApplicationException.class)
+                .extracting("errorCase")
+                .isEqualTo(ResumeErrorCase.RESUME_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("updateResumeStatus - 성공")
+    void updateResumeStatus_success() {
+        Resume resume = mock(Resume.class);
+
+        when(resumeRepository.findById(1L))
+                .thenReturn(Optional.of(resume));
+
+        ResumeStatusUpdateDto dto = new ResumeStatusUpdateDto(ResumeStatus.BOOKMARK);
+
+        resumeService.updateResumeStatus(1L, dto);
+
+        verify(resume).updateStatus(ResumeStatus.BOOKMARK);
+    }
+
+    @Test
+    @DisplayName("updateResumeStatus - 실패(이력서 없음)")
+    void updateResumeStatus_resumeNotFound_fail() {
+        when(resumeRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        ResumeStatusUpdateDto dto = new ResumeStatusUpdateDto(ResumeStatus.BOOKMARK);
+
+        assertThatThrownBy(() -> resumeService.updateResumeStatus(1L, dto))
+                .isInstanceOf(ApplicationException.class)
+                .extracting("errorCase")
+                .isEqualTo(ResumeErrorCase.RESUME_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("getOrCreateSkill - 기존 스킬 존재")
+    void getOrCreateSkill_exist() {
+        Skill skill = Skill.of("Java");
+
+        when(skillRepository.findByName("Java"))
+                .thenReturn(Optional.of(skill));
+
+        Skill result = resumeService.getOrCreateSkill("Java");
+
+        assertThat(result).isEqualTo(skill);
+    }
+
+    @Test
+    @DisplayName("getOrCreateSkill - 기존 스킬 없음 → 새로 생성")
+    void getOrCreateSkill_create() {
+        Skill saved = Skill.of("Spring");
+
+        when(skillRepository.findByName("Spring"))
+                .thenReturn(Optional.empty());
+
+        when(skillRepository.save(any()))
+                .thenReturn(saved);
+
+        Skill result = resumeService.getOrCreateSkill("Spring");
+
+        assertThat(result).isEqualTo(saved);
+    }
+}

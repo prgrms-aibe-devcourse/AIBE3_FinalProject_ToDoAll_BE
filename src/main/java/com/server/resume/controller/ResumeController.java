@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/resumes")
-@Tag(name = "Resume API", description = "이력서 관련 기능을 제공하는 API") // ✅ Swagger 그룹 태그 추가
+@Tag(name = "Resume API", description = "이력서 관련 기능을 제공하는 API")
 public class ResumeController {
 
     private final ResumeService resumeService;

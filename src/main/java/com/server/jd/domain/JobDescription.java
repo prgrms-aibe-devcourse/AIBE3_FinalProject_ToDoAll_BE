@@ -83,7 +83,7 @@ public class JobDescription extends BaseEntity {
         jd.education = education;
         jd.salary = salary;
         jd.description = description;
-        jd.startDate = startDate;
+        jd.startDate = LocalDate.now();
         jd.deadline = deadline;
         jd.status = status;
         jd.welfare = welfare;

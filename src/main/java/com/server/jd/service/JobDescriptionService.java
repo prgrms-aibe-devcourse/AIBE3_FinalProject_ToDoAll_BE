@@ -53,8 +53,8 @@ public class JobDescriptionService {
                 request.description(),
                 null, // 초안이므로 null
                 request.deadline(),
-                JobStatus.DRAFT,
-                request.welfare(),
+                JobStatus.OPEN,
+                request.benefits(),
                 0L, // 지원자 수 초기값
                 request.location(),
                 request.thumbnailUrl(),
@@ -64,14 +64,14 @@ public class JobDescriptionService {
         jobRepository.save(jd);
 
         // 필수 기술 매핑
-        List<Skill> requiredSkills = skillRepository.findAllById(request.requiredSkillIds());
+        List<Skill> requiredSkills = skillRepository.findByNameIn(request.requiredSkills());
         List<JobRequiredSkill> requiredSkillEntities = requiredSkills.stream()
                 .map(skill -> JobRequiredSkill.of(jd, skill))
                 .toList();
         jobRequiredSkillRepository.saveAll(requiredSkillEntities);
 
         // 우대 기술 매핑
-        List<Skill> preferredSkills = skillRepository.findAllById(request.preferredSkillIds());
+        List<Skill> preferredSkills = skillRepository.findByNameIn(request.preferredSkills());
         List<JobPreferredSkill> preferredSkillEntities = preferredSkills.stream()
                 .map(skill -> JobPreferredSkill.of(jd, skill))
                 .toList();

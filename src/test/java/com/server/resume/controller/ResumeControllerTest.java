@@ -220,6 +220,23 @@ class ResumeControllerTest {
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
+    @DisplayName("DELETE /api/v1/resumes/{id} - 없는 이력서 삭제 시 404")
+    void deleteResume_notFound() throws Exception {
+        ApplicationException applicationException = new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND);
+
+
+        Mockito.doThrow(applicationException)
+                .when(resumeService).deleteResume(999L);
+
+        mockMvc.perform(delete("/api/v1/resumes/999").with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value(4041))
+                .andExpect(jsonPath("$.message").value("해당 이력서를 찾을 수 없습니다."));;
+    }
+
+
+    @Test
+    @WithMockUser(username = "testUser", roles = "USER")
     @DisplayName("PATCH /api/v1/resumes/{id}/status - 상태 변경 성공")
     void updateResumeStatus_success() throws Exception {
 
@@ -238,4 +255,6 @@ class ResumeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("BOOKMARK"));
     }
+
+
 }

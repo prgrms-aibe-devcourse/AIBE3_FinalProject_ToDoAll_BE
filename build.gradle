@@ -73,6 +73,11 @@ dependencies {
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+
+    // Spring Boot Test Autoconfigure
+    testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+
+
 }
 
 tasks.named('test') {

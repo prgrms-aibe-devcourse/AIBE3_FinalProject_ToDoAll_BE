@@ -10,7 +10,8 @@ public enum ResumeErrorCase implements ErrorCase {
     RESUME_NOT_FOUND(HttpStatus.NOT_FOUND, 4041, "해당 이력서를 찾을 수 없습니다."),
     RESUME_OWNER_MISMATCH(HttpStatus.FORBIDDEN, 4042, "이력서 소유자가 아닙니다."),
     JD_NOT_FOUND(HttpStatus.NOT_FOUND, 4043, "해당 공고를 찾을 수 없습니다."),
-    SKILL_NOT_FOUND(HttpStatus.NOT_FOUND, 4044, "해당 스킬을 찾을 수 없습니다.");
+    SKILL_NOT_FOUND(HttpStatus.NOT_FOUND, 4044, "해당 스킬을 찾을 수 없습니다."),
+    INVALID_STATUS(HttpStatus.BAD_REQUEST, 4001, "유효하지 않은 상태값이 전달되었습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;

@@ -11,4 +11,8 @@ public class ApplicationException extends RuntimeException {
         super(errorCase.getMessage());
         this.errorCase = errorCase;
     }
+
+    public static ApplicationException from(ErrorCase errorCase) {
+        return new ApplicationException(errorCase);
+    }
 }

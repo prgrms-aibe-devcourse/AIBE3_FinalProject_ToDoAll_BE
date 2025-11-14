@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 @Entity
 @Getter
@@ -71,4 +72,8 @@ public class ResumeEducation {
         edu.gpaScale = gpaScale;
         return edu;
     }
+
+
+
+
 }

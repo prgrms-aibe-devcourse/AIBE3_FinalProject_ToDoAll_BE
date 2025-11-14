@@ -14,6 +14,7 @@ import com.server.resume.domain.ResumeStatus;
 import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.User;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import static com.server.user.domain.TestFixtures.createUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@Transactional
 class MatchQueryRepositoryImplTest {
 
     @Autowired
@@ -134,6 +136,9 @@ class MatchQueryRepositoryImplTest {
         );
 
         List<MatchListResponseDto> result = matchRepository.searchMatches(condition).getContent();
+
+        System.out.println(">>> RESULT ORDER:");
+        result.forEach(r -> System.out.println(r.name() + " / " + r.matchScore()));
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).name()).isEqualTo("승인"); // 최신 createdAt

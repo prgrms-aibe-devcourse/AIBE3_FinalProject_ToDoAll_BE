@@ -12,4 +12,5 @@ public interface SkillRepository extends JpaRepository<Skill, Long> {
     Optional<Skill> findByName(String name);
     List<Skill> findByNameIn(Collection<String> names);
 
+    List<Skill> findAllByOrderByNameAsc();
 }

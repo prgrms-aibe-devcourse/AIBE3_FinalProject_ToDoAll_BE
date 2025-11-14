@@ -107,9 +107,10 @@ public class InterviewService {
                 status,
                 cursor,
                 sort,
-                limit + 1 // hasNext 판단용
+                limit + 1 // hasNext 판단을 위해 limit보다 1개 더 찾음
         );
 
+        // 다음 페이지가 있는지 확인
         boolean hasNext = interviews.size() > limit;
         Long nextCursor = null;
 

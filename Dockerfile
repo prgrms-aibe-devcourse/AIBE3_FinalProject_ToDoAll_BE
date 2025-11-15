@@ -9,7 +9,10 @@ WORKDIR /app
 
 COPY build/libs/*.jar app.jar
 COPY wait-for-mysql.sh /usr/local/bin/wait-for-mysql.sh
-RUN chmod +x /usr/local/bin/wait-for-mysql.sh
+
+# 실행 권한 + CRLF 제거 (중요)
+RUN chmod +x /usr/local/bin/wait-for-mysql.sh \
+    && sed -i 's/\r$//' /usr/local/bin/wait-for-mysql.sh
 
 EXPOSE 8080
 

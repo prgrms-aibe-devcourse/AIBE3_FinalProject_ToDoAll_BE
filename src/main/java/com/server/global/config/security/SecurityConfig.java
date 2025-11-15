@@ -43,7 +43,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/api/v1/users",
+                                "/api/v1/email-verifications/**"
                         ).permitAll()
                         .anyRequest().permitAll()  // TODO: 로그인, 회원가입 개발 후 .anyRequest().authenticated() 으로 변경
                 );

@@ -14,7 +14,7 @@ public enum UserErrorCase implements ErrorCase {
 
     // 409 - 중복/충돌
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 1001, "이미 가입된 이메일입니다."),
-    PASSWORD_CONFIRM_MISMATCH(HttpStatus.CONFLICT, 1004, "현재 비밀번호가 일치하지 않습니다."),
+    PASSWORD_CONFIRM_MISMATCH(HttpStatus.CONFLICT, 1004, "비밀번호가 일치하지 않습니다."),
 
     // 400 - 요청 형식/정책 위반
 

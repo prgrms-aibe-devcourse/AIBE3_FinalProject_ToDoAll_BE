@@ -3,6 +3,7 @@ package com.server.auth.repository;
 import com.server.auth.domain.EmailVerificationToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface EmailVerificationTokenRepository extends JpaRepository<EmailVerificationToken, Long> {
@@ -10,5 +11,9 @@ public interface EmailVerificationTokenRepository extends JpaRepository<EmailVer
     Optional<EmailVerificationToken> findTopByEmailOrderByCreatedAtDesc(String email);
 
     Optional<EmailVerificationToken> findByToken(String token);
+    Optional<EmailVerificationToken> findTopByEmailAndCreatedAtAfterOrderByCreatedAtDesc(
+            String email,
+            LocalDateTime after
+    );
 }
 

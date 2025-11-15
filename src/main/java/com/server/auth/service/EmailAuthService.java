@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.Year;
 
 @Slf4j
@@ -56,22 +57,32 @@ public class EmailAuthService {
             throw ApplicationException.from(UserErrorCase.USER_ALREADY_EXISTS);
         }
 
-        // 2) 새 토큰 생성 (이메일 + 만료시간)
+        //  2) 최근 5분 이내에 발송한 이메일이 있는지 확인
+        emailVerificationTokenRepository
+                .findTopByEmailAndCreatedAtAfterOrderByCreatedAtDesc(
+                        email,
+                        LocalDateTime.now().minusMinutes(5)
+                )
+                .ifPresent(token -> {
+                    throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_ALREADY_SENT);
+                });
+
+        // 3) 새 토큰 생성 (이메일 + 만료시간)
         EmailVerificationToken token = EmailVerificationToken.createToken(email, expiryMinutes);
 
-        // 3) 저장
+        // 4) 저장
         emailVerificationTokenRepository.save(token);
 
-        // 4) 인증 링크 생성
+        // 5) 인증 링크 생성
         String verificationLink = UriComponentsBuilder
                 .fromHttpUrl(authBaseUrl)
                 .queryParam("token", token.getToken())
                 .toUriString();
 
-        // 5) HTML 템플릿 로딩 + 변수 치환
+        // 7) HTML 템플릿 로딩 + 변수 치환
         String htmlContent = loadSignupVerificationTemplate(verificationLink);
 
-        // 6) 실제 이메일 전송
+        // 8) 실제 이메일 전송
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
@@ -82,8 +93,7 @@ public class EmailAuthService {
 
             mailSender.send(message);
         } catch (Exception e) {
-            // 메일 전송에 실패하면 서버 내부 오류로 래핑
-            throw ApplicationException.from(AuthErrorCase.AUTH_INTERNAL_ERROR);
+            throw ApplicationException.from(AuthErrorCase.EMAIL_SEND_FAILED);
         }
     }
 

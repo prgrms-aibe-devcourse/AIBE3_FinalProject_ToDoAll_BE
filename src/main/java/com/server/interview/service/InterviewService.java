@@ -6,7 +6,10 @@ import com.server.interview.domain.InterviewParticipant;
 import com.server.interview.domain.InterviewRole;
 import com.server.interview.domain.InterviewStatus;
 import com.server.interview.dto.*;
+import com.server.interview.exception.InterviewErrorCase;
+import com.server.interview.repository.InterviewNoteRepository;
 import com.server.interview.repository.InterviewParticipantRepository;
+import com.server.interview.repository.InterviewQuestionRepository;
 import com.server.interview.repository.InterviewRepository;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
@@ -32,6 +35,8 @@ import java.util.stream.Collectors;
 public class InterviewService {
     private final InterviewRepository interviewRepository;
     private final InterviewParticipantRepository interviewParticipantRepository;
+    private final InterviewNoteRepository interviewNoteRepository;
+    private final InterviewQuestionRepository interviewQuestionRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
@@ -95,12 +100,19 @@ public class InterviewService {
     public InterviewListResponseDto getInterviews(InterviewSearchCondition condition) {
 
         Long jdId = condition.jdId();
-        String status = condition.status().equals("ALL") ? null : condition.status();
+        String status = condition.status();
+
+        // status 값 검증
+        validateStatus(status);
+
+        // "ALL" → null 처리
+        status = "ALL".equals(status) ? null : status;
+
         int limit = condition.limit() == null ? 6 : condition.limit();
         Long cursor = condition.cursor();
         String sort = condition.sort() == null ? "createdAt,desc" : condition.sort();
 
-        // ⭐ 이제 엔티티 대신 DTO 리스트를 직접 받는다
+        // 검색
         List<InterviewSummaryDto> summaries = interviewRepository.searchInterviews(
                 jdId,
                 status,
@@ -116,11 +128,41 @@ public class InterviewService {
             nextCursor = summaries.get(limit - 1).interviewId();
         }
 
-        // limit만큼만 반환
         summaries = summaries.stream().limit(limit).toList();
 
         return new InterviewListResponseDto(summaries, nextCursor, hasNext);
     }
 
 
+    @Transactional
+    public void deleteInterview(Long interviewId) {
+
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // 주최자(organizer)만 삭제 가능
+        User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+
+        // 면접 노트 삭제
+        interviewNoteRepository.deleteByInterviewId(interviewId);
+
+        // 면접 질문 삭제
+        interviewQuestionRepository.deleteByInterviewId(interviewId);
+
+        if (!interview.getOrganizer().getId().equals(organizer.getId())) {
+            throw new ApplicationException(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN);
+        }
+
+        interviewRepository.delete(interview);
+    }
+
+    private void validateStatus(String status) {
+        if (status == null || status.equals("ALL")) return;
+
+        try {
+            InterviewStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new ApplicationException(InterviewErrorCase.INVALID_STATUS);
+        }
+    }
 }

@@ -3,8 +3,8 @@ package com.server.interview.controller;
 import com.server.global.response.CommonResponse;
 import com.server.interview.dto.InterviewCreateRequestDto;
 import com.server.interview.dto.InterviewCreateResponseDto;
-import com.server.interview.dto.InterviewSearchCondition;
 import com.server.interview.dto.InterviewListResponseDto;
+import com.server.interview.dto.InterviewSearchCondition;
 import com.server.interview.service.InterviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -45,5 +45,18 @@ public class InterviewController {
     ){
         InterviewListResponseDto interviewSearchResponseDto = interviewService.getInterviews(condition);
         return CommonResponse.success(interviewSearchResponseDto);
+    }
+
+    @DeleteMapping("/{interviewId}")
+    @Operation(summary = "면접 삭제", description = "면접 ID를 통해 면접을 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 면접입니다."),
+            @ApiResponse(responseCode = "403", description = "면접을 삭제할 권한이 없습니다.")
+    })
+    public CommonResponse<String> deleteInterview (
+            @PathVariable("interviewId") Long interviewId
+    ){
+        interviewService.deleteInterview(interviewId);
+        return CommonResponse.success("면접 삭제 완료");
     }
 }

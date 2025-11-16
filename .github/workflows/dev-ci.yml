@@ -15,11 +15,11 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: jobda_db
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p${MYSQL_ROOT_PASSWORD}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
@@ -29,13 +29,16 @@ jobs:
         ports:
           - 6379:6379
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     env:
       SPRING_PROFILES_ACTIVE: ci
+      MYSQL_URL: jdbc:mysql://127.0.0.1:3306/jobda_db
+      MYSQL_USERNAME: root
+      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
       SPRING_DATA_REDIS_HOST: 127.0.0.1
       SPRING_DATA_REDIS_PORT: 6379
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -54,18 +57,19 @@ jobs:
       - name: Grant execute permission to Gradle wrapper
         run: chmod +x ./gradlew
 
-      - name: Wait for MySQL to be ready
+      - name: Wait for MySQL to be fully ready
         run: |
+          echo "Waiting for MySQL to be fully ready..."
           for i in {1..40}; do
             if mysqladmin ping -h 127.0.0.1 -uroot -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" --silent; then
-              echo "MySQL is up"
+              echo "MySQL is READY!"
               break
             fi
-            echo "Waiting for MySQL..."
+            echo "Still waiting..."
             sleep 3
           done
 
-      - name: Build and Test
+      - name: Build with QueryDSL & run tests
         run: ./gradlew clean build --stacktrace
 
       - name: Build Docker Compose (dev)

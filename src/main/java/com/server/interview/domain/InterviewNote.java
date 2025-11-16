@@ -18,7 +18,6 @@ public class InterviewNote extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 면접 ID (FK)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interview_id", nullable = false, unique = true)
     private Interview interview;

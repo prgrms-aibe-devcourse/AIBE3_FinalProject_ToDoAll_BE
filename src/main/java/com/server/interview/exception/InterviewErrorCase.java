@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum InterviewErrorCase implements ErrorCase {
 
-    INTERVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, 9001, "해당 인터뷰를 찾을 수 없습니다.");
+    INTERVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, 9001, "해당 인터뷰를 찾을 수 없습니다."),
+    INTERVIEW_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, 9002, "면접을 삭제할 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;

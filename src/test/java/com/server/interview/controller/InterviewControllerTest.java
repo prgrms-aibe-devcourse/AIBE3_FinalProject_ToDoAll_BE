@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.server.interview.dto.InterviewCreateRequestDto;
 import com.server.interview.dto.InterviewCreateResponseDto;
+import com.server.interview.dto.InterviewListResponseDto;
+import com.server.interview.dto.InterviewSummaryDto;
 import com.server.interview.service.InterviewService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -72,4 +74,66 @@ class InterviewControllerTest {
         // ---------------------- 검증 ----------------------
         verify(interviewService).create(any(InterviewCreateRequestDto.class));
     }
+
+    @Test
+    @DisplayName("인터뷰 조회 성공")
+    void getInterviewSuccess() throws Exception {
+
+        // ---------------------- REQUEST PARAMS ----------------------
+        Long jdId = 1L;
+        String status = "ALL";
+        Integer limit = 6;
+        Long cursor = null;
+        String sort = "createdAt,desc";
+
+        // ---------------------- SERVICE MOCK RESPONSE ----------------------
+        InterviewSummaryDto summary1 = new InterviewSummaryDto(
+                100L,
+                1L,
+                "백엔드 개발자 채용",
+                "김지원",
+                "SCHEDULED",
+                LocalDateTime.of(2025, 12, 1, 10, 0),
+                LocalDateTime.of(2025, 11, 15, 12, 0)
+        );
+
+        InterviewSummaryDto summary2 = new InterviewSummaryDto(
+                99L,
+                1L,
+                "백엔드 개발자 채용",
+                "박민수",
+                "WAITING",
+                LocalDateTime.of(2025, 12, 2, 11, 0),
+                LocalDateTime.of(2025, 11, 14, 11, 0)
+        );
+
+        InterviewListResponseDto response = new InterviewListResponseDto(
+                List.of(summary1, summary2),
+                99L,       // nextCursor
+                true       // hasNext
+        );
+
+        when(interviewService.getInterviews(any())).thenReturn(response);
+
+        // ---------------------- API 호출 ----------------------
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .get("/api/v1/interviews")
+                                .param("jdId", jdId.toString())
+                                .param("status", status)
+                                .param("limit", limit.toString())
+                                .param("sort", sort)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(jsonPath("$.data.data[0].interviewId").value(100L))
+                .andExpect(jsonPath("$.data.data[0].candidateName").value("김지원"))
+                .andExpect(jsonPath("$.data.nextCursor").value(99L))
+                .andExpect(jsonPath("$.data.hasNext").value(true));
+
+        // ---------------------- 검증 ----------------------
+        verify(interviewService).getInterviews(any());
+    }
+
 }

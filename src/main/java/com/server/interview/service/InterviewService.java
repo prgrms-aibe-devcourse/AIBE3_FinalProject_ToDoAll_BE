@@ -100,11 +100,19 @@ public class InterviewService {
     public InterviewListResponseDto getInterviews(InterviewSearchCondition condition) {
 
         Long jdId = condition.jdId();
-        String status = condition.status().equals("ALL") ? null : condition.status();
+        String status = condition.status();
+
+        // 🔥 status 값 검증
+        validateStatus(status);
+
+        // "ALL" → null 처리
+        status = "ALL".equals(status) ? null : status;
+
         int limit = condition.limit() == null ? 6 : condition.limit();
         Long cursor = condition.cursor();
         String sort = condition.sort() == null ? "createdAt,desc" : condition.sort();
 
+        // 검색
         List<InterviewSummaryDto> summaries = interviewRepository.searchInterviews(
                 jdId,
                 status,
@@ -120,11 +128,11 @@ public class InterviewService {
             nextCursor = summaries.get(limit - 1).interviewId();
         }
 
-        // limit만큼만 반환
         summaries = summaries.stream().limit(limit).toList();
 
         return new InterviewListResponseDto(summaries, nextCursor, hasNext);
     }
+
 
     @Transactional
     public void deleteInterview(Long interviewId) {
@@ -146,5 +154,15 @@ public class InterviewService {
         }
 
         interviewRepository.delete(interview);
+    }
+
+    private void validateStatus(String status) {
+        if (status == null || status.equals("ALL")) return;
+
+        try {
+            InterviewStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new ApplicationException(InterviewErrorCase.INVALID_STATUS);
+        }
     }
 }

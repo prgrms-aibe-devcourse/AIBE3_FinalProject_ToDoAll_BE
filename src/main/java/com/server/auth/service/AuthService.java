@@ -6,6 +6,9 @@ import com.server.global.exception.ApplicationException;
 import com.server.user.domain.User;
 import com.server.user.dto.UserLoginResponseDto;
 import com.server.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,8 +51,22 @@ public class AuthService {
     }
 
 
-    public void logout(String refreshToken) {
-        // TODO: Redis에서 리프레시 토큰 삭제
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+
+        Cookie accessTokenCookie = new Cookie("accessToken", "");
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0);
+        response.addCookie(accessTokenCookie);
+
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", "");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);
+        response.addCookie(refreshTokenCookie);
+
+        log.info("로그아웃 처리 완료 (쿠키 삭제)");
     }
 
     public UserLoginResponseDto reissueAccessToken(String refreshToken) {

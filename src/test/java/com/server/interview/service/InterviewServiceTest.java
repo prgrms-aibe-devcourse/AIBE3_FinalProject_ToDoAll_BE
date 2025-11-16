@@ -4,10 +4,7 @@ import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.Interview;
 import com.server.interview.domain.InterviewParticipant;
 import com.server.interview.domain.InterviewStatus;
-import com.server.interview.dto.InterviewCreateRequestDto;
-import com.server.interview.dto.InterviewCreateResponseDto;
-import com.server.interview.dto.InterviewListResponseDto;
-import com.server.interview.dto.InterviewSearchCondition;
+import com.server.interview.dto.*;
 import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.interview.repository.InterviewRepository;
 import com.server.jd.domain.JobDescription;
@@ -157,23 +154,24 @@ class InterviewServiceTest {
         );
 
         // limit = 3 → limit+1 = 4개 반환하게 설정
-        Interview i1 = mockInterview(10L, 1L, "백엔드 개발자", "홍길동");
-        Interview i2 = mockInterview(9L, 1L, "백엔드 개발자", "김철수");
-        Interview i3 = mockInterview(8L, 1L, "백엔드 개발자", "박영희");
-        Interview i4 = mockInterview(7L, 1L, "백엔드 개발자", "최민수");// hasNext detection 용
+        InterviewSummaryDto d1 = mockDto(10L);
+        InterviewSummaryDto d2 = mockDto(9L);
+        InterviewSummaryDto d3 = mockDto(8L);
+        InterviewSummaryDto d4 = mockDto(7L); // hasNext detection 용
 
         when(interviewRepository.searchInterviews(
                 eq(1L), eq("SCHEDULED"), eq(null), eq("createdAt,desc"), eq(4)
-        )).thenReturn(List.of(i1, i2, i3, i4));
+        )).thenReturn(List.of(d1, d2, d3, d4));
 
         // when
         InterviewListResponseDto response = interviewService.getInterviews(condition);
 
         // then
         assertThat(response.hasNext()).isTrue();
-        assertThat(response.nextCursor()).isEqualTo(8L); // 3번째 요소(=limit-1)의 id
+        assertThat(response.nextCursor()).isEqualTo(8L);  // limit=3 → 3번째 요소(id=8)
         assertThat(response.data().size()).isEqualTo(3);
     }
+
 
 
     @Test
@@ -188,14 +186,13 @@ class InterviewServiceTest {
                 "createdAt,desc"
         );
 
-        Interview i1 = mockInterview(10L, 1L, "백엔드 개발자", "홍길동");
-        Interview i2 = mockInterview(9L, 1L, "백엔드 개발자", "김철수");
+        InterviewSummaryDto d1 = mockDto(10L);
+        InterviewSummaryDto d2 = mockDto(9L);
 
-
-        // limit+1 = 4 요청, 하지만 실제는 2개만 반환
+        // limit+1 = 4 요청, 실제는 2개 반환
         when(interviewRepository.searchInterviews(
                 eq(null), eq(null), eq(null), eq("createdAt,desc"), eq(4)
-        )).thenReturn(List.of(i1, i2));
+        )).thenReturn(List.of(d1, d2));
 
         // when
         InterviewListResponseDto response = interviewService.getInterviews(condition);
@@ -243,6 +240,19 @@ class InterviewServiceTest {
 
         return interview;
     }
+
+    private InterviewSummaryDto mockDto(Long id) {
+        return new InterviewSummaryDto(
+                id,
+                1L,
+                "백엔드 개발자",
+                "홍길동",
+                "SCHEDULED",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+    }
+
 
 
 }

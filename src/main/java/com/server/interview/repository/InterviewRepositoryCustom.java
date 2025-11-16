@@ -1,10 +1,11 @@
 package com.server.interview.repository;
 
-import com.server.interview.domain.Interview;
+import com.server.interview.dto.InterviewSummaryDto;
+
 import java.util.List;
 
 public interface InterviewRepositoryCustom {
-    List<Interview> searchInterviews(
+    List<InterviewSummaryDto> searchInterviews(
             Long jdId,
             String status,
             Long cursor,

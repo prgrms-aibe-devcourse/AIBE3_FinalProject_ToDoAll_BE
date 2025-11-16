@@ -95,46 +95,32 @@ public class InterviewService {
     public InterviewListResponseDto getInterviews(InterviewSearchCondition condition) {
 
         Long jdId = condition.jdId();
-        String status =
-                condition.status().equals("ALL") ? null : condition.status();
+        String status = condition.status().equals("ALL") ? null : condition.status();
         int limit = condition.limit() == null ? 6 : condition.limit();
         Long cursor = condition.cursor();
         String sort = condition.sort() == null ? "createdAt,desc" : condition.sort();
 
-        // 검색
-        List<Interview> interviews = interviewRepository.searchInterviews(
+        // ⭐ 이제 엔티티 대신 DTO 리스트를 직접 받는다
+        List<InterviewSummaryDto> summaries = interviewRepository.searchInterviews(
                 jdId,
                 status,
                 cursor,
                 sort,
-                limit + 1 // hasNext 판단을 위해 limit보다 1개 더 찾음
+                limit + 1
         );
 
-        // 다음 페이지가 있는지 확인
-        boolean hasNext = interviews.size() > limit;
+        boolean hasNext = summaries.size() > limit;
         Long nextCursor = null;
 
         if (hasNext) {
-            Interview last = interviews.get(limit - 1);
-            nextCursor = last.getId();
+            nextCursor = summaries.get(limit - 1).interviewId();
         }
 
-        // 응답에 나갈 데이터는 limit만큼 자르기
-        interviews = interviews.stream().limit(limit).toList();
-
-        List<InterviewSummaryDto> summaries = interviews.stream()
-                .map(i -> new InterviewSummaryDto(
-                        i.getId(),
-                        i.getJobDescription().getId(),
-                        i.getJobDescription().getTitle(),
-                        i.getResume().getName(),
-                        i.getStatus().name(),
-                        i.getScheduledAt(),
-                        i.getCreatedAt()
-                ))
-                .toList();
+        // limit만큼만 반환
+        summaries = summaries.stream().limit(limit).toList();
 
         return new InterviewListResponseDto(summaries, nextCursor, hasNext);
     }
+
 
 }

@@ -1,7 +1,9 @@
 package com.server.interview.service;
 
 import com.server.global.exception.ApplicationException;
-import com.server.interview.domain.*;
+import com.server.interview.domain.Interview;
+import com.server.interview.domain.InterviewQuestion;
+import com.server.interview.domain.QuestionStatus;
 import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.exception.InterviewQuestionErrorCase;
@@ -13,8 +15,6 @@ import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,31 +45,34 @@ public class InterviewQuestionService {
         boolean permission = participantRepository.existsByInterviewIdAndUserId(
                 interviewId, user.getId()
         );
-
         if (!permission) {
             throw new ApplicationException(InterviewQuestionErrorCase.FORBIDDEN);
         }
 
-        // 5. 요청 파싱 및 검증
-        for (var q : request.questions()) {
-            if (q == null || q.content() == null || q.questionType() == null) {
-                throw new ApplicationException(InterviewQuestionErrorCase.INVALID_FIELD);
-            }
+        // 삭제 먼저 처리
+        if (request.deleteQuestionIds() != null && !request.deleteQuestionIds().isEmpty()) {
+            questionRepository.deleteAllByIdInBatch(request.deleteQuestionIds());
         }
 
-        // 6. 기존 질문 삭제 후 재삽입 (가장 안정적인 방식)
-        questionRepository.deleteByInterviewId(interviewId);
+        // 추가 및 수정 처리
+        for (var q : request.questions()) {
 
-        // 7. 새 질문 삽입
-        List<InterviewQuestion> newQuestions = request.questions().stream()
-                .map(q -> InterviewQuestion.of(
+            if (q.questionId() == null) {
+                // 새 질문 추가
+                InterviewQuestion newQuestion = InterviewQuestion.of(
                         interview,
                         q.questionType(),
                         q.content(),
                         QuestionStatus.PENDING
-                ))
-                .toList();
+                );
+                questionRepository.save(newQuestion);
+            } else {
+                // 기존 질문 수정
+                InterviewQuestion existQuestion = questionRepository.findById(q.questionId())
+                        .orElseThrow(() -> new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND));
 
-        questionRepository.saveAll(newQuestions);
+                existQuestion.update(q.questionType(), q.content());
+            }
+        }
     }
 }

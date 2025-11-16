@@ -2,7 +2,11 @@ package com.server.interview.domain;
 
 import com.server.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -45,5 +49,16 @@ public class InterviewQuestion extends BaseEntity {
         question.questionText = questionText;
         question.status = status;
         return question;
+    }
+
+    public void update(
+            @NotNull(message = "질문 유형은 필수입니다.")
+            QuestionType questionType,
+
+            @NotBlank(message = "질문 내용을 입력해주세요.")
+            String content
+    ) {
+        this.type = questionType;
+        this.questionText = content;
     }
 }

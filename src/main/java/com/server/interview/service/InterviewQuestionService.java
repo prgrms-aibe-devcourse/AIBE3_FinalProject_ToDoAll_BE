@@ -49,9 +49,18 @@ public class InterviewQuestionService {
             throw new ApplicationException(InterviewQuestionErrorCase.FORBIDDEN);
         }
 
-        // 삭제 먼저 처리
+        // 삭제 처리
         if (request.deleteQuestionIds() != null && !request.deleteQuestionIds().isEmpty()) {
-            questionRepository.deleteAllByIdInBatch(request.deleteQuestionIds());
+
+            //기본적으로 Spring Data JPA는 존재하지 않는 ID로 delete를 호출해도 에러를 내지 않고 그냥 무시한다.
+            int deleted = questionRepository.deleteByIdsAndInterviewId(
+                    request.deleteQuestionIds(), interviewId
+            );
+
+            // 요청된 삭제 수 != 실제 삭제 수 -> 잘못된 질문 ID 포함
+            if (deleted != request.deleteQuestionIds().size()) {
+                throw new ApplicationException(InterviewQuestionErrorCase.INVALID_DELETE_TARGET);
+            }
         }
 
         // 추가 및 수정 처리

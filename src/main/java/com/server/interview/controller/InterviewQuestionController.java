@@ -1,6 +1,7 @@
 package com.server.interview.controller;
 
 import com.server.global.response.CommonResponse;
+import com.server.interview.dto.InterviewQuestionResponseDto;
 import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
 import com.server.interview.service.InterviewQuestionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/interviews/{interviewId}/questions")
@@ -34,10 +37,17 @@ public class InterviewQuestionController {
         interviewQuestionService.updateQuestions(interviewId, request);
         return CommonResponse.success("면접 질문이 성공적으로 업데이트되었습니다.");
     }
-//
-//    @GetMapping
-//    @Operation(summary = "인터뷰 질문 조회", description = "인터뷰에 해당하는 질문을 전체조회 합니다.")
-//    public CommonResponse<List<InterviewQuestion>> getQuestions(
-//
-//    )
+
+    @GetMapping
+    @Operation(summary = "인터뷰 질문 조회", description = "인터뷰에 해당하는 질문을 전체조회 합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 인터뷰입니다."),
+            @ApiResponse(responseCode = "403", description = "질문을 조회할 권한이 없습니다.")
+    })
+    public CommonResponse<List<InterviewQuestionResponseDto>> getQuestions(
+            @PathVariable Long interviewId
+    ) {
+        List<InterviewQuestionResponseDto> interviewQuestionResponseDto =  interviewQuestionService.getQuestions(interviewId);
+        return CommonResponse.success(interviewQuestionResponseDto);
+    }
 }

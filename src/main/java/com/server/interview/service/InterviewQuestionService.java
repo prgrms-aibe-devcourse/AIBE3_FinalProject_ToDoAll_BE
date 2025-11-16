@@ -4,6 +4,7 @@ import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.Interview;
 import com.server.interview.domain.InterviewQuestion;
 import com.server.interview.domain.QuestionStatus;
+import com.server.interview.dto.InterviewQuestionResponseDto;
 import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.exception.InterviewQuestionErrorCase;
@@ -15,6 +16,8 @@ import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -83,5 +86,37 @@ public class InterviewQuestionService {
                 existQuestion.update(q.questionType(), q.content());
             }
         }
+    }
+
+    public List<InterviewQuestionResponseDto> getQuestions(Long  interviewId) {
+        // 인터뷰 존재 체크
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // 사용자 조회 (토큰 대신 임시 userId=1)
+        User user = userRepository.findById(1L)
+                .orElseThrow();
+
+        // 권한 체크 (면접관 + 주최자)
+        boolean allowed = participantRepository.existsByInterviewIdAndUserId(interviewId, user.getId());
+        if (!allowed) {
+            throw new ApplicationException(InterviewQuestionErrorCase.FORBIDDEN);
+        }
+
+        // 질문 조회
+        var questions = questionRepository.findAllByInterviewId(interviewId);
+
+        // DTO 변환
+        List<InterviewQuestionResponseDto> responseList = questions.stream()
+                .map(q -> new InterviewQuestionResponseDto(
+                        q.getId(),
+                        q.getType().name(),
+                        q.getQuestionText(),
+                        q.getCreatedAt(),
+                        q.getUpdatedAt()
+                ))
+                .toList();
+
+        return responseList;
     }
 }

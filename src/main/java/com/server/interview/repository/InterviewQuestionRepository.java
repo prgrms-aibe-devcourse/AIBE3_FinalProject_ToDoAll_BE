@@ -17,4 +17,5 @@ public interface InterviewQuestionRepository extends JpaRepository<InterviewQues
     @Query("DELETE FROM InterviewQuestion q WHERE q.id IN :ids AND q.interview.id = :interviewId")
     int deleteByIdsAndInterviewId(@Param("ids") List<Long> ids, @Param("interviewId") Long interviewId);
 
+    List<InterviewQuestion> findAllByInterviewId(Long interviewId);
 }

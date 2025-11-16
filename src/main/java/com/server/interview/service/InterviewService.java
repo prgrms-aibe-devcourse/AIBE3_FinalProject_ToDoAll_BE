@@ -130,6 +130,7 @@ public class InterviewService {
 
         // 주최자(organizer)만 삭제 가능
         User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+
         if (!interview.getOrganizer().getId().equals(organizer.getId())) {
             throw new ApplicationException(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN);
         }

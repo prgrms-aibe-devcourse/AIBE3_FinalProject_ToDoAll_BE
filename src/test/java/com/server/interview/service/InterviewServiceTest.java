@@ -5,6 +5,7 @@ import com.server.interview.domain.Interview;
 import com.server.interview.domain.InterviewParticipant;
 import com.server.interview.domain.InterviewStatus;
 import com.server.interview.dto.*;
+import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.interview.repository.InterviewRepository;
 import com.server.jd.domain.JobDescription;
@@ -253,6 +254,108 @@ class InterviewServiceTest {
         );
     }
 
+    @Test
+    @DisplayName("인터뷰 삭제 성공")
+    void deleteInterviewSuccess() {
+        // given
+        Long interviewId = 1L;
+
+        // organizer
+        User organizer = User.of(
+                "org@test.com",
+                "pw",
+                "주최자",
+                "organizer",
+                "010-2222-3333",
+                LocalDate.now(),
+                "M",
+                "Company",
+                "Dev"
+        );
+        ReflectionTestUtils.setField(organizer, "id", 1L);
+
+        // 인터뷰 Mock
+        Interview mockInterview = mock(Interview.class);
+        when(mockInterview.getOrganizer()).thenReturn(organizer);
+
+        when(interviewRepository.findById(interviewId))
+                .thenReturn(Optional.of(mockInterview));
+
+        when(userRepo.findById(1L))
+                .thenReturn(Optional.of(organizer));
+
+        // when
+        interviewService.deleteInterview(interviewId);
+
+        // then
+        verify(interviewRepository).delete(mockInterview);
+    }
+
+    @Test
+    @DisplayName("인터뷰 삭제 실패 - 인터뷰 없음 (NOT_FOUND)")
+    void deleteInterview_NotFound() {
+        // given
+        when(interviewRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> interviewService.deleteInterview(999L))
+                .isInstanceOf(ApplicationException.class)
+                .hasMessage(InterviewErrorCase.INTERVIEW_NOT_FOUND.getMessage());
+
+        verify(interviewRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("인터뷰 삭제 실패 - 권한 없음 (FORBIDDEN)")
+    void deleteInterview_Forbidden() {
+        // given
+        Long interviewId = 10L;
+
+        // organizer(현재 로그인 사용자)
+        User requestUser = User.of(
+                "org@test.com",
+                "pw",
+                "요청자",
+                "req",
+                "010-2222-3333",
+                LocalDate.now(),
+                "M",
+                "Company",
+                "Dev"
+        );
+        ReflectionTestUtils.setField(requestUser, "id", 1L);
+
+        // 인터뷰의 실제 organizer = 다른 사람 (id=2)
+        User realOwner = User.of(
+                "real@test.com",
+                "pw",
+                "실제주최자",
+                "real",
+                "010-4444-5555",
+                LocalDate.now(),
+                "M",
+                "Company",
+                "Dev"
+        );
+        ReflectionTestUtils.setField(realOwner, "id", 2L);
+
+        Interview mockInterview = mock(Interview.class);
+        when(mockInterview.getOrganizer()).thenReturn(realOwner);
+
+        when(interviewRepository.findById(interviewId))
+                .thenReturn(Optional.of(mockInterview));
+
+        when(userRepo.findById(1L))
+                .thenReturn(Optional.of(requestUser));
+
+        // when & then
+        assertThatThrownBy(() -> interviewService.deleteInterview(interviewId))
+                .isInstanceOf(ApplicationException.class)
+                .hasMessage(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN.getMessage());
+
+        verify(interviewRepository, never()).delete(any());
+    }
 
 
 }

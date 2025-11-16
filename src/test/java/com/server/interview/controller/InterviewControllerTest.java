@@ -136,4 +136,24 @@ class InterviewControllerTest {
         verify(interviewService).getInterviews(any());
     }
 
+    @Test
+    @DisplayName("인터뷰 삭제 성공")
+    void deleteInterviewSuccess() throws Exception {
+
+        // given
+        Mockito.doNothing().when(interviewService).deleteInterview(1L);
+
+        // when & then
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .delete("/api/v1/interviews/{interviewId}", 1L)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(jsonPath("$.data").value("면접 삭제 완료"));
+
+        Mockito.verify(interviewService).deleteInterview(1L);
+    }
+
 }

@@ -3,6 +3,7 @@ package com.server.interview.controller;
 import com.server.global.response.CommonResponse;
 import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
 import com.server.interview.service.InterviewQuestionService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ public class InterviewQuestionController {
     private final InterviewQuestionService interviewQuestionService;
 
     @PutMapping
+    @Operation(summary = "인터뷰 질문 업데이트", description = "인터뷰 질문을 삭제, 수정, 등록 합니다.")
     public CommonResponse<String> updateQuestions(
             @PathVariable Long interviewId,
             @RequestBody @Valid InterviewQuestionUpdateRequestDto request

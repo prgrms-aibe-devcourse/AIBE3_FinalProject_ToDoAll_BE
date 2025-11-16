@@ -11,7 +11,7 @@ public record InterviewQuestionUpdateRequestDto(
         @NotEmpty(message = "변경사항이 없습니다.")
         List<QuestionUpdateItem> questions,
 
-        @Schema(description = "삭제할 질문 ID", example = "[1,4,5")
+        @Schema(description = "삭제할 질문 ID", example = "[1,4,5]")
         List<Long> deleteQuestionIds
 ) {
     public record QuestionUpdateItem(

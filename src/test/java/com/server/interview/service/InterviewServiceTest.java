@@ -156,7 +156,7 @@ class InterviewServiceTest {
         // given
         InterviewSearchCondition condition = new InterviewSearchCondition(
                 1L,               // jdId
-                "SCHEDULED",      // status
+                "WAITING",        // ← 실제 enum 값으로 변경
                 3,                // limit
                 null,             // cursor
                 "createdAt,desc"  // sort
@@ -169,7 +169,7 @@ class InterviewServiceTest {
         InterviewSummaryDto d4 = mockDto(7L); // hasNext detection 용
 
         when(interviewRepository.searchInterviews(
-                eq(1L), eq("SCHEDULED"), eq(null), eq("createdAt,desc"), eq(4)
+                eq(1L), eq("WAITING"), eq(null), eq("createdAt,desc"), eq(4)
         )).thenReturn(List.of(d1, d2, d3, d4));
 
         // when
@@ -364,6 +364,4 @@ class InterviewServiceTest {
 
         verify(interviewRepository, never()).delete(any());
     }
-
-
 }

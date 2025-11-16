@@ -102,7 +102,7 @@ public class InterviewService {
         Long jdId = condition.jdId();
         String status = condition.status();
 
-        // 🔥 status 값 검증
+        // status 값 검증
         validateStatus(status);
 
         // "ALL" → null 처리

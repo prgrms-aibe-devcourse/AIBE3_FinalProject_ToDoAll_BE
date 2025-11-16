@@ -7,18 +7,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record InterviewCreateRequestDto (
-        @NotNull
+        @NotNull(message = "JD는 필수 입니다.")
         @Schema(description = "JD ID", example = "1")
-        Long jd_id,
+        Long jdId,
 
-        @NotNull
+        @NotNull(message = "이력서는 필수 입니다.")
         @Schema(description = "이력서 ID", example = "1")
-        Long resume_id,
+        Long resumeId,
 
         @Schema(description = "참여자 ID 목록", example = "[2, 3, 4]")
-        List<Long> participant_ids,
+        List<Long> participantIds,
 
-        @NotNull
+        @NotNull(message = "면접 예정 날짜는 필수 입니다.")
         @Schema(description = "예정 일시 (ISO 8601)", example = "2025-12-01T10:00:00")
         LocalDateTime scheduledAt
 ){

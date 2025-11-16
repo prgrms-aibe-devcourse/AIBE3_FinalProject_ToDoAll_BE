@@ -1,5 +1,6 @@
 package com.server.auth.controller;
 
+import com.server.auth.dto.TokenRefreshRequestDto;
 import com.server.auth.service.AuthService;
 import com.server.global.response.CommonResponse;
 import com.server.user.dto.UserLoginRequestDto;
@@ -31,16 +32,25 @@ public class AuthController {
         return CommonResponse.success(response);
     }
 
+    @PostMapping("/token/refresh")
+    public CommonResponse<UserLoginResponseDto> refresh(
+            @Valid @RequestBody TokenRefreshRequestDto request
+    ) {
+        UserLoginResponseDto response = authService.reissueAccessToken(
+                request.refreshToken()
+        );
+        return CommonResponse.success(response);
+    }
+
     //로그아웃
     @PostMapping("/logout")
-    public CommonResponse<Void> logout(
-            HttpServletRequest request,   // 요청 정보
-            HttpServletResponse response  // 응답에 쿠키 삭제를 실어 보내기 위해 필요
+    public CommonResponse<String> logout(
+            @Valid @RequestBody TokenRefreshRequestDto request
     ) {
         // 실제 쿠키 삭제 등의 로그아웃 처리 로직은 서비스에 위임
-        authService.logout(request, response);
+        authService.logout(request.refreshToken());
 
         // 로그아웃은 별도의 데이터가 필요 없으므로 data = null로 응답
-        return CommonResponse.success(null);
+        return CommonResponse.success("로그아웃 되었습니다.");
     }
 }

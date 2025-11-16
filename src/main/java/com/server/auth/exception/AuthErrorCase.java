@@ -15,6 +15,9 @@ public enum AuthErrorCase implements ErrorCase {
     AUTH_INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 2003, "유효하지 않은 리프레시 토큰입니다."),
     AUTH_INVALID_PASSWORD_RESET_TOKEN(HttpStatus.UNAUTHORIZED, 2004, "비밀번호 재설정 토큰이 만료되었거나 유효하지 않습니다."),
     EMAIL_AUTH_ALREADY_SENT(HttpStatus.TOO_MANY_REQUESTS, 2105, "이미 인증 메일이 발송되었습니다. 잠시 후 다시 시도해주세요."),
+    AUTH_EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 4015, "만료된 리프레시 토큰입니다."),
+    AUTH_REFRESH_TOKEN_MISMATCH(HttpStatus.UNAUTHORIZED, 4016, "리프레시 토큰 정보가 일치하지 않습니다."),
+
 
 
     // 404

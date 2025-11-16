@@ -7,7 +7,9 @@ import com.server.interview.domain.InterviewRole;
 import com.server.interview.domain.InterviewStatus;
 import com.server.interview.dto.*;
 import com.server.interview.exception.InterviewErrorCase;
+import com.server.interview.repository.InterviewNoteRepository;
 import com.server.interview.repository.InterviewParticipantRepository;
+import com.server.interview.repository.InterviewQuestionRepository;
 import com.server.interview.repository.InterviewRepository;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
@@ -33,6 +35,8 @@ import java.util.stream.Collectors;
 public class InterviewService {
     private final InterviewRepository interviewRepository;
     private final InterviewParticipantRepository interviewParticipantRepository;
+    private final InterviewNoteRepository interviewNoteRepository;
+    private final InterviewQuestionRepository interviewQuestionRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
@@ -130,6 +134,12 @@ public class InterviewService {
 
         // 주최자(organizer)만 삭제 가능
         User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+
+        // 면접 노트 삭제
+        interviewNoteRepository.deleteByInterviewId(interviewId);
+
+        // 면접 질문 삭제
+        interviewQuestionRepository.deleteByInterviewId(interviewId);
 
         if (!interview.getOrganizer().getId().equals(organizer.getId())) {
             throw new ApplicationException(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN);

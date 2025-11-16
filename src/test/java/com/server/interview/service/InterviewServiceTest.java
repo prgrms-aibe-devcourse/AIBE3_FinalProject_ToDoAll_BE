@@ -6,7 +6,9 @@ import com.server.interview.domain.InterviewParticipant;
 import com.server.interview.domain.InterviewStatus;
 import com.server.interview.dto.*;
 import com.server.interview.exception.InterviewErrorCase;
+import com.server.interview.repository.InterviewNoteRepository;
 import com.server.interview.repository.InterviewParticipantRepository;
+import com.server.interview.repository.InterviewQuestionRepository;
 import com.server.interview.repository.InterviewRepository;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
@@ -36,6 +38,8 @@ class InterviewServiceTest {
 
     private InterviewRepository interviewRepository;
     private InterviewParticipantRepository participantRepository;
+    private InterviewNoteRepository noteRepository;
+    private InterviewQuestionRepository questionRepository;
     private JobDescriptionRepository jobRepo;
     private ResumeRepository resumeRepo;
     private UserRepository userRepo;
@@ -46,6 +50,8 @@ class InterviewServiceTest {
     void setUp() {
         interviewRepository = Mockito.mock(InterviewRepository.class);
         participantRepository = Mockito.mock(InterviewParticipantRepository.class);
+        noteRepository = Mockito.mock(InterviewNoteRepository.class);
+        questionRepository = Mockito.mock(InterviewQuestionRepository.class);
         jobRepo = Mockito.mock(JobDescriptionRepository.class);
         resumeRepo = Mockito.mock(ResumeRepository.class);
         userRepo = Mockito.mock(UserRepository.class);
@@ -53,6 +59,8 @@ class InterviewServiceTest {
         interviewService = new InterviewService(
                 interviewRepository,
                 participantRepository,
+                noteRepository,
+                questionRepository,
                 jobRepo,
                 resumeRepo,
                 userRepo

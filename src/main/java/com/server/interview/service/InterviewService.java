@@ -96,7 +96,6 @@ public class InterviewService {
         return new InterviewCreateResponseDto(interview.getId());
     }
 
-    @Transactional
     public InterviewListResponseDto getInterviews(InterviewSearchCondition condition) {
 
         Long jdId = condition.jdId();

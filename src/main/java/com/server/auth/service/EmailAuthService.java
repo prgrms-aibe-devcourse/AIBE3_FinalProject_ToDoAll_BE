@@ -59,7 +59,7 @@ public class EmailAuthService {
 
         //  2) 최근 5분 이내에 발송한 이메일이 있는지 확인
         emailVerificationTokenRepository
-                .findTopByEmailAndCreatedAtAfterOrderByCreatedAtDesc(
+                .findFirstByEmailAndCreatedAtAfter(
                         email,
                         LocalDateTime.now().minusMinutes(5)
                 )

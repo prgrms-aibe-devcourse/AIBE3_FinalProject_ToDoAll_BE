@@ -1,9 +1,10 @@
 package com.server.interview.controller;
 
+import com.server.global.response.CommonResponse;
+import com.server.interview.service.InterviewQuestionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/interviews/{interviewId}/questions")
@@ -12,4 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class InterviewQuestionController {
 
     private final InterviewQuestionService interviewQuestionService;
+
+    @PutMapping
+    public CommonResponse<String> updateQuestions(
+            @PathVariable Long interviewId,
+            @RequestBody InterviewQuestionUpdateRequestDto request
+    ) {
+        interviewQuestionService.updateQuestions(interviewId, request);
+        return CommonResponse.success("면접 질문이 성공적으로 업데이트되었습니다.");
+    }
 }

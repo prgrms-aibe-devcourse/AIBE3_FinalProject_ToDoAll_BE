@@ -19,10 +19,11 @@ public class InterviewQuestion extends BaseEntity {
 
     // 질문 유형 (CORE, TECH, BEHAVIOR)
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private QuestionType type;
 
     // 질문 내용
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String questionText;
 
     // 답변 내용
@@ -37,13 +38,11 @@ public class InterviewQuestion extends BaseEntity {
     public static InterviewQuestion of(Interview interview,
                                        QuestionType type,
                                        String questionText,
-                                       String answer,
                                        QuestionStatus status) {
         InterviewQuestion question = new InterviewQuestion();
         question.interview = interview;
         question.type = type;
         question.questionText = questionText;
-        question.answer = answer;
         question.status = status;
         return question;
     }

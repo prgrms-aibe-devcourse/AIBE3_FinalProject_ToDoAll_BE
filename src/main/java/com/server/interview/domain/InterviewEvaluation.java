@@ -25,12 +25,15 @@ public class InterviewEvaluation extends BaseEntity {
     private User evaluator;
 
     // 기술 점수
+    @Column(nullable = false)
     private Integer scoreTech;
 
     // 커뮤니케이션 점수
+    @Column(nullable = false)
     private Integer scoreComm;
 
     // 종합 점수
+    @Column(nullable = false)
     private Integer scoreOverall;
 
     // 평가 코멘트

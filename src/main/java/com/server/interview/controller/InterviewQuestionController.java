@@ -1,8 +1,10 @@
 package com.server.interview.controller;
 
 import com.server.global.response.CommonResponse;
+import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
 import com.server.interview.service.InterviewQuestionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +19,7 @@ public class InterviewQuestionController {
     @PutMapping
     public CommonResponse<String> updateQuestions(
             @PathVariable Long interviewId,
-            @RequestBody InterviewQuestionUpdateRequestDto request
+            @RequestBody @Valid InterviewQuestionUpdateRequestDto request
     ) {
         interviewQuestionService.updateQuestions(interviewId, request);
         return CommonResponse.success("면접 질문이 성공적으로 업데이트되었습니다.");

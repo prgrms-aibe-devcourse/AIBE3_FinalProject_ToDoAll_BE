@@ -157,4 +157,14 @@ public class ResumeService {
                 });
     }
 
+    @Transactional
+    public ResumeMemoResponseDto updateResumeMemo(Long resumeId, ResumeMemoRequestDto request) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        resume.updateMemo(request.memo());
+
+        return ResumeMemoResponseDto.from(resume);
+
+    }
 }

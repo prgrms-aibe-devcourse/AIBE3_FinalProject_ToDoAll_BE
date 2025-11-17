@@ -6,6 +6,7 @@ import com.server.resume.domain.ResumeStatus;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.service.ResumeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -37,12 +38,12 @@ class ResumeControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private ResumeResponseDto resumeResponseDto;
+    private ResumeCreateRequestDto resumeCreateRequestDto;
 
-    @Test
-    @WithMockUser(username = "testUser", roles = "USER")
-    @DisplayName("GET /api/v1/resumes/{id} - 이력서 조회 성공")
-    void getResume_success() throws Exception {
-        ResumeResponseDto dto = new ResumeResponseDto(
+    @BeforeEach
+    void setUp() {
+        resumeResponseDto = new ResumeResponseDto(
                 1L,
                 10L,
                 "백엔드 개발자",
@@ -63,7 +64,31 @@ class ResumeControllerTest {
                 ResumeStatus.NEW
         );
 
-        Mockito.when(resumeService.getResumeById(1L)).thenReturn(dto);
+        resumeCreateRequestDto = new ResumeCreateRequestDto(
+                "홍길동",
+                10L,
+                "M",
+                LocalDate.of(1990, 1, 1),
+                "test@test.com",
+                "01012345678",
+                "서울",
+                "강남",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                "resume-url",
+                "portfolio-url"
+        );
+    }
+
+
+    @Test
+    @WithMockUser(username = "testUser", roles = "USER")
+    @DisplayName("GET /api/v1/resumes/{id} - 이력서 조회 성공")
+    void getResume_success() throws Exception {
+        Mockito.when(resumeService.getResumeById(1L)).thenReturn(resumeResponseDto);
 
         mockMvc.perform(get("/api/v1/resumes/1"))
                 .andExpect(status().isOk())
@@ -90,51 +115,13 @@ class ResumeControllerTest {
     @WithMockUser(username = "testUser", roles = "USER")
     @DisplayName("POST /api/v1/resumes - 생성 성공")
     void createResume_success() throws Exception {
-        ResumeCreateRequestDto request = new ResumeCreateRequestDto(
-                "홍길동",
-                10L,
-                "M",
-                LocalDate.of(1990, 1, 1),
-                "test@test.com",
-                "01012345678",
-                "서울",
-                "강남",
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                "resume-url",
-                "portfolio-url"
-        );
 
-        ResumeResponseDto response = new ResumeResponseDto(
-                1L,
-                10L,
-                "백엔드 개발자",
-                "홍길동",
-                "M",
-                LocalDate.of(1990, 1, 1),
-                "test@test.com",
-                "01012345678",
-                "서울",
-                "강남",
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                "resume-url",
-                "portfolio-url",
-                ResumeStatus.NEW
-        );
-
-        Mockito.when(resumeService.createResume(any())).thenReturn(response);
+        Mockito.when(resumeService.createResume(any())).thenReturn(resumeResponseDto);
 
         mockMvc.perform(post("/api/v1/resumes")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(resumeCreateRequestDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value(1L));
     }

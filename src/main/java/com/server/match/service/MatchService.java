@@ -127,7 +127,7 @@ public class MatchService {
                 })
                 .filter(dto -> dto != null)
                 .toList();
-        
+
         return results;
     }
 

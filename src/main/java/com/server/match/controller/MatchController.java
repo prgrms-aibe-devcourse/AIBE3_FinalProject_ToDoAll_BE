@@ -72,4 +72,18 @@ public class MatchController {
         MatchDetailResponseDto detail = matchService.getMatchDetail(matchId);
         return CommonResponse.success(detail);
     }
+
+    @PatchMapping("/{matchId}/status")
+    @Operation(summary = "매칭 상태 변경", description = "특정 매칭의 상태를 변경합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "상태 변경 성공"),
+            @ApiResponse(responseCode = "404", description = "매칭 정보를 찾을 수 없음"),
+    })
+    public CommonResponse<MatchResponseDto> updateMatchStatus(
+            @PathVariable Long matchId,
+            @RequestBody @Valid MatchStatusUpdateRequestDto request
+    ) {
+        MatchResponseDto response = matchService.updateMatchStatus(matchId, request.status());
+        return CommonResponse.success(response);
+    }
 }

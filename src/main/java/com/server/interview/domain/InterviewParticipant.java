@@ -27,9 +27,11 @@ public class InterviewParticipant {
 
     // 참여자 역할 (INTERVIEWER, OBSERVER)
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private InterviewRole role;
 
     // 참여 시간
+    @Column(nullable = false)
     private LocalDateTime joinedAt;
 
     // 퇴장 시간

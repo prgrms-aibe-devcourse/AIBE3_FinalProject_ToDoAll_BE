@@ -1,13 +1,12 @@
 package com.server.interview.service;
 
 import com.server.global.exception.ApplicationException;
-import com.server.interview.domain.Interview;
-import com.server.interview.domain.InterviewParticipant;
-import com.server.interview.domain.InterviewRole;
-import com.server.interview.domain.InterviewStatus;
-import com.server.interview.dto.InterviewCreateRequestDto;
-import com.server.interview.dto.InterviewCreateResponseDto;
+import com.server.interview.domain.*;
+import com.server.interview.dto.*;
+import com.server.interview.exception.InterviewErrorCase;
+import com.server.interview.repository.InterviewNoteRepository;
 import com.server.interview.repository.InterviewParticipantRepository;
+import com.server.interview.repository.InterviewQuestionRepository;
 import com.server.interview.repository.InterviewRepository;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
@@ -33,6 +32,8 @@ import java.util.stream.Collectors;
 public class InterviewService {
     private final InterviewRepository interviewRepository;
     private final InterviewParticipantRepository interviewParticipantRepository;
+    private final InterviewNoteRepository interviewNoteRepository;
+    private final InterviewQuestionRepository interviewQuestionRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
@@ -41,10 +42,10 @@ public class InterviewService {
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
 
         //********************* 인터뷰 생성 로직 *************************//
-        JobDescription jobDescription = jobDescriptionRepository.findById(interviewCreateRequestDto.jd_id()).orElseThrow(
+        JobDescription jobDescription = jobDescriptionRepository.findById(interviewCreateRequestDto.jdId()).orElseThrow(
                 () -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND)
         );
-        Resume resume = resumeRepository.findById(interviewCreateRequestDto.resume_id()).orElseThrow(
+        Resume resume = resumeRepository.findById(interviewCreateRequestDto.resumeId()).orElseThrow(
                 ()->new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND)
         );
 
@@ -65,7 +66,7 @@ public class InterviewService {
         interviewParticipantRepository.save(organizerPart);
 
         // observer 준비
-        List<Long> ids = interviewCreateRequestDto.participant_ids();
+        List<Long> ids = interviewCreateRequestDto.participantIds();
 
         // filter로 organizer 제외 + HashSet으로 중복 참여자 제외
         Set<Long> uniqueIds = ids.stream()
@@ -89,6 +90,83 @@ public class InterviewService {
         }
         //********************* 인터뷰 참여자 생성 로직 *************************//
 
-        return new  InterviewCreateResponseDto(interview.getId());
+        //********************* 인터뷰 노트 생성 로직 ***********************//
+        InterviewNote interviewNote = InterviewNote.of(
+                interview
+        );
+        interviewNoteRepository.save(interviewNote);
+        //********************* 인터뷰 노트 생성 로직 ***********************//
+
+
+        return new InterviewCreateResponseDto(interview.getId());
+    }
+
+    public InterviewListResponseDto getInterviews(InterviewSearchConditionDto condition) {
+
+        Long jdId = condition.jdId();
+        String status = condition.status();
+
+        // status 값 검증
+        validateStatus(status);
+
+        // "ALL" → null 처리
+        status = "ALL".equals(status) ? null : status;
+
+        int limit = condition.limit() == null ? 6 : condition.limit();
+        Long cursor = condition.cursor();
+        String sort = condition.sort() == null ? "createdAt,desc" : condition.sort();
+
+        // 검색
+        List<InterviewSummaryDto> summaries = interviewRepository.searchInterviews(
+                jdId,
+                status,
+                cursor,
+                sort,
+                limit + 1
+        );
+
+        boolean hasNext = summaries.size() > limit;
+        Long nextCursor = null;
+
+        if (hasNext) {
+            nextCursor = summaries.get(limit - 1).interviewId();
+        }
+
+        summaries = summaries.stream().limit(limit).toList();
+
+        return new InterviewListResponseDto(summaries, nextCursor, hasNext);
+    }
+
+
+    @Transactional
+    public void deleteInterview(Long interviewId) {
+
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // 주최자(organizer)만 삭제 가능
+        User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+
+        // 면접 노트 삭제
+        interviewNoteRepository.deleteByInterviewId(interviewId);
+
+        // 면접 질문 삭제
+        interviewQuestionRepository.deleteByInterviewId(interviewId);
+
+        if (!interview.getOrganizer().getId().equals(organizer.getId())) {
+            throw new ApplicationException(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN);
+        }
+
+        interviewRepository.delete(interview);
+    }
+
+    private void validateStatus(String status) {
+        if (status == null || status.equals("ALL")) return;
+
+        try {
+            InterviewStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new ApplicationException(InterviewErrorCase.INVALID_STATUS);
+        }
     }
 }

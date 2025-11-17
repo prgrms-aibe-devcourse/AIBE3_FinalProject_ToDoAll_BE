@@ -152,4 +152,66 @@ public class JobDescriptionService {
                 jd.getStatus()
         );
     }
+
+    @Transactional
+    public JobDescriptionDetailResponseDto update(
+            Long id,
+            JobDescriptionUpdateRequestDto request
+    ) {
+        JobDescription jd = jobRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+
+        jd.update(request);
+
+        jobRequiredSkillRepository.deleteByJobId(id);
+        jobPreferredSkillRepository.deleteByJobId(id);
+
+        List<String> requiredSkillNames = Optional.ofNullable(request.requiredSkills())
+                .orElseGet(List::of);
+
+        if (!requiredSkillNames.isEmpty()) {
+            List<Skill> requiredSkills = skillRepository.findByNameIn(requiredSkillNames);
+            List<JobRequiredSkill> requiredEntities = requiredSkills.stream()
+                    .map(skill -> JobRequiredSkill.of(jd, skill))
+                    .toList();
+            jobRequiredSkillRepository.saveAll(requiredEntities);
+        }
+
+        List<String> preferredSkillNames = Optional.ofNullable(request.preferredSkills())
+                .orElseGet(List::of);
+
+        if (!preferredSkillNames.isEmpty()) {
+            List<Skill> preferredSkills = skillRepository.findByNameIn(preferredSkillNames);
+            List<JobPreferredSkill> preferredEntities = preferredSkills.stream()
+                    .map(skill -> JobPreferredSkill.of(jd, skill))
+                    .toList();
+            jobPreferredSkillRepository.saveAll(preferredEntities);
+        }
+
+        List<String> required = jobRequiredSkillRepository
+                .findRequiredSkillNamesByJobId(id).stream().distinct().toList();
+
+        List<String> preferred = jobPreferredSkillRepository
+                .findPreferredSkillNamesByJobId(id).stream().distinct().toList();
+
+        return JobDescriptionDetailResponseDto.builder()
+                .id(jd.getId())
+                .title(jd.getTitle())
+                .location(jd.getLocation())
+                .applicantCount(jd.getApplicantCount())
+                .status(jd.getStatus())
+                .skills(required)
+                .startDate(jd.getStartDate())
+                .deadline(jd.getDeadline())
+                .thumbnailUrl(jd.getThumbnailUrl())
+                .description(jd.getDescription())
+                .preferredSkills(preferred)
+                .benefits(jd.getWelfare())
+                .experience(jd.getExperience())
+                .education(jd.getEducation())
+                .workType(jd.getWorkType())
+                .salary(jd.getSalary())
+                .department(jd.getDepartment())
+                .build();
+    }
 }

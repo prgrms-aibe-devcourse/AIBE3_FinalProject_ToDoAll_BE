@@ -81,6 +81,10 @@ public class MatchService {
 
     @Transactional
     public MatchResponseDto updateMatchStatus(Long matchId, MatchStatus newStatus) {
+        if (newStatus == null) {
+            throw new ApplicationException(MatchErrorCase.MATCH_INVALID_STATUS);
+        }
+
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
 

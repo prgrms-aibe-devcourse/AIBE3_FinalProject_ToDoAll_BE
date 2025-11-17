@@ -44,6 +44,16 @@ public class InterviewNoteMemoService {
         InterviewNote note = interviewNoteRepository.findByInterviewId(interviewId)
                 .orElseThrow(() -> new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND));
 
+        // 사용자 (토큰 대신 임시 user=1)
+        User user = userRepository.findById(1L)
+                .orElseThrow();
+
+        // 조회 권한 체크
+        boolean allowed = ParticipantRepository.existsByInterviewIdAndUserId(interviewId, user.getId());
+        if (!allowed) {
+            throw new ApplicationException(InterviewNoteMemoErrorCase.FORBIDDEN);
+        }
+
         // 메모 리스트 → DTO 변환
         return note.getMemos().stream()
                 .map(InterviewNoteMemoSearchResponseDto::from)

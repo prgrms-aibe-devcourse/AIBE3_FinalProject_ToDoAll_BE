@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
 public enum InterviewNoteMemoErrorCase implements ErrorCase {
-    FORBIDDEN(HttpStatus.NOT_FOUND, 9301, "면접에 노트를 등록할 권한이 없습니다.");
+    FORBIDDEN(HttpStatus.NOT_FOUND, 9301, "면접 노트 접근 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;

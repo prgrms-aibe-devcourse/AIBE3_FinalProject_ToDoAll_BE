@@ -41,6 +41,7 @@ public class InterviewQuestionController {
     @GetMapping
     @Operation(summary = "인터뷰 질문 조회", description = "인터뷰에 해당하는 질문을 전체조회 합니다.")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "인터뷰 조회 성공"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 인터뷰입니다."),
             @ApiResponse(responseCode = "403", description = "질문을 조회할 권한이 없습니다.")
     })
@@ -49,5 +50,18 @@ public class InterviewQuestionController {
     ) {
         List<InterviewQuestionResponseDto> interviewQuestionResponseDto =  interviewQuestionService.getQuestions(interviewId);
         return CommonResponse.success(interviewQuestionResponseDto);
+    }
+
+
+    @PatchMapping("/{questionId}/toggle-check")
+    @Operation(summary = "인터뷰 질문 체크", description = "인터뷰에 해당하는 질문의 체크 상태를 변경합니다.")
+    public CommonResponse<String> toggleQuestionCheck(
+            @PathVariable Long interviewId,
+            @PathVariable Long questionId
+    ) {
+
+        interviewQuestionService.toggleCheck(interviewId, questionId);
+
+        return CommonResponse.success("체크 상태 변경이 성공적으로 업데이트되었습니다.");
     }
 }

@@ -75,7 +75,8 @@ public class InterviewQuestionService {
                         interview,
                         q.questionType(),
                         q.content(),
-                        QuestionStatus.PENDING
+                        QuestionStatus.PENDING,
+                        false
                 );
                 questionRepository.save(newQuestion);
             } else {
@@ -122,5 +123,30 @@ public class InterviewQuestionService {
                 .toList();
 
         return responseList;
+    }
+
+    public void toggleCheck(Long interviewId, Long questionId) {
+
+        //질문 조회
+        InterviewQuestion question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND)
+        );
+
+        // 소속 인터뷰 확인
+        if (!question.getInterview().getId().equals(interviewId)) {
+            throw new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND);
+        }
+
+        // 사용자 확인 (토큰 대신 임시 userId = 1)
+        User user = userRepository.findById(1L)
+                .orElseThrow();
+
+        boolean allowed = participantRepository.existsByInterviewIdAndUserId(interviewId, user.getId());
+        if (!allowed) {
+            throw new ApplicationException(InterviewQuestionErrorCase.FORBIDDEN);
+        }
+
+        // 체크 상태 토글
+        question.toggleCheck();
     }
 }

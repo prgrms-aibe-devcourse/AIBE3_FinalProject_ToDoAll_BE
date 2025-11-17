@@ -5,10 +5,7 @@ import com.server.jd.domain.JobDescription;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.match.domain.Match;
 import com.server.match.domain.MatchStatus;
-import com.server.match.dto.MatchDetailResponseDto;
-import com.server.match.dto.MatchListResponseDto;
-import com.server.match.dto.MatchRequestDto;
-import com.server.match.dto.MatchSearchCondition;
+import com.server.match.dto.*;
 import com.server.match.exception.MatchErrorCase;
 import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.Resume;
@@ -80,5 +77,15 @@ public class MatchService {
                 .resumeSummary(resumeSummary)
                 .jdSummary(jdSummary)
                 .build();
+    }
+
+    @Transactional
+    public MatchResponseDto updateMatchStatus(Long matchId, MatchStatus newStatus) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
+
+        match.updateStatus(newStatus);
+
+        return new MatchResponseDto(match.getId(), match.getStatus());
     }
 }

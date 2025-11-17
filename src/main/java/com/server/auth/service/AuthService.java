@@ -39,6 +39,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, Object> redisTemplate; // 리프레시 토큰 저장소
     private final JwtProperties jwtProperties;              // jwt.secret, jwt.refresh-exp 접근용
+    private final EmailAuthService emailAuthService;  // 이메일 보내는 서비스
 
 
 

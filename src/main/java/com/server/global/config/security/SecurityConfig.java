@@ -1,5 +1,6 @@
 package com.server.global.config.security;
 
+import com.server.global.config.security.jwt.JwtAuthenticationFilter;
 import com.server.global.config.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -44,15 +46,18 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api/v1/users",
-                                "/api/v1/email-verifications/**"
+                                "/api/v1/users", // 회원가입
+                                "/api/v1/email-verifications/**", // 이메일 인증
+                                "/auth/login", // 로그인
+                                "/auth/password/**" // 비번 재설정
                         ).permitAll()
-                        .anyRequest().permitAll()  // TODO: 로그인, 회원가입 개발 후 .anyRequest().authenticated() 으로 변경
-                );
+                        // preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-        // JWT 필터는 준비만 (로그인 API 생기면 주석 해제)
-        // .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
-
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+                UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

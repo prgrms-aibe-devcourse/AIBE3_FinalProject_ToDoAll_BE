@@ -62,4 +62,34 @@ public class UserService {
         return UserSignupResponseDto.from(saved);
     }
 
+
+    //비밀번호 변경
+
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+
+        // 1. user 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+        // 2. 현재 비밀번호 검증
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw ApplicationException.from(UserErrorCase.INVALID_PASSWORD);
+        }
+
+        // 3. 새로운 비밀번호 정책 검사
+        passwordValidator.validateForSignup(newPassword, user.getEmail());
+
+        // 4. 이전 비번과 동일한지
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw ApplicationException.from(UserErrorCase.PASSWORD_SAME_AS_OLD);
+        }
+
+        // 5. 새 비밀번호 암호화
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+
+        // 6. 엔티티에서 변경
+        user.changePassword(encodedNewPassword);
+    }
+
 }

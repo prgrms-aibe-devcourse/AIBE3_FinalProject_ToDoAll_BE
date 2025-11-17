@@ -14,6 +14,7 @@ import com.server.match.util.RecommendationReasonBuilder;
 import com.server.resume.domain.Resume;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.document.ResumeDocument;
+import com.server.search.dto.ResumeRecommendationDto;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -87,7 +88,7 @@ public class MatchService {
 
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
-    public List<ResumeDocument> recommendResumes(Long jdId) {
+    public List<ResumeRecommendationDto> recommendResumes(Long jdId) {
         JobDescription jd = jobDescriptionRepository.findById(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
@@ -96,35 +97,38 @@ public class MatchService {
         Query query = new CriteriaQuery(criteria, PageRequest.of(0, 10));
         SearchHits<ResumeDocument> hits = elasticsearchOperations.search(query, ResumeDocument.class);
 
-        List<ResumeDocument> recommended = hits.getSearchHits().stream()
+        List<ResumeRecommendationDto> results = hits.getSearchHits().stream()
                 .map(hit -> hit.getContent())
+                .map(doc -> {
+                    // 중복 매칭 체크
+                    boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), doc.getId());
+                    if (exists) return null;
+
+                    Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
+                    if (resume == null) return null;
+
+                    float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
+                    List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
+                    String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
+                    String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
+
+                    Match match = Match.of(
+                            jd,
+                            resume,
+                            LocalDateTime.now(),
+                            score,
+                            reason,
+                            summary,
+                            MatchStatus.RECOMMENDED
+                    );
+                    matchRepository.save(match);
+
+                    return ResumeRecommendationDto.from(resume, doc, score, missingSkills, summary);
+                })
+                .filter(dto -> dto != null)
                 .toList();
-
-        for (ResumeDocument doc : recommended) {
-            // 중복 매칭 방지
-            if (matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), doc.getId())) continue;
-
-            Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
-            if (resume == null) continue;
-
-            float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
-            String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
-            String resumeSummary = aiRecommendationService.generateResumeSummary(doc.getFullText());
-
-            Match match = Match.of(
-                    jd,
-                    resume,
-                    LocalDateTime.now(),
-                    score,
-                    reason,
-                    resumeSummary,
-                    MatchStatus.RECOMMENDED
-            );
-
-            matchRepository.save(match);
-        }
-
-        return recommended;
+        
+        return results;
     }
 
     @Transactional(readOnly = true)

@@ -2,6 +2,7 @@ package com.server.dashboard.controller;
 
 import com.server.dashboard.service.DashboardService;
 
+import com.server.global.response.CommonResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,28 +19,38 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
 
-    @GetMapping("/summation/active")
+    @GetMapping("/summary/active")
     @Operation(summary = "요약카드 - 활성 공고", description = "진행 중인 채용 공고 수")
-    public String showActiveJobs () {
-        return "";
+    public CommonResponse<Integer> showActiveJobs () {
+        //Todo : 비즈니스 로직 작성
+        int value = 12;
+
+        return CommonResponse.success(value);
     }
 
-    @GetMapping("/summation/applicant")
+    @GetMapping("/summary/applicant")
     @Operation(summary = "요약카드 - 총 지원자", description = "전체 지원자 수")
-    public String showAllApplicants () {
-        return "";
+    public CommonResponse<Integer> showAllApplicants () {
+        //Todo : 비즈니스 로직 작성
+        int value = 9;
+
+        return CommonResponse.success(value);
     }
 
-    @GetMapping("/summation/interview")
+    @GetMapping("/summary/interview")
     @Operation(summary = "요약카드 - 예정된 면접", description = "이번 주 예정된 면접 수")
-    public String showScheduledActiveJobs () {
-        return "";
+    public CommonResponse<Integer> showScheduledActiveJobs () {
+        //Todo : 비즈니스 로직 작성
+        int value = 9;
+        return CommonResponse.success(value);
     }
 
-    @GetMapping("/summation/hired")
+    @GetMapping("/summary/hired")
     @Operation(summary = "요약카드 - 채용 완료", description = "이번 달 채용 완료 수")
-    public String showHired() {
-        return "";
+    public CommonResponse<Integer> showHired() {
+        //Todo : 비즈니스 로직 작성
+        int value = 9;
+        return CommonResponse.success(value);
     }
 
     @GetMapping("/detail/job-result")

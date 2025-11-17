@@ -2,6 +2,7 @@ package com.server.dashboard.controller;
 
 import com.server.dashboard.dto.DetailJobResultDto;
 import com.server.dashboard.dto.JobStatus;
+import com.server.dashboard.dto.NumByProgressStatusDto;
 import com.server.dashboard.dto.UpcomingInterviewDto;
 import com.server.dashboard.service.DashboardService;
 
@@ -112,20 +113,20 @@ public class DashboardController {
 
     @GetMapping("/detail/job-status")
     @Operation(summary = "상세 - 공고 현황", description = "채용 공고의 상태별 현황")
-    public String showJobStatus() {
-        return "";
+    public CommonResponse<NumByProgressStatusDto> showJobStatus() {
+        return CommonResponse.success(new NumByProgressStatusDto(5, 6, 11));
     }
 
     @GetMapping("/detail/interview-status")
     @Operation(summary = "상세 - 면접 현황", description = "면접 진행 상태별 현황")
-    public String showInterviewStatus() {
-        return "";
+    public CommonResponse<NumByProgressStatusDto> showInterviewStatus() {
+        return CommonResponse.success(new NumByProgressStatusDto(20, 2, 7));
+
     }
 
     @GetMapping("/week-calendar")
-    @Operation(summary = "상세 - 면접 현황", description = "면접 진행 상태별 현황")
-    public String showWeekCalendar() {
-        return "";
+    @Operation(summary = "이번 주 캘린더", description = "이번 주 스케쥴 요약")
+    public CommonResponse<NumByProgressStatusDto> showWeekCalendar() {
+        return CommonResponse.success(new NumByProgressStatusDto(5, 6, 11));
     }
-
 }

@@ -1,5 +1,7 @@
 package com.server.dashboard.controller;
 
+import com.server.dashboard.dto.DetailJobResultDto;
+import com.server.dashboard.dto.JobStatus;
 import com.server.dashboard.service.DashboardService;
 
 import com.server.global.response.CommonResponse;
@@ -10,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -55,8 +60,13 @@ public class DashboardController {
 
     @GetMapping("/detail/job-result")
     @Operation(summary = "상세 - 공고별 합격 현황", description = "각 채용 공고의 진행 상황")
-    public String showJobResult() {
-        return "";
+    public CommonResponse<ArrayList<DetailJobResultDto>> showJobResult() {
+        ArrayList<DetailJobResultDto> detailJobResults = new ArrayList<>();
+        detailJobResults.add(new DetailJobResultDto("시니어 프론트엔드 개발자",  new ArrayList<>(List.of(1, 3, 4, 3)), JobStatus.DOCUMENT));
+        detailJobResults.add(new DetailJobResultDto("백엔드 개발자",  new ArrayList<>(List.of(1, 3, 4, 3)), JobStatus.DOCUMENT));
+        detailJobResults.add(new DetailJobResultDto("주니어 풀스택 개발자",  new ArrayList<>(List.of(1, 3, 4, 3)), JobStatus.DOCUMENT));
+
+        return CommonResponse.success(detailJobResults);
     }
 
     @GetMapping("/detail/upcoming-interview")

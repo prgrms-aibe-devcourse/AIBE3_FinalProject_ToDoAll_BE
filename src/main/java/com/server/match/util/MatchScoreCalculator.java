@@ -1,24 +1,43 @@
 package com.server.match.util;
 
+import com.server.jd.domain.JobDescription;
 import com.server.search.document.ResumeDocument;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MatchScoreCalculator {
 
-    public static float calculateMatchScore(String jdDescription, ResumeDocument resume) {
-        String lowerDesc = jdDescription.toLowerCase();
+    public static float calculateMatchScore(JobDescription jd, ResumeDocument resume) {
+        List<String> requiredSkills = jd.getRequiredSkillNames();
+        List<String> preferredSkills = jd.getPreferredSkillNames();
+        List<String> resumeSkills = resume.getSkills().stream()
+                .map(String::toLowerCase)
+                .toList();
 
-        List<String> skills = resume.getSkills();
-        if (skills == null || skills.isEmpty()) {
-            return 0.0f;
+        long matchedRequired = requiredSkills.stream().filter(resumeSkills::contains).count();
+        long matchedPreferred = preferredSkills.stream().filter(resumeSkills::contains).count();
+
+        float requiredScore = requiredSkills.isEmpty() ? 0 : (float) matchedRequired / requiredSkills.size();
+        float preferredScore = preferredSkills.isEmpty() ? 0 : (float) matchedPreferred / preferredSkills.size();
+
+        // 필수 70%, 우대 30% 가중치 설정
+        return (requiredScore * 0.7f) + (preferredScore * 0.3f);
+    }
+
+    public static List<String> getMissingSkills(JobDescription jd, ResumeDocument resume) {
+        List<String> requiredSkills = jd.getRequiredSkillNames();
+        List<String> resumeSkills = resume.getSkills().stream()
+                .map(String::toLowerCase)
+                .toList();
+
+        List<String> missing = new ArrayList<>();
+        for (String required : requiredSkills) {
+            if (!resumeSkills.contains(required)) {
+                missing.add(required);
+            }
         }
 
-        long matchCount = skills.stream()
-                .map(String::toLowerCase)
-                .filter(lowerDesc::contains)
-                .count();
-
-        return (float) matchCount / skills.size();  // 예시: 3개 중 2개 일치하면 → 0.66
+        return missing;
     }
 }

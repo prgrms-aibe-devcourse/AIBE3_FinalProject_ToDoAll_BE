@@ -1,10 +1,7 @@
 package com.server.interview.service;
 
 import com.server.global.exception.ApplicationException;
-import com.server.interview.domain.Interview;
-import com.server.interview.domain.InterviewParticipant;
-import com.server.interview.domain.InterviewRole;
-import com.server.interview.domain.InterviewStatus;
+import com.server.interview.domain.*;
 import com.server.interview.dto.*;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.repository.InterviewNoteRepository;
@@ -92,6 +89,14 @@ public class InterviewService {
             interviewParticipantRepository.saveAll(observers);
         }
         //********************* 인터뷰 참여자 생성 로직 *************************//
+
+        //********************* 인터뷰 노트 생성 로직 ***********************//
+        InterviewNote interviewNote = InterviewNote.of(
+                interview
+        );
+        interviewNoteRepository.save(interviewNote);
+        //********************* 인터뷰 노트 생성 로직 ***********************//
+
 
         return new InterviewCreateResponseDto(interview.getId());
     }

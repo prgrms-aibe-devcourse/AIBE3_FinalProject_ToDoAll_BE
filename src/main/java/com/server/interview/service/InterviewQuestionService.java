@@ -83,6 +83,10 @@ public class InterviewQuestionService {
                 InterviewQuestion existQuestion = questionRepository.findById(q.questionId())
                         .orElseThrow(() -> new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND));
 
+                // 질문이 해당 인터뷰에 속하는지 확인
+                if (!existQuestion.getInterview().getId().equals(interviewId)) {
+                    throw new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND);
+                }
                 existQuestion.update(q.questionType(), q.content());
             }
         }

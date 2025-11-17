@@ -49,6 +49,12 @@ public class User extends BaseEntity {
     @Column(name = "email_expiry")
     private LocalDateTime emailExpiry;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EmailStatus emailStatus = EmailStatus.UNVERIFIED;
+
+
+
     public static User of(String email,
                           String password,
                           String name,
@@ -101,5 +107,9 @@ public class User extends BaseEntity {
     // 비밀번호 변경
     public void changePassword(String encodedNewPassword) {
         this.password = encodedNewPassword;
+    }
+    //이메일 인증 완료
+    public void markEmailVerified() {
+        this.emailStatus = EmailStatus.VERIFIED;
     }
 }

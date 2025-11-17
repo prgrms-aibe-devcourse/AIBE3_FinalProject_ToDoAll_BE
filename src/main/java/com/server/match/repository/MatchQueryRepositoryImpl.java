@@ -49,7 +49,7 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
         if (condition.sort() == MatchSortType.SCORE_DESC) {
             baseQuery.orderBy(match.matchScore.desc());
         } else {
-            baseQuery.orderBy(match.createdAt.desc());
+            baseQuery.orderBy(match.appliedAt.desc());
         }
 
         int page = condition.getPage();

@@ -23,6 +23,18 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 jwt:
   secret: ${JWT_SECRET}
   access-exp: 3600000
@@ -44,3 +56,7 @@ management:
   endpoint:
     health:
       show-details: always
+app:
+  email:
+    auth-expiry-minutes: 30
+    auth-base-url: http://localhost:5173/signup/form

@@ -74,6 +74,15 @@ dependencies {
     testAnnotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
 
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+
+    // Spring Boot Test Autoconfigure
+    testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+
+
+    //이메일 발송
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+
 }
 
 tasks.named('test') {

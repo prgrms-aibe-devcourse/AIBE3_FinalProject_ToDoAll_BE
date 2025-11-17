@@ -39,15 +39,20 @@ public class InterviewQuestion extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private QuestionStatus status;
 
+    @Column(nullable = false, name = "checked")
+    private boolean checked;
+
     public static InterviewQuestion of(Interview interview,
                                        QuestionType type,
                                        String questionText,
-                                       QuestionStatus status) {
+                                       QuestionStatus status,
+                                       boolean checked) {
         InterviewQuestion question = new InterviewQuestion();
         question.interview = interview;
         question.type = type;
         question.questionText = questionText;
         question.status = status;
+        question.checked = checked;
         return question;
     }
 
@@ -60,5 +65,9 @@ public class InterviewQuestion extends BaseEntity {
     ) {
         this.type = questionType;
         this.questionText = content;
+    }
+
+    public void toggleCheck() {
+        this.checked = !this.checked;
     }
 }

@@ -2,6 +2,7 @@ package com.server.dashboard.controller;
 
 import com.server.dashboard.dto.DetailJobResultDto;
 import com.server.dashboard.dto.JobStatus;
+import com.server.dashboard.dto.UpcomingInterviewDto;
 import com.server.dashboard.service.DashboardService;
 
 import com.server.global.response.CommonResponse;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Array;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,8 +74,40 @@ public class DashboardController {
 
     @GetMapping("/detail/upcoming-interview")
     @Operation(summary = "상세 - 다가오는 면접", description = "이번 주 예정된 면접 일정")
-    public String showUpcomingInterview() {
-        return "";
+    public CommonResponse<ArrayList<UpcomingInterviewDto>> showUpcomingInterview() {
+        ArrayList<UpcomingInterviewDto> upcomingInterviews = new ArrayList<>();
+        upcomingInterviews.add(UpcomingInterviewDto.from(
+                LocalDateTime.now(),
+                "김상진",
+                "시니어 프론트엔드 개발자",
+                new ArrayList<>(List.of("일접관, 이접관"))
+        ));
+        upcomingInterviews.add(UpcomingInterviewDto.from(
+                LocalDateTime.now(),
+                "김하진",
+                "백엔드 개발자",
+                new ArrayList<>(List.of("삼접관, 사접관"))
+        ));
+        upcomingInterviews.add(UpcomingInterviewDto.from(
+                LocalDateTime.now(),
+                "김중진",
+                "시니어 프론트엔드 개발자",
+                new ArrayList<>(List.of("오접관, 육접관"))
+        ));
+        upcomingInterviews.add(UpcomingInterviewDto.from(
+                LocalDateTime.now(),
+                "김일진",
+                "시니어 프론트엔드 개발자",
+                new ArrayList<>(List.of("칠접관, 팔접관"))
+        ));
+        upcomingInterviews.add(UpcomingInterviewDto.from(
+                LocalDateTime.now(),
+                "김희진",
+                "주니어 풀스택 개발자",
+                new ArrayList<>(List.of("구접관, 십접관"))
+        ));
+
+        return CommonResponse.success(upcomingInterviews);
     }
 
     @GetMapping("/detail/job-status")

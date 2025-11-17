@@ -37,9 +37,10 @@ class ResumeControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
-    @DisplayName("POST /api/v1/resumes - 생성 성공")
+    @DisplayName("GET /api/v1/resumes/{id} - 이력서 조회 성공")
     void getResume_success() throws Exception {
         ResumeResponseDto dto = new ResumeResponseDto(
                 1L,
@@ -275,5 +276,4 @@ class ResumeControllerTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isBadRequest());
     }
-
 }

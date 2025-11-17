@@ -59,7 +59,7 @@ public class EmailAuthService {
 
         // 2) 이미 이메일 인증까지 완료된 이메일인지 확인
         // -> 한 번 인증 완료된 이메일은 더 이상 새 인증 메일 요청 불가
-        if (emailVerificationTokenRepository.existsByEmailAndVerifiedTrue(email)) {
+        if (emailVerificationTokenRepository.existsByEmailAndVerifiedAtIsNotNull(email)) {
             throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_ALREADY_VERIFIED);
         }
 

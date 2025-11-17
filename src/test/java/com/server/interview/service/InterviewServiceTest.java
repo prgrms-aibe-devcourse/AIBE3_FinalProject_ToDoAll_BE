@@ -155,7 +155,7 @@ class InterviewServiceTest {
     @Test
     @DisplayName("인터뷰 조회 성공 - 다음 페이지 존재 (hasNext = true)")
     void getInterviews_HasNext() {
-        InterviewSearchCondition condition = new InterviewSearchCondition(
+        InterviewSearchConditionDto condition = new InterviewSearchConditionDto(
                 1L,
                 "WAITING",
                 3,
@@ -182,7 +182,7 @@ class InterviewServiceTest {
     @Test
     @DisplayName("인터뷰 조회 성공 - 다음 페이지 없음 (hasNext = false)")
     void getInterviews_NoNext() {
-        InterviewSearchCondition condition = new InterviewSearchCondition(
+        InterviewSearchConditionDto condition = new InterviewSearchConditionDto(
                 null,
                 "ALL",
                 3,

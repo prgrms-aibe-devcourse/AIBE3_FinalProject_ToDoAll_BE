@@ -4,7 +4,7 @@ import com.server.global.response.CommonResponse;
 import com.server.interview.dto.InterviewCreateRequestDto;
 import com.server.interview.dto.InterviewCreateResponseDto;
 import com.server.interview.dto.InterviewListResponseDto;
-import com.server.interview.dto.InterviewSearchCondition;
+import com.server.interview.dto.InterviewSearchConditionDto;
 import com.server.interview.service.InterviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,7 +41,7 @@ public class InterviewController {
             @ApiResponse(responseCode = "400", description = "유효하지 않은 상태(status) 값입니다.")
     })
     public CommonResponse<InterviewListResponseDto> getInterviews (
-            @ModelAttribute @Valid InterviewSearchCondition condition
+            @ModelAttribute @Valid InterviewSearchConditionDto condition
     ){
         InterviewListResponseDto interviewSearchResponseDto = interviewService.getInterviews(condition);
         return CommonResponse.success(interviewSearchResponseDto);

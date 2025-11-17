@@ -1,6 +1,6 @@
 package com.server.dashboard.dto;
 
-public record NumByProgressStatusDto(
+public record DashboardNumByProgressStatusResponseDto(
         int in,
         int before,
         int close

@@ -1,27 +1,28 @@
 package com.server.dashboard.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public record UpcomingInterviewDto(
+import static com.server.dashboard.util.Formatter.formatterDay;
+import static com.server.dashboard.util.Formatter.formatterTime;
+
+
+public record DashboardUpcomingInterviewResponseDto(
         String interviewDate,
         String applicantName,
         String jobTitle,
         String interviewTime,
         String interviewers
 ) {
-    public static UpcomingInterviewDto from(
+    public static DashboardUpcomingInterviewResponseDto from(
             LocalDateTime interviewDateTime,
             String applicantName,
             String jobTitle,
             ArrayList<String> interviewers
     ) {
-        DateTimeFormatter formatterDay = DateTimeFormatter.ofPattern("MM/dd");
-        DateTimeFormatter formatterTime = DateTimeFormatter.ofPattern("HH:mm");
 
-        return new UpcomingInterviewDto(
+
+        return new DashboardUpcomingInterviewResponseDto(
                 interviewDateTime.format(formatterDay),
                 applicantName,
                 jobTitle,

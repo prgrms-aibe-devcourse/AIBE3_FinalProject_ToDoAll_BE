@@ -79,7 +79,7 @@ public class AuthController {
     }
 
     //로그아웃
-    @PostMapping("/logout")
+    @PostMapping("/token")
     public CommonResponse<String> logout(
             @Valid @RequestBody TokenRefreshRequestDto request
     ) {

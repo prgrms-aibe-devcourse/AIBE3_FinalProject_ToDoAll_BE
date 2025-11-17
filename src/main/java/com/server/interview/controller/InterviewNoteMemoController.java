@@ -1,9 +1,7 @@
 package com.server.interview.controller;
 
 import com.server.global.response.CommonResponse;
-import com.server.interview.dto.InterviewNoteMemoCreateRequestDto;
-import com.server.interview.dto.InterviewNoteMemoCreateResponseDto;
-import com.server.interview.dto.InterviewNoteMemoSearchResponseDto;
+import com.server.interview.dto.*;
 import com.server.interview.service.InterviewNoteMemoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -42,7 +40,7 @@ public class InterviewNoteMemoController {
     @PostMapping
     @Operation(summary = "인터뷰 메모 생성", description = "인터뷰의 메모를 생성합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "인터뷰 조회 성공"),
+            @ApiResponse(responseCode = "200", description = "인터뷰 메모 조회 성공"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 인터뷰입니다."),
             @ApiResponse(responseCode = "403", description = "메모를 생성할 권한이 없습니다.")
     })
@@ -52,5 +50,21 @@ public class InterviewNoteMemoController {
     ) {
         InterviewNoteMemoCreateResponseDto response = interviewNoteMemoService.create(interviewId, request);
         return  CommonResponse.success(response);
+    }
+
+    @PatchMapping("/{memoId}")
+    @Operation(summary = "인터뷰 메모 수정", description = "인터뷰의 메모를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "인터뷰 메모 수정 성공"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 인터뷰입니다."),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 메모입니다.")
+    })
+    public CommonResponse<InterviewNoteMemoUpdateResponseDto> updateMemo(
+            @PathVariable Long interviewId,
+            @PathVariable Long memoId,
+            @Valid @RequestBody InterviewNoteMemoUpdateRequestDto request
+    ) {
+        var result = interviewNoteMemoService.update(interviewId, memoId, request);
+        return CommonResponse.success(result);
     }
 }

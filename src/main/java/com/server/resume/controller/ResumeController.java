@@ -70,7 +70,6 @@ public class ResumeController {
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 
-
     @PatchMapping("/{resumeId}/memo")
     @Operation(summary = "이력서 메모 수정", description = "특정 이력서의 메모를 수정합니다. 예: NEW → BOOKMARK, SUBMITTED 등으로 변경할 수 있습니다.")
     @ApiResponses(value = {

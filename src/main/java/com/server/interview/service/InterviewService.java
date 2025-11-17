@@ -147,15 +147,25 @@ public class InterviewService {
         // 주최자(organizer)만 삭제 가능
         User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
 
-        // 면접 노트 삭제
-        interviewNoteRepository.deleteByInterviewId(interviewId);
-
-        // 면접 질문 삭제
-        interviewQuestionRepository.deleteByInterviewId(interviewId);
-
         if (!interview.getOrganizer().getId().equals(organizer.getId())) {
             throw new ApplicationException(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN);
         }
+
+        // 면접 노트 삭제 (쿼리 삭제는 cascade가 발동되지 않음)
+        // 노트와 메모가 cascade 설정이 되어있지만 밑에처럼 쿼리로 노트를 삭제하면 cascade가 반영되지 않는다..!
+        // interviewNoteRepository.deleteByInterviewId(interviewId);
+
+        // 인터뷰 노트 조회
+        InterviewNote note = interviewNoteRepository.findByInterviewId(interviewId)
+                .orElse(null);
+
+        // 엔티티 삭제 → cascade 로 memo 자동 삭제됨
+        if (note != null) {
+            interviewNoteRepository.delete(note);
+        }
+
+        // 면접 질문 삭제
+        interviewQuestionRepository.deleteByInterviewId(interviewId);
 
         interviewRepository.delete(interview);
     }

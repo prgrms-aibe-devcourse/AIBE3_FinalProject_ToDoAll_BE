@@ -66,7 +66,7 @@ public class InterviewQuestionService {
         User user = getUser();
         checkPermission(interviewId, user.getId());
 
-        var questions = questionRepository.findAllByInterviewId(interviewId);
+        List<InterviewQuestion> questions = questionRepository.findAllByInterviewId(interviewId);
 
         return questions.stream()
                 .map(q -> new InterviewQuestionResponseDto(

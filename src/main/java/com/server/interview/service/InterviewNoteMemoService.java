@@ -26,70 +26,77 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class InterviewNoteMemoService {
+
     private final InterviewRepository interviewRepository;
     private final InterviewNoteRepository interviewNoteRepository;
     private final UserRepository userRepository;
-    private final InterviewParticipantRepository ParticipantRepository;
+    private final InterviewParticipantRepository participantRepository;
     private final InterviewNoteMemoRepository interviewNoteMemoRepository;
 
-    public List<InterviewNoteMemoSearchResponseDto> getMemos(Long interviewId) {
-
-        // 인터뷰 존재 여부 확인
-        Interview interview = interviewRepository.findById(interviewId)
+    // 공통 로직: 인터뷰 + 노트 + 사용자 + 권한 체크
+    private Interview getInterview(Long interviewId) {
+        return interviewRepository.findById(interviewId)
                 .orElseThrow(() ->
                         new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND)
                 );
+    }
 
-        // 인터뷰 노트 조회
-        InterviewNote note = interviewNoteRepository.findByInterviewId(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND));
+    private InterviewNote getInterviewNote(Long interviewId) {
+        return interviewNoteRepository.findByInterviewId(interviewId)
+                .orElseThrow(() ->
+                        new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND)
+                );
+    }
 
-        // 사용자 (토큰 대신 임시 user=1)
-        User user = userRepository.findById(1L)
+    private User getUser() {
+        // 토큰으로 대체 예정
+        return userRepository.findById(1L)
                 .orElseThrow();
+    }
 
-        // 조회 권한 체크
-        boolean allowed = ParticipantRepository.existsByInterviewIdAndUserId(interviewId, user.getId());
+    private void checkPermission(Long interviewId, Long userId) {
+        boolean allowed = participantRepository.existsByInterviewIdAndUserId(interviewId, userId);
         if (!allowed) {
             throw new ApplicationException(InterviewNoteMemoErrorCase.FORBIDDEN);
         }
+    }
 
-        // 메모 리스트 → DTO 변환
+    // 메모 조회
+    public List<InterviewNoteMemoSearchResponseDto> getMemos(Long interviewId) {
+
+        // 공통 검증
+        Interview interview = getInterview(interviewId);
+        InterviewNote note = getInterviewNote(interviewId);
+        User user = getUser();
+        checkPermission(interviewId, user.getId());
+
+        // 메모 DTO 변환
         return note.getMemos().stream()
                 .map(InterviewNoteMemoSearchResponseDto::from)
                 .toList();
     }
 
+    // 메모 생성
     @Transactional
-    public InterviewNoteMemoCreateResponseDto create(Long interviewId, InterviewNoteMemoCreateRequestDto requestDto) {
-        // 인터뷰 존재 여부 확인
-        Interview interview = interviewRepository.findById(interviewId)
-                .orElseThrow(() ->
-                        new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND)
-                );
+    public InterviewNoteMemoCreateResponseDto create(
+            Long interviewId,
+            InterviewNoteMemoCreateRequestDto requestDto
+    ) {
 
-        // 인터뷰 노트 조회
-        InterviewNote note = interviewNoteRepository.findByInterviewId(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND));
+        // 공통 검증
+        Interview interview = getInterview(interviewId);
+        InterviewNote note = getInterviewNote(interviewId);
+        User user = getUser();
+        checkPermission(interviewId, user.getId());
 
-        // 사용자 (토큰 대신 임시 user=1)
-        User user = userRepository.findById(1L)
-                .orElseThrow();
-
-        // 작성 권한 체크
-        boolean allowed = ParticipantRepository.existsByInterviewIdAndUserId(interviewId, user.getId());
-        if (!allowed) {
-            throw new ApplicationException(InterviewNoteMemoErrorCase.FORBIDDEN);
-        }
-
-        // 메모 생성
+        // 생성
         InterviewNoteMemo memo = InterviewNoteMemo.of(
                 note,
                 user,
                 requestDto.content()
         );
-
         interviewNoteMemoRepository.save(memo);
 
-        return new InterviewNoteMemoCreateResponseDto(memo.getId());}
+        return new InterviewNoteMemoCreateResponseDto(memo.getId());
+    }
 }

@@ -18,14 +18,23 @@ public record ResumeRecommendationDto(
         List<String> skills,
         String status
 ) {
-    public static ResumeRecommendationDto from(Resume resume, ResumeDocument doc, float score, List<String> missingSkills, String summary) {
+    public static ResumeRecommendationDto from(
+            Resume resume,
+            ResumeDocument doc,
+            float score,
+            List<String> missingSkills,
+            String summary
+    ) {
+        float percentage = (float) (doc.getSkills().size() - missingSkills.size()) / doc.getSkills().size();
+        String skillMatchRate = Math.round(percentage * 100) + "%";
+
         return new ResumeRecommendationDto(
                 resume.getId(),
                 resume.getName(),
                 resume.getGender(),
                 resume.getBirthDate(),
                 Math.round(score * 1000f) / 10f, // 예시: 0.835 → 83.5으로 변환
-                (int) ((1 - ((float) missingSkills.size() / doc.getSkills().size())) * 100) + "%",
+                skillMatchRate,
                 missingSkills,
                 summary,
                 doc.getSkills(),

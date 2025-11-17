@@ -94,3 +94,10 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-parameters"
     options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
 }
+
+tasks.register("act", Exec) {
+    group = "dev"
+    description = "Run GitHub Actions locally with act (pull_request)"
+
+    commandLine "act", "pull_request", "--secret-file", ".env", "-j", "build-and-test"
+}

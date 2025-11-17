@@ -57,7 +57,13 @@ public class EmailAuthService {
             throw ApplicationException.from(UserErrorCase.USER_ALREADY_EXISTS);
         }
 
-        //  2) 최근 5분 이내에 발송한 이메일이 있는지 확인
+        // 2) 이미 이메일 인증까지 완료된 이메일인지 확인
+        // -> 한 번 인증 완료된 이메일은 더 이상 새 인증 메일 요청 불가
+        if (emailVerificationTokenRepository.existsByEmailAndVerifiedAtIsNotNull(email)) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_ALREADY_VERIFIED);
+        }
+
+        //  3) 최근 5분 이내에 발송한 이메일이 있는지 확인
         emailVerificationTokenRepository
                 .findFirstByEmailAndCreatedAtAfter(
                         email,
@@ -67,13 +73,13 @@ public class EmailAuthService {
                     throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_ALREADY_SENT);
                 });
 
-        // 3) 새 토큰 생성 (이메일 + 만료시간)
+        // 4) 새 토큰 생성 (이메일 + 만료시간)
         EmailVerificationToken token = EmailVerificationToken.createToken(email, expiryMinutes);
 
-        // 4) 저장
+        // 5) 저장
         emailVerificationTokenRepository.save(token);
 
-        // 5) 인증 링크 생성
+        // 6) 인증 링크 생성
         String verificationLink = UriComponentsBuilder
                 .fromHttpUrl(authBaseUrl)
                 .queryParam("token", token.getToken())
@@ -93,6 +99,7 @@ public class EmailAuthService {
 
             mailSender.send(message);
         } catch (Exception e) {
+            log.error("이메일 인증 전송 실패: {}", e.getMessage(), e);
             throw ApplicationException.from(AuthErrorCase.EMAIL_SEND_FAILED);
         }
     }

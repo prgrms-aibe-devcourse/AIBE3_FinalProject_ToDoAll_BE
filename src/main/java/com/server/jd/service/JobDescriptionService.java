@@ -1,14 +1,13 @@
 package com.server.jd.service;
 
+import com.server.global.response.CommonResponse;
 import com.server.jd.domain.Skill;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.JobPreferredSkill;
 import com.server.jd.domain.JobRequiredSkill;
 import com.server.jd.domain.JobStatus;
-import com.server.jd.dto.JobDescriptionCreateRequestDto;
-import com.server.jd.dto.JobDescriptionDetailResponseDto;
-import com.server.jd.dto.JobDescriptionListResponseDto;
+import com.server.jd.dto.*;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.jd.repository.JobPreferredSkillRepository;
@@ -113,6 +112,81 @@ public class JobDescriptionService {
     public JobDescriptionDetailResponseDto getDetail(Long id) {
         JobDescription jd = jobRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+
+        List<String> required = jobRequiredSkillRepository
+                .findRequiredSkillNamesByJobId(id).stream().distinct().toList();
+
+        List<String> preferred = jobPreferredSkillRepository
+                .findPreferredSkillNamesByJobId(id).stream().distinct().toList();
+
+        return JobDescriptionDetailResponseDto.builder()
+                .id(jd.getId())
+                .title(jd.getTitle())
+                .location(jd.getLocation())
+                .applicantCount(jd.getApplicantCount())
+                .status(jd.getStatus())
+                .skills(required)
+                .startDate(jd.getStartDate())
+                .deadline(jd.getDeadline())
+                .thumbnailUrl(jd.getThumbnailUrl())
+                .description(jd.getDescription())
+                .preferredSkills(preferred)
+                .benefits(jd.getWelfare())
+                .experience(jd.getExperience())
+                .education(jd.getEducation())
+                .workType(jd.getWorkType())
+                .salary(jd.getSalary())
+                .department(jd.getDepartment())
+                .build();
+    }
+
+    @Transactional
+    public JobDescriptionStatusResponseDto updateStatus(
+            Long id,
+            JobDescriptionStatusRequestDto request
+    ) {
+        JobDescription jd = jobRepository.findById(id).orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+        jd.updateStatus(request.status());
+        return new JobDescriptionStatusResponseDto(
+                jd.getId(),
+                jd.getStatus()
+        );
+    }
+
+    @Transactional
+    public JobDescriptionDetailResponseDto update(
+            Long id,
+            JobDescriptionUpdateRequestDto request
+    ) {
+        JobDescription jd = jobRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+
+        jd.update(request);
+
+        jobRequiredSkillRepository.deleteByJobId(id);
+        jobPreferredSkillRepository.deleteByJobId(id);
+
+        List<String> requiredSkillNames = Optional.ofNullable(request.requiredSkills())
+                .orElseGet(List::of);
+
+        if (!requiredSkillNames.isEmpty()) {
+            List<Skill> requiredSkills = skillRepository.findByNameIn(requiredSkillNames);
+            List<JobRequiredSkill> requiredEntities = requiredSkills.stream()
+                    .map(skill -> JobRequiredSkill.of(jd, skill))
+                    .toList();
+            jobRequiredSkillRepository.saveAll(requiredEntities);
+        }
+
+        List<String> preferredSkillNames = Optional.ofNullable(request.preferredSkills())
+                .orElseGet(List::of);
+
+        if (!preferredSkillNames.isEmpty()) {
+            List<Skill> preferredSkills = skillRepository.findByNameIn(preferredSkillNames);
+            List<JobPreferredSkill> preferredEntities = preferredSkills.stream()
+                    .map(skill -> JobPreferredSkill.of(jd, skill))
+                    .toList();
+            jobPreferredSkillRepository.saveAll(preferredEntities);
+        }
 
         List<String> required = jobRequiredSkillRepository
                 .findRequiredSkillNamesByJobId(id).stream().distinct().toList();

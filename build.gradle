@@ -51,7 +51,7 @@ dependencies {
     implementation 'com.mysql:mysql-connector-j'
 
     // 테스트용 H2 DB
-    testImplementation 'com.h2database:h2'
+    testImplementation 'com.h2database:h2:1.4.200'
 
     // S3
     implementation 'com.amazonaws:aws-java-sdk-s3:1.12.681'
@@ -71,6 +71,7 @@ dependencies {
     annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+    testAnnotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
 
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
@@ -96,4 +97,11 @@ sourceSets {
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-parameters"
     options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+}
+
+tasks.register("act", Exec) {
+    group = "dev"
+    description = "Run GitHub Actions locally with act (pull_request)"
+
+    commandLine "act", "pull_request", "--secret-file", ".env", "-j", "build-and-test"
 }

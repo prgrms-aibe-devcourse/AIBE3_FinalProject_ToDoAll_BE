@@ -1,22 +1,62 @@
 package com.server.interview.controller;
 
+import com.server.global.response.CommonResponse;
+import com.server.interview.dto.InterviewCreateRequestDto;
+import com.server.interview.dto.InterviewCreateResponseDto;
+import com.server.interview.dto.InterviewListResponseDto;
+import com.server.interview.dto.InterviewSearchConditionDto;
 import com.server.interview.service.InterviewService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/interviews")
 @RequiredArgsConstructor
+@Tag(name = "InterviewController", description = "API 면접 컨트롤러")
 public class InterviewController {
     private final InterviewService interviewService;
 
+    @PostMapping
+    @Operation(summary = "인터뷰 등록", description = "이력서에 해당하는 인터뷰를 생성합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매칭 등록 성공"),
+            @ApiResponse(responseCode = "404", description = "채용공고 또는 이력서를 찾을 수 없음")
+    })
+    public CommonResponse<InterviewCreateResponseDto> createInterview (
+            @RequestBody @Valid InterviewCreateRequestDto interviewCreateRequestDto
+    ){
+        InterviewCreateResponseDto interviewCreateResponseDto = interviewService.create(interviewCreateRequestDto);
+        return CommonResponse.success(interviewCreateResponseDto);
+    }
 
-    // 예시 메시지 핸들러 (실제 구현할때 지워주세요.)
-    @MessageMapping("/interview/message")
-    @SendTo("/topic/interview/room/{roomId}")
-    public String handleInterviewMessage(String message) {
-        return "[면접 메시지] " + message;
+    @GetMapping
+    @Operation(summary = "인터뷰 조회", description = "인터뷰를 기본 6개씩 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "인터뷰 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "유효하지 않은 상태(status) 값입니다.")
+    })
+    public CommonResponse<InterviewListResponseDto> getInterviews (
+            @ModelAttribute @Valid InterviewSearchConditionDto condition
+    ){
+        InterviewListResponseDto interviewSearchResponseDto = interviewService.getInterviews(condition);
+        return CommonResponse.success(interviewSearchResponseDto);
+    }
+
+    @DeleteMapping("/{interviewId}")
+    @Operation(summary = "면접 삭제", description = "면접 ID를 통해 면접을 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 면접입니다."),
+            @ApiResponse(responseCode = "403", description = "면접을 삭제할 권한이 없습니다.")
+    })
+    public CommonResponse<String> deleteInterview (
+            @PathVariable("interviewId") Long interviewId
+    ){
+        interviewService.deleteInterview(interviewId);
+        return CommonResponse.success("면접 삭제 완료");
     }
 }

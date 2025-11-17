@@ -1,11 +1,9 @@
 package com.server.jd.controller;
 
 
+import com.amazonaws.Response;
 import com.server.global.response.CommonResponse;
-import com.server.jd.dto.JobDescriptionCreateRequestDto;
-import com.server.jd.dto.JobDescriptionDetailResponseDto;
-import com.server.jd.dto.JobDescriptionListResponseDto;
-import com.server.jd.dto.SkillResponseDto;
+import com.server.jd.dto.*;
 import com.server.jd.service.JobDescriptionService;
 import com.server.jd.service.SkillQueryService;
 import jakarta.validation.Valid;
@@ -56,5 +54,23 @@ public class JobDescriptionController {
     public ResponseEntity<CommonResponse<List<SkillResponseDto>>> getSkills() {
         List<SkillResponseDto> Skills = skillQueryService.getSkills();
         return ResponseEntity.ok(CommonResponse.success(Skills));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<CommonResponse<JobDescriptionStatusResponseDto>> updateStatus(
+            @PathVariable Long id,
+            @RequestBody JobDescriptionStatusRequestDto request
+    ) {
+        JobDescriptionStatusResponseDto dto = jobService.updateStatus(id, request);
+        return ResponseEntity.ok(CommonResponse.success(dto));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<CommonResponse<JobDescriptionDetailResponseDto>> update(
+            @PathVariable Long id,
+            @RequestBody JobDescriptionUpdateRequestDto request
+    ) {
+        JobDescriptionDetailResponseDto result = jobService.update(id, request);
+        return ResponseEntity.ok(CommonResponse.success(result));
     }
 }

@@ -1,6 +1,8 @@
 package com.server.jd.domain;
 
 import com.server.global.entity.BaseEntity;
+import com.server.jd.dto.JobDescriptionCreateRequestDto;
+import com.server.jd.dto.JobDescriptionUpdateRequestDto;
 import com.server.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -97,5 +99,22 @@ public class JobDescription extends BaseEntity {
     // 지원자 수 증가 메서드
     public void increaseApplicantCount() {
         this.applicantCount++;
+    }
+    public void updateStatus(JobStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    public void update(JobDescriptionUpdateRequestDto dto) {
+        this.title = dto.title();
+        this.department = dto.department();
+        this.workType = dto.workType();
+        this.experience = dto.experience();
+        this.education = dto.education();
+        this.salary = dto.salary();
+        this.description = dto.description();
+        this.deadline = dto.deadline();
+        this.welfare = dto.benefits();
+        this.location = dto.location();
+        this.thumbnailUrl = dto.thumbnailUrl();
     }
 }

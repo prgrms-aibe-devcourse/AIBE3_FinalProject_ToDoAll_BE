@@ -27,9 +27,11 @@ public class InterviewParticipant {
 
     // 참여자 역할 (INTERVIEWER, OBSERVER)
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private InterviewRole role;
 
     // 참여 시간
+    @Column(nullable = false)
     private LocalDateTime joinedAt;
 
     // 퇴장 시간
@@ -38,14 +40,12 @@ public class InterviewParticipant {
     public static InterviewParticipant of(Interview interview,
                                           User user,
                                           InterviewRole role,
-                                          LocalDateTime joinedAt,
-                                          LocalDateTime leftAt) {
+                                          LocalDateTime joinedAt) {
         InterviewParticipant participant = new InterviewParticipant();
         participant.interview = interview;
         participant.user = user;
         participant.role = role;
         participant.joinedAt = joinedAt;
-        participant.leftAt = leftAt;
         return participant;
     }
 }

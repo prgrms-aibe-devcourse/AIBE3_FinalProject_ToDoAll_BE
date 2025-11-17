@@ -10,7 +10,14 @@ import com.server.match.exception.MatchErrorCase;
 import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.Resume;
 import com.server.resume.repository.ResumeRepository;
+import com.server.search.document.ResumeDocument;
 import com.server.search.service.ResumeSearchService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.query.Query;
+import org.springframework.data.elasticsearch.core.query.Criteria;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +33,7 @@ public class MatchService {
     private final ResumeRepository resumeRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
     private final ResumeSearchService resumeSearchService;
+    private final ElasticsearchOperations elasticsearchOperations;
 
 
     @Transactional
@@ -97,5 +105,26 @@ public class MatchService {
         match.updateStatus(newStatus);
 
         return new MatchResponseDto(match.getId(), match.getStatus());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResumeDocument> recommendResumes(Long jdId) {
+
+        JobDescription jd = jobDescriptionRepository.findById(jdId)
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
+
+        // Criteria 기반 쿼리 생성
+        Criteria criteria = new Criteria("fullText").matches(jd.getDescription());
+
+        // 페이징 적용 (현재 추천 10명)
+        Query query = new CriteriaQuery(criteria, PageRequest.of(0, 10));
+
+        // 검색 실행
+        SearchHits<ResumeDocument> hits =
+                elasticsearchOperations.search(query, ResumeDocument.class);
+
+        return hits.getSearchHits().stream()
+                .map(hit -> hit.getContent())
+                .toList();
     }
 }

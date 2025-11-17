@@ -64,4 +64,13 @@ public class JobDescriptionController {
         JobDescriptionStatusResponseDto dto = jobService.updateStatus(id, request);
         return ResponseEntity.ok(CommonResponse.success(dto));
     }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<CommonResponse<JobDescriptionDetailResponseDto>> update(
+            @PathVariable Long id,
+            @RequestBody JobDescriptionUpdateRequestDto request
+    ) {
+        JobDescriptionDetailResponseDto result = jobService.update(id, request);
+        return ResponseEntity.ok(CommonResponse.success(result));
+    }
 }

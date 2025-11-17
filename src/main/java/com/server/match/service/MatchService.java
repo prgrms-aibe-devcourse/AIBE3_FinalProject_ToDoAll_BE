@@ -10,11 +10,13 @@ import com.server.match.exception.MatchErrorCase;
 import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.Resume;
 import com.server.resume.repository.ResumeRepository;
+import com.server.search.service.ResumeSearchService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class MatchService {
     private final MatchRepository matchRepository;
     private final ResumeRepository resumeRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
+    private final ResumeSearchService resumeSearchService;
 
 
     @Transactional
@@ -46,7 +49,10 @@ public class MatchService {
                 MatchStatus.APPLIED // 기본 상태: 지원 완료
         );
 
-        return matchRepository.save(match);
+        matchRepository.save(match);
+        resumeSearchService.index(resume); // ES 색인 등록
+
+        return match;
     }
 
     @Transactional(readOnly = true)

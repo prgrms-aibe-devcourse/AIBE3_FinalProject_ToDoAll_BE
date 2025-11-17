@@ -49,7 +49,7 @@ public class InterviewNoteMemoService {
     }
 
     private User getUser() {
-        // 토큰으로 대체 예정
+        // TODO: JWT 인증 후 실제 userId 사용하도록 수정
         return userRepository.findById(1L)
                 .orElseThrow();
     }

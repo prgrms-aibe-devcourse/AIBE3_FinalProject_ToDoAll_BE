@@ -29,90 +29,46 @@ public class InterviewQuestionService {
     private final InterviewQuestionRepository questionRepository;
     private final UserRepository userRepository;
 
-    @Transactional
-    public void updateQuestions(Long interviewId, InterviewQuestionUpdateRequestDto request) {
-
-        // 면접 존재 여부
-        Interview interview = interviewRepository.findById(interviewId)
+    // 공통 로직
+    private Interview getInterview(Long interviewId) {
+        return interviewRepository.findById(interviewId)
                 .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
-
-        // 요청 형식 검증
-        if (request == null || request.questions() == null) {
-            throw new ApplicationException(InterviewQuestionErrorCase.INVALID_FORMAT);
-        }
-
-        // 사용자 (토큰 대신 임시)
-        User user = userRepository.findById(1L).orElseThrow();
-
-        // 권한 체크
-        boolean permission = participantRepository.existsByInterviewIdAndUserId(
-                interviewId, user.getId()
-        );
-        if (!permission) {
-            throw new ApplicationException(InterviewQuestionErrorCase.FORBIDDEN);
-        }
-
-        // 삭제 처리
-        if (request.deleteQuestionIds() != null && !request.deleteQuestionIds().isEmpty()) {
-
-            //기본적으로 Spring Data JPA는 존재하지 않는 ID로 delete를 호출해도 에러를 내지 않고 그냥 무시한다.
-            int deleted = questionRepository.deleteByIdsAndInterviewId(
-                    request.deleteQuestionIds(), interviewId
-            );
-
-            // 요청된 삭제 수 != 실제 삭제 수 -> 잘못된 질문 ID 포함
-            if (deleted != request.deleteQuestionIds().size()) {
-                throw new ApplicationException(InterviewQuestionErrorCase.INVALID_DELETE_TARGET);
-            }
-        }
-
-        // 추가 및 수정 처리
-        for (var q : request.questions()) {
-
-            if (q.questionId() == null) {
-                // 새 질문 추가
-                InterviewQuestion newQuestion = InterviewQuestion.of(
-                        interview,
-                        q.questionType(),
-                        q.content(),
-                        QuestionStatus.PENDING,
-                        false
-                );
-                questionRepository.save(newQuestion);
-            } else {
-                // 기존 질문 수정
-                InterviewQuestion existQuestion = questionRepository.findById(q.questionId())
-                        .orElseThrow(() -> new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND));
-
-                // 질문이 해당 인터뷰에 속하는지 확인
-                if (!existQuestion.getInterview().getId().equals(interviewId)) {
-                    throw new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND);
-                }
-                existQuestion.update(q.questionType(), q.content());
-            }
-        }
     }
 
-    public List<InterviewQuestionResponseDto> getQuestions(Long  interviewId) {
-        // 인터뷰 존재 체크
-        Interview interview = interviewRepository.findById(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+    private InterviewQuestion getQuestion(Long questionId) {
+        return questionRepository.findById(questionId)
+                .orElseThrow(() -> new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND));
+    }
 
-        // 사용자 조회 (토큰 대신 임시 userId=1)
-        User user = userRepository.findById(1L)
+    private User getUser() {
+        // TODO: JWT 인증 후 실제 userId 사용하도록 수정
+        return userRepository.findById(1L)
                 .orElseThrow();
+    }
 
-        // 권한 체크 (면접관 + 주최자)
-        boolean allowed = participantRepository.existsByInterviewIdAndUserId(interviewId, user.getId());
+    private void checkPermission(Long interviewId, Long userId) {
+        boolean allowed = participantRepository.existsByInterviewIdAndUserId(interviewId, userId);
         if (!allowed) {
             throw new ApplicationException(InterviewQuestionErrorCase.FORBIDDEN);
         }
+    }
 
-        // 질문 조회
+    private void validateQuestionBelongsToInterview(InterviewQuestion question, Long interviewId) {
+        if (!question.getInterview().getId().equals(interviewId)) {
+            throw new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND);
+        }
+    }
+
+    // 질문 리스트 조회
+    public List<InterviewQuestionResponseDto> getQuestions(Long interviewId) {
+
+        getInterview(interviewId);  // 인터뷰 존재 확인
+        User user = getUser();
+        checkPermission(interviewId, user.getId());
+
         var questions = questionRepository.findAllByInterviewId(interviewId);
 
-        // DTO 변환
-        List<InterviewQuestionResponseDto> responseList = questions.stream()
+        return questions.stream()
                 .map(q -> new InterviewQuestionResponseDto(
                         q.getId(),
                         q.getType().name(),
@@ -121,32 +77,69 @@ public class InterviewQuestionService {
                         q.getUpdatedAt()
                 ))
                 .toList();
-
-        return responseList;
     }
 
+    // 질문 수정 / 추가 / 삭제
+    @Transactional
+    public void updateQuestions(Long interviewId, InterviewQuestionUpdateRequestDto request) {
+
+        Interview interview = getInterview(interviewId);
+        User user = getUser();
+        checkPermission(interviewId, user.getId());
+
+        // 요청 형식 검증
+        if (request == null || request.questions() == null) {
+            throw new ApplicationException(InterviewQuestionErrorCase.INVALID_FORMAT);
+        }
+
+        // 삭제 처리
+        if (request.deleteQuestionIds() != null && !request.deleteQuestionIds().isEmpty()) {
+
+            int deleted = questionRepository.deleteByIdsAndInterviewId(
+                    request.deleteQuestionIds(), interviewId
+            );
+
+            if (deleted != request.deleteQuestionIds().size()) {
+                throw new ApplicationException(InterviewQuestionErrorCase.INVALID_DELETE_TARGET);
+            }
+        }
+
+        // 추가/수정 처리
+        for (var q : request.questions()) {
+
+            // 새로운 질문
+            if (q.questionId() == null) {
+                InterviewQuestion newQuestion = InterviewQuestion.of(
+                        interview,
+                        q.questionType(),
+                        q.content(),
+                        QuestionStatus.PENDING,
+                        false
+                );
+                questionRepository.save(newQuestion);
+            }
+
+            // 기존 질문 수정
+            else {
+                InterviewQuestion existQuestion = getQuestion(q.questionId());
+
+                validateQuestionBelongsToInterview(existQuestion, interviewId);
+
+                existQuestion.update(q.questionType(), q.content());
+            }
+        }
+    }
+
+    // 질문 체크 토글
+    @Transactional
     public void toggleCheck(Long interviewId, Long questionId) {
 
-        //질문 조회
-        InterviewQuestion question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND)
-        );
+        InterviewQuestion question = getQuestion(questionId);
+        validateQuestionBelongsToInterview(question, interviewId);
 
-        // 소속 인터뷰 확인
-        if (!question.getInterview().getId().equals(interviewId)) {
-            throw new ApplicationException(InterviewQuestionErrorCase.INTERVIEW_QUESTION_NOT_FOUND);
-        }
+        User user = getUser();
+        checkPermission(interviewId, user.getId());
 
-        // 사용자 확인 (토큰 대신 임시 userId = 1)
-        User user = userRepository.findById(1L)
-                .orElseThrow();
-
-        boolean allowed = participantRepository.existsByInterviewIdAndUserId(interviewId, user.getId());
-        if (!allowed) {
-            throw new ApplicationException(InterviewQuestionErrorCase.FORBIDDEN);
-        }
-
-        // 체크 상태 토글
         question.toggleCheck();
     }
 }

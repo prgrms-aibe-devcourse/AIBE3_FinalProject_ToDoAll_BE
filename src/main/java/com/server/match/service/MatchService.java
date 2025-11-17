@@ -8,6 +8,8 @@ import com.server.match.domain.MatchStatus;
 import com.server.match.dto.*;
 import com.server.match.exception.MatchErrorCase;
 import com.server.match.repository.MatchRepository;
+import com.server.match.util.MatchScoreCalculator;
+import com.server.match.util.RecommendationReasonBuilder;
 import com.server.resume.domain.Resume;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.document.ResumeDocument;
@@ -107,24 +109,54 @@ public class MatchService {
         return new MatchResponseDto(match.getId(), match.getStatus());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ResumeDocument> recommendResumes(Long jdId) {
 
         JobDescription jd = jobDescriptionRepository.findById(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
-        // Criteria 기반 쿼리 생성
+        // Elasticsearch 검색
         Criteria criteria = new Criteria("fullText").matches(jd.getDescription());
-
-        // 페이징 적용 (현재 추천 10명)
+        // 페이징 (현재 0~10)
         Query query = new CriteriaQuery(criteria, PageRequest.of(0, 10));
+        SearchHits<ResumeDocument> hits = elasticsearchOperations.search(query, ResumeDocument.class);
 
-        // 검색 실행
-        SearchHits<ResumeDocument> hits =
-                elasticsearchOperations.search(query, ResumeDocument.class);
-
-        return hits.getSearchHits().stream()
+        List<ResumeDocument> recommended = hits.getSearchHits().stream()
                 .map(hit -> hit.getContent())
                 .toList();
+
+        // 매칭된 이력서들에 대해 Match 객체 자동 생성
+        for (ResumeDocument doc : recommended) {
+
+            // 이미 매칭된 경우는 제외
+            boolean alreadyExists = matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), doc.getId());
+            if (alreadyExists) continue;
+
+            // 이력서 원본 조회
+            Resume resume = resumeRepository.findById(doc.getId())
+                    .orElse(null);
+
+            if (resume == null) continue;
+
+            // 점수 계산
+            float score = MatchScoreCalculator.calculateMatchScore(jd.getDescription(), doc);
+
+            // 추천 사유 생성
+            String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
+
+            // Match 객체 생성
+            Match match = Match.of(
+                    jd,
+                    resume,
+                    LocalDateTime.now(),
+                    score,
+                    reason,
+                    MatchStatus.RECOMMENDED
+            );
+
+            matchRepository.save(match);
+        }
+
+        return recommended;
     }
 }

@@ -34,6 +34,11 @@ public enum AuthErrorCase implements ErrorCase {
     EMAIL_AUTH_TOKEN_INVALID(HttpStatus.BAD_REQUEST, 2101, "유효하지 않은 이메일 인증 토큰입니다."),
     EMAIL_AUTH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, 2102, "만료된 이메일 인증 토큰입니다."),
     EMAIL_AUTH_ALREADY_VERIFIED(HttpStatus.BAD_REQUEST, 2103, "이미 인증이 완료된 토큰입니다."),
+    PASSWORD_RESET_TOKEN_INVALID(HttpStatus.BAD_REQUEST, 4003, "유효하지 않은 비밀번호 재설정 토큰입니다."),
+    PASSWORD_RESET_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, 4004, "만료된 비밀번호 재설정 토큰입니다."),
+    PASSWORD_RESET_TOKEN_ALREADY_USED(HttpStatus.BAD_REQUEST, 4005, "이미 사용된 비밀번호 재설정 토큰입니다."),
+
+
 
 
     // 500 - 서버 오류

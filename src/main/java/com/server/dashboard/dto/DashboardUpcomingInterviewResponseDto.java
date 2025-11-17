@@ -3,7 +3,7 @@ package com.server.dashboard.dto;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-import static com.server.dashboard.util.Formatter.formatterDay;
+import static com.server.dashboard.util.Formatter.formatterDateDividedSlash;
 import static com.server.dashboard.util.Formatter.formatterTime;
 
 
@@ -23,7 +23,7 @@ public record DashboardUpcomingInterviewResponseDto(
 
 
         return new DashboardUpcomingInterviewResponseDto(
-                interviewDateTime.format(formatterDay),
+                interviewDateTime.format(formatterDateDividedSlash),
                 applicantName,
                 jobTitle,
                 interviewDateTime.format(formatterTime),

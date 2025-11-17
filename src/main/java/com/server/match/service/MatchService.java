@@ -52,28 +52,37 @@ public class MatchService {
             throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_EXISTS);
         }
 
-        // ResumeDocument 색인 조회 or 등록
+        // 이력서 색인 or 조회
         ResumeDocument doc = resumeSearchService.find(resume.getId())
                 .orElseGet(() -> {
                     resumeSearchService.index(resume);
                     return ResumeDocument.of(resume);
                 });
 
-        // AI 추천 사유 및 이력서 요약
-        String recommendation = aiRecommendationService.generateRecommendation(jd.getDescription(), doc.getFullText());
+        // AI 추천 사유 + 요약
+        String recommendation = aiRecommendationService.generateRecommendation(
+                jd.getDescription(), doc.getFullText()
+        );
+
         String resumeSummary = aiRecommendationService.generateResumeSummary(doc.getFullText());
+
+        // 매칭 점수
+        float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
 
         Match match = Match.of(
                 jd,
                 resume,
                 LocalDateTime.now(),
-                null,
+                score,
                 recommendation,
                 resumeSummary,
                 MatchStatus.APPLIED
         );
 
-        return matchRepository.save(match);
+        matchRepository.save(match);
+        resumeSearchService.index(resume);
+
+        return match;
     }
 
     // JD 기반 추천 이력서 자동 매칭
@@ -98,7 +107,7 @@ public class MatchService {
             Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
             if (resume == null) continue;
 
-            float score = MatchScoreCalculator.calculateMatchScore(jd.getDescription(), doc);
+            float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
             String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
             String resumeSummary = aiRecommendationService.generateResumeSummary(doc.getFullText());
 

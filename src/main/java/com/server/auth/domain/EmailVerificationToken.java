@@ -23,7 +23,7 @@ public class EmailVerificationToken extends BaseEntity {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false, unique = true, length = 64)
+    @Column(nullable = false, unique = true, length = 128)
     private String token;
 
     @Column(nullable = false)
@@ -43,14 +43,14 @@ public class EmailVerificationToken extends BaseEntity {
     }
 
 
-     //토큰 만료 여부 확인
+    //토큰 만료 여부 확인
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiresAt);
     }
 
 
-     //이미 인증됨 여부 확인
+    //이미 인증됨 여부 확인
 
     public boolean isVerified() {
         return verifiedAt != null;

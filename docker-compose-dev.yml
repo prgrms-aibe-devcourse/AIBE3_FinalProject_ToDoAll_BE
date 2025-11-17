@@ -9,6 +9,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
       MYSQL_DATABASE: ${MYSQL_DATABASE}

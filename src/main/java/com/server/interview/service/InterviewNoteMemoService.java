@@ -1,7 +1,6 @@
 package com.server.interview.service;
 
 import com.server.global.exception.ApplicationException;
-import com.server.interview.domain.Interview;
 import com.server.interview.domain.InterviewNote;
 import com.server.interview.domain.InterviewNoteMemo;
 import com.server.interview.dto.InterviewNoteMemoCreateRequestDto;
@@ -34,11 +33,10 @@ public class InterviewNoteMemoService {
     private final InterviewNoteMemoRepository interviewNoteMemoRepository;
 
     // 공통 로직: 인터뷰 + 노트 + 사용자 + 권한 체크
-    private Interview getInterview(Long interviewId) {
-        return interviewRepository.findById(interviewId)
-                .orElseThrow(() ->
-                        new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND)
-                );
+    private void getInterview(Long interviewId) {
+        if (!interviewRepository.existsById(interviewId)) {
+            throw new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND);
+        }
     }
 
     private InterviewNote getInterviewNote(Long interviewId) {
@@ -65,7 +63,7 @@ public class InterviewNoteMemoService {
     public List<InterviewNoteMemoSearchResponseDto> getMemos(Long interviewId) {
 
         // 공통 검증
-        Interview interview = getInterview(interviewId);
+        getInterview(interviewId);
         InterviewNote note = getInterviewNote(interviewId);
         User user = getUser();
         checkPermission(interviewId, user.getId());
@@ -84,7 +82,7 @@ public class InterviewNoteMemoService {
     ) {
 
         // 공통 검증
-        Interview interview = getInterview(interviewId);
+        getInterview(interviewId);
         InterviewNote note = getInterviewNote(interviewId);
         User user = getUser();
         checkPermission(interviewId, user.getId());

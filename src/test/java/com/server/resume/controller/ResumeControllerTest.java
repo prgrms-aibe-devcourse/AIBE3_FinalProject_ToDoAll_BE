@@ -123,7 +123,11 @@ class ResumeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(resumeCreateRequestDto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .andExpect(jsonPath("$.data.id").value(1L))
+                .andExpect(jsonPath("$.data.name").value("홍길동"))
+                .andExpect(jsonPath("$.data.status").value("NEW"))
+                .andExpect(jsonPath("$.data.jobId").value(10L))
+                .andExpect(jsonPath("$.data.jobTitle").value("백엔드 개발자"));
     }
 
     @Test

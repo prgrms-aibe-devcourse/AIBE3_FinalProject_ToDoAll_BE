@@ -1,7 +1,9 @@
 package com.server.match.domain;
 
 public enum MatchStatus {
-    RECOMMENDED,
-    APPLIED,
-    REJECTED
+    APPLIED,        // 지원됨
+    RECOMMENDED,    // 추천됨
+    BOOKMARK,       // 북마크됨
+    HOLD,           // 보류됨
+    REJECTED        // 거절됨
 }

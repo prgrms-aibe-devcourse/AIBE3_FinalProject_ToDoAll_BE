@@ -38,9 +38,11 @@ public class Interview extends BaseEntity {
     @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;
 
+    @Column(nullable = false)
     private LocalDateTime scheduledAt; // 예정 면접 시간
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private InterviewStatus status;
 
     @Lob

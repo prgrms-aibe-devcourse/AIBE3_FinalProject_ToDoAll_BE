@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 
-public record InterviewSearchCondition(
+public record InterviewSearchConditionDto(
         @Schema(description = "조회할 채용공고 ID, 미입력 시 전체 조회", example = "12")
         Long jdId,
 

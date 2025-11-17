@@ -5,10 +5,7 @@ import com.server.global.response.CommonResponse;
 import com.server.match.domain.Match;
 import com.server.match.domain.MatchSortType;
 import com.server.match.domain.MatchStatus;
-import com.server.match.dto.MatchListResponseDto;
-import com.server.match.dto.MatchRequestDto;
-import com.server.match.dto.MatchResponseDto;
-import com.server.match.dto.MatchSearchCondition;
+import com.server.match.dto.*;
 import com.server.match.exception.MatchErrorCase;
 import com.server.match.service.MatchService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,5 +60,30 @@ public class MatchController {
         MatchSearchCondition condition = new MatchSearchCondition(jdId, status, sort, limit, offset);
         List<MatchListResponseDto> result = matchService.getMatchedResumes(condition);
         return CommonResponse.success(result);
+    }
+
+    @GetMapping("/{matchId}")
+    @Operation(summary = "JD + 이력서 매칭 상세 조회", description = "특정 매칭(matchId)에 대한 상세 분석 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "매칭 정보를 찾을 수 없음")
+    })
+    public CommonResponse<MatchDetailResponseDto> getMatchDetail(@PathVariable Long matchId) {
+        MatchDetailResponseDto detail = matchService.getMatchDetail(matchId);
+        return CommonResponse.success(detail);
+    }
+
+    @PatchMapping("/{matchId}/status")
+    @Operation(summary = "매칭 상태 변경", description = "특정 매칭의 상태를 변경합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "상태 변경 성공"),
+            @ApiResponse(responseCode = "404", description = "매칭 정보를 찾을 수 없음"),
+    })
+    public CommonResponse<MatchResponseDto> updateMatchStatus(
+            @PathVariable Long matchId,
+            @RequestBody @Valid MatchStatusUpdateRequestDto request
+    ) {
+        MatchResponseDto response = matchService.updateMatchStatus(matchId, request.status());
+        return CommonResponse.success(response);
     }
 }

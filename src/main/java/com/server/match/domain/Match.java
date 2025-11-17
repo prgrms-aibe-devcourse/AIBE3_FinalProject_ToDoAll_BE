@@ -55,4 +55,8 @@ public class Match extends BaseEntity {
         match.status = status;
         return match;
     }
+
+    public void updateStatus(MatchStatus newStatus) {
+        this.status = newStatus;
+    }
 }

@@ -62,7 +62,7 @@ class InterviewQuestionServiceTest {
 
     private Interview mockInterview(Long id) {
         Interview interview = mock(Interview.class);
-        ReflectionTestUtils.setField(interview, "id", id);
+        when(interview.getId()).thenReturn(id);
         return interview;
     }
 
@@ -91,6 +91,10 @@ class InterviewQuestionServiceTest {
 
         // 기존 질문 mock
         InterviewQuestion exist = mock(InterviewQuestion.class);
+
+        // 반드시 추가해야 하는 부분
+        when(exist.getInterview()).thenReturn(interview);
+
         when(questionRepository.findById(1001L))
                 .thenReturn(Optional.of(exist));
 
@@ -111,7 +115,11 @@ class InterviewQuestionServiceTest {
 
         verify(questionRepository).deleteByIdsAndInterviewId(anyList(), eq(interviewId));
         verify(questionRepository).findById(1001L);
+
+        // 수정 호출 검증
         verify(exist).update(QuestionType.TECH, "수정된 질문입니다.");
+
+        // 새 질문 저장 검증
         verify(questionRepository).save(any(InterviewQuestion.class));
     }
 

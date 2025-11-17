@@ -24,4 +24,5 @@ public interface JobRequiredSkillRepository extends JpaRepository<JobRequiredSki
         where jrs.job.id = :id
     """)
     List<String> findRequiredSkillNamesByJobId(Long id);
+    void deleteByJobId(Long jobDescriptionId);
 }

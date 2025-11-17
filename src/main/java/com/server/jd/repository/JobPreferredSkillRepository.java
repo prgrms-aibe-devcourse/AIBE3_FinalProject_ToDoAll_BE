@@ -22,4 +22,5 @@ public interface JobPreferredSkillRepository extends JpaRepository<JobPreferredS
         where jps.job.id = :id
     """)
     List<String> findPreferredSkillNamesByJobId(Long id);
+    void deleteByJobId(Long jobDescriptionId);
 }

@@ -5,9 +5,7 @@ import com.server.jd.domain.JobDescription;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.match.domain.Match;
 import com.server.match.domain.MatchStatus;
-import com.server.match.dto.MatchListResponseDto;
-import com.server.match.dto.MatchRequestDto;
-import com.server.match.dto.MatchSearchCondition;
+import com.server.match.dto.*;
 import com.server.match.exception.MatchErrorCase;
 import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.Resume;
@@ -54,5 +52,44 @@ public class MatchService {
     @Transactional(readOnly = true)
     public List<MatchListResponseDto> getMatchedResumes(MatchSearchCondition condition) {
         return matchRepository.searchMatches(condition).getContent();
+    }
+
+    @Transactional(readOnly = true)
+    public MatchDetailResponseDto getMatchDetail(Long matchId) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
+
+        String skillMatchRate = "78%"; // 향후 ES 도입 시 동적 계산
+        List<String> missingSkills = List.of("Redis", "Kafka"); // 임시 데이터
+        String recommendationReason = match.getRecommendationReason() != null
+                ? match.getRecommendationReason()
+                : "추천 사유가 아직 등록되지 않았습니다.";
+        String resumeSummary = null;  // 향후 AI 요약 도입 전까지는 null
+        String jdSummary = null;      // 향후 AI 요약 도입 전까지는 null
+
+        return MatchDetailResponseDto.builder()
+                .jdTitle(match.getJobDescription().getTitle())
+                .resumeName(match.getResume().getName())
+                .matchScore(match.getMatchScore() != null ? match.getMatchScore() : 0.0f)
+                .skillMatchRate(skillMatchRate)
+                .missingSkills(missingSkills)
+                .recommendationReason(recommendationReason)
+                .resumeSummary(resumeSummary)
+                .jdSummary(jdSummary)
+                .build();
+    }
+
+    @Transactional
+    public MatchResponseDto updateMatchStatus(Long matchId, MatchStatus newStatus) {
+        if (newStatus == null) {
+            throw new ApplicationException(MatchErrorCase.MATCH_INVALID_STATUS);
+        }
+
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
+
+        match.updateStatus(newStatus);
+
+        return new MatchResponseDto(match.getId(), match.getStatus());
     }
 }

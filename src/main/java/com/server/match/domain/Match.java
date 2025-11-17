@@ -40,11 +40,15 @@ public class Match extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
 
+    @Column(columnDefinition = "TEXT")
+    private String resumeSummary;
+
     public static Match of(JobDescription jobDescription,
                            Resume resume,
                            LocalDateTime appliedAt,
                            Float matchScore,
                            String recommendationReason,
+                           String resumeSummary,
                            MatchStatus status) {
         Match match = new Match();
         match.jobDescription = jobDescription;
@@ -52,6 +56,7 @@ public class Match extends BaseEntity {
         match.appliedAt = appliedAt;
         match.matchScore = matchScore;
         match.recommendationReason = recommendationReason;
+        match.resumeSummary = resumeSummary;
         match.status = status;
         return match;
     }

@@ -4,15 +4,15 @@ import com.server.interview.domain.InterviewNoteMemo;
 
 import java.time.LocalDateTime;
 
-public record InterviewNoteMemoResponseDto (
+public record InterviewNoteMemoSearchResponseDto(
         Long memoId,
         String content,
         Author author,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ){
-    public static InterviewNoteMemoResponseDto from(InterviewNoteMemo memo) {
-        return new InterviewNoteMemoResponseDto(
+    public static InterviewNoteMemoSearchResponseDto from(InterviewNoteMemo memo) {
+        return new InterviewNoteMemoSearchResponseDto(
                 memo.getId(),
                 memo.getContent(),
                 new Author(

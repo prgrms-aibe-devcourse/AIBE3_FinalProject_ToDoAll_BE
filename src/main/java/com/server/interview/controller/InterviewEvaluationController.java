@@ -1,9 +1,7 @@
 package com.server.interview.controller;
 
 import com.server.global.response.CommonResponse;
-import com.server.interview.dto.InterviewEvaluationCreateRequestDto;
-import com.server.interview.dto.InterviewEvaluationCreateResponseDto;
-import com.server.interview.dto.InterviewEvaluationSearchResponseDto;
+import com.server.interview.dto.*;
 import com.server.interview.service.InterviewEvaluationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,7 +34,6 @@ public class InterviewEvaluationController {
         return CommonResponse.success(response);
     }
 
-
     @GetMapping
     @Operation(summary = "인터뷰 평가 조회", description = "인터뷰에 해당하는 평가를 조회합니다.")
     @ApiResponses(value = {
@@ -47,6 +44,22 @@ public class InterviewEvaluationController {
             @PathVariable Long interviewId
     ) {
         InterviewEvaluationSearchResponseDto response = interviewEvaluationService.getEvaluations(interviewId);
+        return CommonResponse.success(response);
+    }
+
+    @PatchMapping("/{evaluationId}")
+    @Operation(summary = "인터뷰 평가 수정", description = "인터뷰에 해당하는 평가를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "평가 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "이력서를 찾을 수 없음")
+    })
+    public CommonResponse<InterviewEvaluationUpdateResponseDto> update(
+            @PathVariable Long interviewId,
+            @PathVariable Long evaluationId,
+            @Valid @RequestBody InterviewEvaluationUpdateRequestDto request
+    ) {
+
+        InterviewEvaluationUpdateResponseDto response = interviewEvaluationService.update(interviewId, evaluationId, request);
         return CommonResponse.success(response);
     }
 }

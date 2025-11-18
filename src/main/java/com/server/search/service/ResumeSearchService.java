@@ -4,8 +4,10 @@ import com.server.resume.domain.Resume;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.document.ResumeDocument;
 import com.server.search.repository.ResumeSearchRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +36,7 @@ public class ResumeSearchService {
     }
 
     // 전체 색인 기능
+    @Transactional(readOnly = true)
     public void indexAll() {
         List<Resume> resumes = resumeRepository.findAll();
         for (Resume resume : resumes) {

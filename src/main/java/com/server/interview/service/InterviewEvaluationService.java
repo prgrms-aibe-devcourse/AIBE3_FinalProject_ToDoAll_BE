@@ -6,6 +6,7 @@ import com.server.interview.domain.InterviewEvaluation;
 import com.server.interview.domain.InterviewResult;
 import com.server.interview.dto.InterviewEvaluationCreateRequestDto;
 import com.server.interview.dto.InterviewEvaluationCreateResponseDto;
+import com.server.interview.dto.InterviewEvaluationSearchResponseDto;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.exception.InterviewEvaluationErrorCase;
 import com.server.interview.repository.InterviewEvaluationRepository;
@@ -87,6 +88,31 @@ public class InterviewEvaluationService {
                 evaluation.getScoreComm(),
                 evaluation.getScoreOverall(),
                 evaluation.getComment()
+        );
+    }
+
+    public InterviewEvaluationSearchResponseDto getEvaluations(Long interviewId) {
+
+        // 공통 검증
+        getInterview(interviewId);
+        User evaluator = getUser();
+        checkPermission(interviewId, evaluator.getId());
+
+        // 평가 조회
+        InterviewEvaluation evaluation = evaluationRepository.findByInterviewId(interviewId)
+                .orElseThrow(() -> new ApplicationException(
+                        InterviewEvaluationErrorCase.INTERVIEW_EVALUATION_NOT_FOUND
+                ));
+
+        // 응답 DTO 변환
+        return new InterviewEvaluationSearchResponseDto(
+                evaluation.getId(),
+                evaluation.getScoreTech(),
+                evaluation.getScoreComm(),
+                evaluation.getScoreOverall(),
+                evaluation.getComment(),
+                evaluation.getCreatedAt(),
+                evaluation.getUpdatedAt()
         );
     }
 }

@@ -2,6 +2,8 @@ package com.server.user.service;
 
 import com.server.global.exception.ApplicationException;
 import com.server.user.domain.User;
+import com.server.user.dto.UserProfileResponseDto;
+import com.server.user.dto.UserProfileUpdateRequestDto;
 import com.server.user.dto.UserSignupRequestDto;
 import com.server.user.dto.UserSignupResponseDto;
 import com.server.user.exception.UserErrorCase;
@@ -11,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.server.user.domain.Gender;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +95,49 @@ public class UserService {
 
         // 6) 엔티티에서 변경
         user.changePassword(encodedNewPassword);
+    }
+
+    // 마이페이지 - 내 정보 조회
+
+    public UserProfileResponseDto getMyProfile(Long userId) {
+        // 1) userId 로 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+        // 2) 엔티티 -> DTO 변환
+        return UserProfileResponseDto.from(user);
+    }
+
+    @Transactional
+    public UserProfileResponseDto updateMyProfile(Long userId, UserProfileUpdateRequestDto request) {
+
+        // 1) userId 로 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+        // 2) String → Gender enum 변환
+        Gender genderEnum = null;
+        if (request.getGender() != null && !request.getGender().isBlank()) {
+            try {
+                genderEnum = Gender.valueOf(request.getGender());
+            } catch (IllegalArgumentException e) {
+                // 변환 실패
+                throw ApplicationException.from(UserErrorCase.INVALID_GENDER);
+            }
+        }
+
+        // 3) 엔티티의 프로필 업데이트 메서드 호출
+        user.updateProfile(
+                request.getName(),
+                request.getNickname(),
+                request.getPosition(),
+                request.getPhoneNumber(),
+                request.getBirthDate(),
+                genderEnum // 성별 enum 넘기기
+        );
+
+        // 4) 변경된 user 엔티티를 응답 DTO로 변환해서 반환
+        return UserProfileResponseDto.from(user);
     }
 
 }

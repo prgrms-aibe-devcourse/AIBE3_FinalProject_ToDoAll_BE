@@ -17,6 +17,15 @@ public class ResumeIndexController {
         return "전체 이력서 색인 완료";
     }
 
+    @PostMapping("/index/{resumeId}")
+    public String indexOne(@PathVariable Long resumeId) {
+        resumeSearchService.find(resumeId).ifPresentOrElse(
+                doc -> resumeSearchService.index(doc.toEntity()),
+                () -> System.out.println("이력서가 존재하지 않음")
+        );
+        return "개별 색인 시도 완료";
+    }
+
 
     @GetMapping("/count")
     public String count() {

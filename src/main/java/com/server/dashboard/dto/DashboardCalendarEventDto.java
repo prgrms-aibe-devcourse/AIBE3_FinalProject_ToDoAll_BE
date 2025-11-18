@@ -6,12 +6,12 @@ import java.time.LocalDateTime;
 
 import static com.server.dashboard.util.Formatter.formatterTimeWithAMPM;
 
-public record DashboardCalendarEventResponseDto(
+public record DashboardCalendarEventDto(
         String time,              // "오전 10:00" or "10:00"
         CalendarEventType type,
         int count
 ) {
-    public DashboardCalendarEventResponseDto(LocalDateTime time, CalendarEventType type, int count) {
+    public DashboardCalendarEventDto(LocalDateTime time, CalendarEventType type, int count) {
         this(time.format(formatterTimeWithAMPM),  type, count);
     }
 }

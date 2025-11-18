@@ -57,15 +57,15 @@ public class ResumeService {
                 request.portfolioFileUrl(),
                 ResumeStatus.NEW
         );
+        Resume savedResume = resumeRepository.save(resume);
 
-        addEducations(resume, request.education());
-        addExperiences(resume, request.experience());
-        addSkills(resume, request.skills());
-        addActivities(resume, request.activities());
-        addCertifications(resume, request.certifications());
+        addEducations(savedResume, request.education());
+        addExperiences(savedResume, request.experience());
+        addSkills(savedResume, request.skills());
+        addActivities(savedResume, request.activities());
+        addCertifications(savedResume, request.certifications());
 
-        Resume saved = resumeRepository.save(resume);
-        return ResumeResponseDto.fromEntity(saved);
+        return ResumeResponseDto.fromEntity(savedResume);
     }
 
     @Transactional

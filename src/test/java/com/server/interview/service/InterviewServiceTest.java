@@ -4,10 +4,7 @@ import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.Interview;
 import com.server.interview.dto.*;
 import com.server.interview.exception.InterviewErrorCase;
-import com.server.interview.repository.InterviewNoteRepository;
-import com.server.interview.repository.InterviewParticipantRepository;
-import com.server.interview.repository.InterviewQuestionRepository;
-import com.server.interview.repository.InterviewRepository;
+import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -41,6 +38,7 @@ class InterviewServiceTest {
     private JobDescriptionRepository jobRepo;
     private ResumeRepository resumeRepo;
     private UserRepository userRepo;
+    private InterviewEvaluationRepository  interviewEvaluationRepository;
 
     private InterviewService interviewService;
 
@@ -61,7 +59,8 @@ class InterviewServiceTest {
                 questionRepository,
                 jobRepo,
                 resumeRepo,
-                userRepo
+                userRepo,
+                interviewEvaluationRepository
         );
     }
 

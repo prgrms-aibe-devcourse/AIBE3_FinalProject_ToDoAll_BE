@@ -7,9 +7,6 @@ import com.server.global.exception.ApplicationException;
 import com.server.user.domain.User;
 import com.server.user.dto.UserLoginResponseDto;
 import com.server.user.repository.UserRepository;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,8 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
+
 import java.util.concurrent.TimeUnit;
 
 
@@ -44,13 +40,13 @@ public class AuthService {
         // 1) 이메일로 사용자 찾기
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.warn("로그인 실패 -> 존재하지 않는 이메일: {}", email);
+                    log.warn("로그인 실패 -> 존재하지 않는 이메일");
                     return ApplicationException.from(AuthErrorCase.AUTH_INVALID_CREDENTIAL);
                 });
 
         // 2) 비밀번호 확인
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            log.warn("로그인 실패 -> 비밀번호 불일치: {}", email);
+            log.warn("로그인 실패 -> 비밀번호 불일치");
             throw ApplicationException.from(AuthErrorCase.AUTH_INVALID_CREDENTIAL);
         }
 
@@ -84,7 +80,7 @@ public class AuthService {
 
         // 1) 토큰 유효성 확인 (만료/서명 검증)
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            log.warn("로그아웃 요청 - 유효하지 않은 리프레시 토큰, 그냥 무시");
+            log.warn("로그아웃 요청");
             // UX 위해 예외 던지지 않고 종료
             return;
         }
@@ -95,7 +91,7 @@ public class AuthService {
 
         // 3) Redis 에서 리프레시 토큰 삭제
         redisTemplate.delete(redisKey);
-        log.info("로그아웃 완료: userId={}, redisKey 삭제={}", userId, redisKey);
+        log.info("로그아웃 완료");
     }
 
     public UserLoginResponseDto reissueAccessToken(String refreshToken) {
@@ -116,11 +112,11 @@ public class AuthService {
         // 3) Redis 에 저장된 리프레시 토큰과 일치하는지 확인
         Object stored = redisTemplate.opsForValue().get(redisKey);
         if (stored == null) {
-            log.warn("토큰 재발급 실패 - Redis 에 리프레시 토큰이 없음, userId={}", userId);
+            log.warn("토큰 재발급 실패 - Redis 에 리프레시 토큰이 없음 (user 존재)");
             throw ApplicationException.from(AuthErrorCase.AUTH_INVALID_REFRESH_TOKEN);
         }
         if (!refreshToken.equals(stored.toString())) {
-            log.warn("토큰 재발급 실패 - Redis 리프레시 토큰과 불일치, userId={}", userId);
+            log.warn("토큰 재발급 실패 - Redis 리프레시 토큰과 불일치 (user 존재)");
             throw ApplicationException.from(AuthErrorCase.AUTH_REFRESH_TOKEN_MISMATCH);
         }
 
@@ -133,7 +129,7 @@ public class AuthService {
         redisTemplate.opsForValue()
                 .set(redisKey, newRefreshToken, refreshExpMillis, TimeUnit.MILLISECONDS);
 
-        log.info("토큰 재발급 성공: userId={}, redisKey={}", userId, redisKey);
+        log.info("토큰 재발급 성공");
 
         // 6) 새 토큰 DTO 반환
         return UserLoginResponseDto.builder()
@@ -143,23 +139,14 @@ public class AuthService {
     }
 
     private String getRefreshTokenKey(Long userId) {
+
         return REFRESH_TOKEN_KEY_PREFIX + userId;
     }
 
     private Long parseUserIdFromToken(String token) {
         try {
-            String secret = jwtProperties.getSecret();// 시크릿 문자열
-            Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)); // 서명 키 생성
-
-            String subject = Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getSubject(); // subject = userId
-
-            return Long.parseLong(subject);
-        } catch (JwtException | IllegalArgumentException e) {
+            return jwtTokenProvider.getUserId(token);
+        } catch (RuntimeException e) {
             log.warn("토큰에서 userId 추출 실패", e);
             throw ApplicationException.from(AuthErrorCase.AUTH_INVALID_CREDENTIAL);
         }

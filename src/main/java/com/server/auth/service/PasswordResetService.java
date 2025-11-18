@@ -58,7 +58,7 @@ public class PasswordResetService {
         // 1) 사용자 조회
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> {
-                    log.info("Password reset requested for non-existing email: {}", email);
+                    log.info("존재하지 않는 이메일로 비밀번호 재설정이 요청되었습니다.");
                     return null; // 조용히 null 반환
                 });
 
@@ -68,17 +68,12 @@ public class PasswordResetService {
         }
 
         // 2) 기존 토큰 무효화
-        List<PasswordResetToken> tokens = tokenRepository.findLatestUnusedToken(
-                user.getId(),
-                LocalDateTime.now(),
-                PageRequest.of(0, 1) // 페이지 0, 크기 1 = LIMIT 1
-        );
-
-        tokens.stream()
-                .findFirst()
-                .ifPresent(oldToken -> {
+        tokenRepository.findLatestUnusedToken(
+                        user.getId(),
+                        LocalDateTime.now()
+                ).ifPresent(oldToken -> {
                     oldToken.markAsUsed();
-                    log.info("Previous password reset token invalidated. userId={}", user.getId());
+                    log.info("이전 비밀번호 재설정 토큰이 무효화되었습니다.");
                 });
 
         // 3) 새 토큰 생성
@@ -93,7 +88,7 @@ public class PasswordResetService {
         String resetLink = frontendResetUrl + "?token=" + plainToken;
         sendResetEmail(user.getEmail(), resetLink);
 
-        log.info("Password reset email sent. userId={}, email={}", user.getId(), user.getEmail());
+        log.info("비밀번호 재설정 이메일이 발송되었습니다.");
 
         return PasswordResetResponseDto.ofEmailSent();
     }
@@ -115,12 +110,12 @@ public class PasswordResetService {
 
         // 2) 토큰 검증
         if (token.isUsed()) {
-            log.warn("비밀번호 재설정 실패 - 이미 사용된 토큰: tokenId={}", token.getId());
+            log.warn("비밀번호 재설정 실패");
             throw ApplicationException.from(AuthErrorCase.PASSWORD_RESET_TOKEN_ALREADY_USED);
         }
 
         if (token.isExpired()) {
-            log.warn("비밀번호 재설정 실패 - 만료된 토큰: tokenId={}", token.getId());
+            log.warn("비밀번호 재설정 실패");
             throw ApplicationException.from(AuthErrorCase.PASSWORD_RESET_TOKEN_EXPIRED);
         }
 
@@ -137,7 +132,7 @@ public class PasswordResetService {
         // 6) 토큰 사용 처리
         token.markAsUsed();
 
-        log.info("Password reset completed. userId={}, tokenId={}", user.getId(), token.getId());
+        log.info("비밀번호 변경 완료");
 
         return PasswordResetResponseDto.ofPasswordChanged();
     }
@@ -185,9 +180,9 @@ public class PasswordResetService {
 
             mailSender.send(message);
 
-            log.info("비밀번호 재설정 이메일 발송 성공: {}", toEmail);
+            log.info("비밀번호 재설정 이메일 발송 성공");
         } catch (Exception e) {
-            log.error("비밀번호 재설정 이메일 발송 실패: {}", toEmail, e);
+            log.error("비밀번호 재설정 이메일 발송 실패");
             throw ApplicationException.from(AuthErrorCase.EMAIL_SEND_FAILED);
         }
     }

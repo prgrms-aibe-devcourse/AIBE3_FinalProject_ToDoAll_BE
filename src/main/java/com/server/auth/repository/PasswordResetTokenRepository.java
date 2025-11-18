@@ -34,9 +34,6 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
           AND t.expiresAt > :now
         ORDER BY t.createdAt DESC
         """)
-    List<PasswordResetToken> findLatestUnusedToken(
-            @Param("userId") Long userId,
-            @Param("now") LocalDateTime now,
-            Pageable pageable
-    );
+    Optional<PasswordResetToken> findLatestUnusedToken(Long userId, LocalDateTime now);
+
 }

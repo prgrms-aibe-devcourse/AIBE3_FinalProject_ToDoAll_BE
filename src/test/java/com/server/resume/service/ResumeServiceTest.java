@@ -10,6 +10,8 @@ import com.server.resume.domain.ResumeStatus;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
+import com.server.search.repository.ResumeSearchRepository;
+import com.server.search.service.ResumeSearchService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,12 @@ class ResumeServiceTest {
 
     @Mock
     private SkillRepository skillRepository;
+
+    @Mock
+    private ResumeSearchRepository resumeSearchRepository;
+
+    @Mock
+    private ResumeSearchService resumeSearchService;
 
     @InjectMocks
     private ResumeService resumeService;
@@ -78,6 +86,8 @@ class ResumeServiceTest {
         Resume savedResume = mock(Resume.class);
         when(resumeRepository.save(any())).thenReturn(savedResume);
 
+        when(resumeSearchRepository.count()).thenReturn(0L);
+
         ResumeCreateRequestDto request = new ResumeCreateRequestDto(
                 "홍길동",
                 10L,
@@ -96,10 +106,8 @@ class ResumeServiceTest {
                 "portfolio-url"
         );
 
-        // when
         resumeService.createResume(request);
 
-        // then
         verify(jobDescriptionRepository).findById(10L);
         verify(resumeRepository).save(any(Resume.class));
     }

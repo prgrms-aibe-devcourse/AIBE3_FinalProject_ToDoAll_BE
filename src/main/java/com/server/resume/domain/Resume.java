@@ -31,7 +31,6 @@ public class Resume extends BaseEntity {
     @JoinColumn(name = "jd_id", nullable = false)
     private JobDescription jobDescription;
 
-
     private String name;
 
     private String gender;
@@ -77,6 +76,9 @@ public class Resume extends BaseEntity {
     @Fetch(FetchMode.SUBSELECT)
     private List<ResumeCertification> certifications = new ArrayList<>();
 
+    @Lob
+    @Column
+    private String memo;
 
 
     public static Resume of(JobDescription jobDescription,
@@ -174,4 +176,7 @@ public class Resume extends BaseEntity {
         return resume;
     }
 
+    public void updateMemo(String memo) {
+        this.memo = memo;
+    }
 }

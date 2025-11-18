@@ -41,18 +41,13 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EmailStatus status;
+    private EmailStatus status = EmailStatus.UNVERIFIED;
 
     @Column(name = "email_token", unique = true)
     private String emailToken;
 
     @Column(name = "email_expiry")
     private LocalDateTime emailExpiry;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EmailStatus emailStatus = EmailStatus.UNVERIFIED;
-
 
 
     public static User of(String email,
@@ -110,6 +105,6 @@ public class User extends BaseEntity {
     }
     //이메일 인증 완료
     public void markEmailVerified() {
-        this.emailStatus = EmailStatus.VERIFIED;
+        this.status = EmailStatus.VERIFIED;
     }
 }

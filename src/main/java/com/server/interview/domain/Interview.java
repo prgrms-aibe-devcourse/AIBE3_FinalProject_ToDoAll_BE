@@ -41,6 +41,7 @@ public class Interview extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime scheduledAt; // 예정 면접 시간
 
+    // 인터뷰 진행현황 (WAITING, IN_PROGRESS, DONE)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InterviewStatus status;

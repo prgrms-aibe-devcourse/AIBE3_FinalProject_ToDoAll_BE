@@ -30,11 +30,15 @@ public class InterviewNoteMemo extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    public static InterviewNoteMemo  of(InterviewNote note, User author, String content) {
+    public static InterviewNoteMemo of(InterviewNote note, User author, String content) {
         InterviewNoteMemo noteMemo = new InterviewNoteMemo();
         noteMemo.note = note;
         noteMemo.author = author;
         noteMemo.content = content;
         return noteMemo;
+    }
+
+    public void updateContent( String content) {
+        this.content = content;
     }
 }

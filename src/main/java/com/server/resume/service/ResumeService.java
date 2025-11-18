@@ -11,6 +11,7 @@ import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -163,4 +164,14 @@ public class ResumeService {
                 });
     }
 
+    @Transactional
+    public ResumeMemoResponseDto updateResumeMemo(Long resumeId, ResumeMemoRequestDto request) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        resume.updateMemo(request.memo());
+
+        return ResumeMemoResponseDto.from(resume);
+
+    }
 }

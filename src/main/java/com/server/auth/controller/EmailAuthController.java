@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/auth/email-auth")
+@RequestMapping("/api/v1/auth/email-verifications")
 public class EmailAuthController {
 
     private final EmailAuthService emailAuthService;
@@ -29,7 +29,7 @@ public class EmailAuthController {
 
     //이메일 인증 완료
 
-    @GetMapping("/complete")
+    @GetMapping("/{token}")
     public CommonResponse<EmailAuthCompleteResponseDto> completeEmailAuth(
             @RequestParam("token") String token
     ) {

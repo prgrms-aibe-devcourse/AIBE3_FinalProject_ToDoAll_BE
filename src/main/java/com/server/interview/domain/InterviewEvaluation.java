@@ -3,7 +3,9 @@ package com.server.interview.domain;
 import com.server.global.entity.BaseEntity;
 import com.server.user.domain.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -62,5 +64,16 @@ public class InterviewEvaluation extends BaseEntity {
         eval.comment = comment;
         eval.result = result;
         return eval;
+    }
+
+    public void update( Integer scoreTech, Integer scoreComm, Double scoreOverall, String comment) {
+        this.scoreTech = scoreTech;
+        this.scoreComm = scoreComm;
+        this.scoreOverall = scoreOverall;
+        this.comment = comment;
+    }
+
+    public void updateResult(InterviewResult newResult) {
+        this.result = newResult;
     }
 }

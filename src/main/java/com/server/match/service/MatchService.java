@@ -15,6 +15,7 @@ import com.server.resume.domain.Resume;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.document.ResumeDocument;
 import com.server.search.dto.ResumeRecommendationDto;
+import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +40,7 @@ public class MatchService {
     private final ResumeSearchService resumeSearchService;
     private final ElasticsearchOperations elasticsearchOperations;
     private final AiRecommendationService aiRecommendationService;
+    private final ResumeSearchRepository resumeSearchRepository;
 
     // 매칭 등록 (지원자 직접 지원)
     @Transactional
@@ -89,6 +91,7 @@ public class MatchService {
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
     public List<ResumeRecommendationDto> recommendResumes(Long jdId) {
+        System.out.println(">> 색인된 이력서 개수: " + resumeSearchRepository.count());
         JobDescription jd = jobDescriptionRepository.findById(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 

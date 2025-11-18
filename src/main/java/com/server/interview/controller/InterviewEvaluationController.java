@@ -64,6 +64,11 @@ public class InterviewEvaluationController {
     }
 
     @PatchMapping("/{evaluationId}/result")
+    @Operation(summary = "인터뷰 결과 등록", description = "인터뷰의 결과를 등록합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "결과 등록 성공"),
+            @ApiResponse(responseCode = "404", description = "이력서를 찾을 수 없음")
+    })
     public CommonResponse<InterviewResultUpdateResponseDto> updateResult(
             @PathVariable Long interviewId,
             @PathVariable Long evaluationId,

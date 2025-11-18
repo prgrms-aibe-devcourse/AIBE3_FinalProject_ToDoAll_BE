@@ -44,6 +44,10 @@ public class ResumeSearchService {
         System.out.println(">> 색인 완료: 총 " + resumes.size() + "개");
     }
 
+    public long count() {
+        return resumeSearchRepository.count();
+    }
+
     // 주석 풀면 서버 실행 시 자동 색인
     /*
     @PostConstruct

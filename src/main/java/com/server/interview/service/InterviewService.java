@@ -4,10 +4,7 @@ import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.*;
 import com.server.interview.dto.*;
 import com.server.interview.exception.InterviewErrorCase;
-import com.server.interview.repository.InterviewNoteRepository;
-import com.server.interview.repository.InterviewParticipantRepository;
-import com.server.interview.repository.InterviewQuestionRepository;
-import com.server.interview.repository.InterviewRepository;
+import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -37,6 +34,7 @@ public class InterviewService {
     private final JobDescriptionRepository jobDescriptionRepository;
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
+    private final InterviewEvaluationRepository interviewEvaluationRepository;
 
     @Transactional
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
@@ -166,6 +164,9 @@ public class InterviewService {
 
         // 면접 질문 삭제
         interviewQuestionRepository.deleteByInterviewId(interviewId);
+
+        //면접 평가 삭제
+        interviewEvaluationRepository.deleteByInterviewId(interviewId);
 
         interviewRepository.delete(interview);
     }

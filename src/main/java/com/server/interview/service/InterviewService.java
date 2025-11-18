@@ -4,6 +4,7 @@ import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.*;
 import com.server.interview.dto.*;
 import com.server.interview.exception.InterviewErrorCase;
+import com.server.interview.exception.InterviewNoteErrorCase;
 import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
@@ -155,7 +156,7 @@ public class InterviewService {
 
         // 인터뷰 노트 조회
         InterviewNote note = interviewNoteRepository.findByInterviewId(interviewId)
-                .orElse(null);
+                .orElseThrow(() -> new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND));
 
         // 엔티티 삭제 → cascade 로 memo 자동 삭제됨
         if (note != null) {

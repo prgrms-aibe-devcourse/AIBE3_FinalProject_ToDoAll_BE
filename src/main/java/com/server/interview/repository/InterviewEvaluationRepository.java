@@ -15,4 +15,6 @@ public interface InterviewEvaluationRepository extends JpaRepository<InterviewEv
     void deleteByInterviewId(Long interviewId);
 
     Optional<InterviewEvaluation> findByInterviewId(Long interviewId);
+
+    Optional<InterviewEvaluation> findByIdAndInterviewId(Long evaluationId, Long interviewId);
 }

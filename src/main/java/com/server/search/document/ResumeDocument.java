@@ -1,12 +1,13 @@
 package com.server.search.document;
 
 import com.server.resume.domain.Resume;
-import com.server.resume.domain.ResumeStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,7 +23,10 @@ public class ResumeDocument {
 
     private String name;
     private String gender;
+
+    @Field(type = FieldType.Date, format = DateFormat.date)
     private LocalDate birthDate;
+
 
     private String email;
     private String phone;

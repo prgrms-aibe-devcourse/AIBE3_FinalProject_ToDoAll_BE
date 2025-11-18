@@ -22,6 +22,8 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.server.dashboard.util.Formatter.formatterTimeWithAMPM;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/dashboard")
@@ -139,40 +141,40 @@ public class DashboardController {
         LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 
         weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.MON, List.of(
-                new DashboardCalendarEventDto(weekStart.atTime(9, 30), CalendarEventType.JOB_CLOSE, 1),
-                new DashboardCalendarEventDto(weekStart.atTime(10, 0), CalendarEventType.INTERVIEW, 2),
-                new DashboardCalendarEventDto(weekStart.atTime(15, 0), CalendarEventType.INTERVIEW, 1)
+                new DashboardCalendarEventDto(weekStart.atTime(9, 30).format(formatterTimeWithAMPM), CalendarEventType.JOB_CLOSE, 1),
+                new DashboardCalendarEventDto(weekStart.atTime(10, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 2),
+                new DashboardCalendarEventDto(weekStart.atTime(15, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 1)
         ));
 
         weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.TUE, List.of(
-                new DashboardCalendarEventDto(weekStart.plusDays(1).atTime(11, 0), CalendarEventType.INTERVIEW, 3),
-                new DashboardCalendarEventDto(weekStart.plusDays(1).atTime(16, 30), CalendarEventType.JOB_CLOSE, 2)
+                new DashboardCalendarEventDto(weekStart.plusDays(1).atTime(11, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 3),
+                new DashboardCalendarEventDto(weekStart.plusDays(1).atTime(16, 30).format(formatterTimeWithAMPM), CalendarEventType.JOB_CLOSE, 2)
         ));
 
         weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.WED, List.of(
-                new DashboardCalendarEventDto(weekStart.plusDays(2).atTime(9, 0), CalendarEventType.INTERVIEW, 1),
-                new DashboardCalendarEventDto(weekStart.plusDays(2).atTime(14, 0), CalendarEventType.INTERVIEW, 2)
+                new DashboardCalendarEventDto(weekStart.plusDays(2).atTime(9, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 1),
+                new DashboardCalendarEventDto(weekStart.plusDays(2).atTime(14, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 2)
         ));
 
         weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.THU, List.of(
-                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(10, 0), CalendarEventType.JOB_CLOSE, 1),
-                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(13, 30), CalendarEventType.INTERVIEW, 2),
-                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(17, 0), CalendarEventType.INTERVIEW, 1)
+                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(10, 0).format(formatterTimeWithAMPM), CalendarEventType.JOB_CLOSE, 1),
+                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(13, 30).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 2),
+                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(17, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 1)
         ));
 
         weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.FRI, List.of(
-                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(9, 30), CalendarEventType.INTERVIEW, 3),
-                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(11, 0), CalendarEventType.INTERVIEW, 1),
-                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(18, 0), CalendarEventType.JOB_CLOSE, 1)
+                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(9, 30).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 3),
+                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(11, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 1),
+                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(18, 0).format(formatterTimeWithAMPM), CalendarEventType.JOB_CLOSE, 1)
         ));
 
         weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.SAT, List.of(
-                new DashboardCalendarEventDto(weekStart.plusDays(5).atTime(10, 0), CalendarEventType.INTERVIEW, 1),
-                new DashboardCalendarEventDto(weekStart.plusDays(5).atTime(14, 0), CalendarEventType.INTERVIEW, 2)
+                new DashboardCalendarEventDto(weekStart.plusDays(5).atTime(10, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 1),
+                new DashboardCalendarEventDto(weekStart.plusDays(5).atTime(14, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 2)
         ));
 
         weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.SUN, List.of(
-                new DashboardCalendarEventDto(weekStart.plusDays(6).atTime(13, 0), CalendarEventType.INTERVIEW, 1)
+                new DashboardCalendarEventDto(weekStart.plusDays(6).atTime(13, 0).format(formatterTimeWithAMPM), CalendarEventType.INTERVIEW, 1)
         ));
 
         return CommonResponse.success(weeklyCalendarDto);

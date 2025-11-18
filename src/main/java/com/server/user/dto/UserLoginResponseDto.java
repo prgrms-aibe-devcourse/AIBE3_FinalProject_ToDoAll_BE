@@ -10,4 +10,8 @@ import lombok.*;
 public class UserLoginResponseDto {
     private String accessToken;
     private String refreshToken;
+
+    public static UserLoginResponseDto of(String accessToken, String refreshToken) {
+        return new UserLoginResponseDto(accessToken, refreshToken);
+    }
 }

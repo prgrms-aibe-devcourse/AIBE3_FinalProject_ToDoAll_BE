@@ -12,6 +12,7 @@ import com.server.jd.repository.JobDescriptionRepository;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
+import com.server.user.domain.Gender;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +77,7 @@ class InterviewServiceTest {
                 "nickname",
                 "010-1111-2222",
                 LocalDate.now(),
-                "M",
+                Gender.M,
                 "Company",
                 "Dev"
         );

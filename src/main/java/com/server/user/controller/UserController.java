@@ -4,11 +4,10 @@ package com.server.user.controller;
 import com.server.global.config.security.jwt.JwtAuthentication;
 import com.server.global.exception.ApplicationException;
 import com.server.global.response.CommonResponse;
-import com.server.user.dto.ChangePasswordRequestDto;
-import com.server.user.dto.UserSignupRequestDto;
-import com.server.user.dto.UserSignupResponseDto;
+import com.server.user.dto.*;
 import com.server.user.exception.UserErrorCase;
 import com.server.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -42,9 +41,6 @@ public class UserController {
             @Valid @RequestBody ChangePasswordRequestDto request
     ) {
         // 혹시 인증 없이 들어온 경우 방어 코드
-        if (userId == null) {
-            throw ApplicationException.from(UserErrorCase.UNAUTHORIZED);
-        }
 
         userService.changePassword(
                 userId,
@@ -54,5 +50,35 @@ public class UserController {
 
         return CommonResponse.success("비밀번호가 변경되었습니다.");
     }
+
+    // 마이페이지 - 내 정보 조회
+    @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 프로필 정보를 조회합니다.")
+    @GetMapping("/me")
+    public CommonResponse<UserProfileResponseDto> getMyProfile(
+            @AuthenticationPrincipal Long userId
+    ) {
+
+        // 1) 서비스 호출해서 프로필 조회
+        UserProfileResponseDto profile = userService.getMyProfile(userId);
+
+        // 2) 공통 응답 래퍼로 감싸서 반환
+        return CommonResponse.success(profile);
+    }
+
+    // 마이페이지 - 내 정보 수정
+    @Operation(summary = "내 정보 수정", description = "현재 로그인한 사용자의 정보를 수정합니다.")
+    @PatchMapping("/me")
+    public CommonResponse<UserProfileResponseDto> updateMyProfile(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody UserProfileUpdateRequestDto request
+    ) {
+
+        // 1) 서비스 호출해서 프로필 수정
+        UserProfileResponseDto updated = userService.updateMyProfile(userId, request);
+
+        // 2) 수정된 결과를 응답
+        return CommonResponse.success(updated);
+    }
+
 
 }

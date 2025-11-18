@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -44,12 +45,36 @@ public class EmailAuthService {
     @Value("${app.email.auth-base-url}")
     private String authBaseUrl;
 
+    // 개인용 이메일 도메인 목록
+
+    private static final Set<String> PERSONAL_DOMAINS = Set.of(
+            "gmail.com", "naver.com", "daum.net", "hanmail.net",
+            "outlook.com", "hotmail.com", "yahoo.com", "icloud.com"
+    );
+
+    // 개인 이메일인지 검사
+    private void validateNotPersonalEmail(String email) {
+        // null 또는 @가 없는 이상한 이메일은 바로 예외 처리
+        if (email == null || !email.contains("@")) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_NOT_ALLOWED);
+        }
+
+        String domain = email.substring(email.indexOf("@") + 1);
+
+        if (PERSONAL_DOMAINS.contains(domain.toLowerCase())) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_NOT_ALLOWED);
+        }
+    }
+
     //회사 이메일 인증 메일 발송
 
     @Transactional
     public void sendAuthEmail(EmailAuthSendRequestDto request) {
 
         String email = request.getEmail();
+
+        // 0) 개인 이메일 도메인 차단 (gmail, naver 등)
+        validateNotPersonalEmail(email);
 
         // 1) 이미 가입된 이메일인지 확인
         if (userRepository.existsByEmail(email)) {
@@ -65,7 +90,7 @@ public class EmailAuthService {
 
         //  3) 최근 5분 이내에 발송한 이메일이 있는지 확인
         emailVerificationTokenRepository
-                .findTopByEmailAndCreatedAtAfterOrderByCreatedAtDesc(
+                .findFirstByEmailAndCreatedAtAfter(
                         email,
                         LocalDateTime.now().minusMinutes(5)
                 )
@@ -146,11 +171,12 @@ public class EmailAuthService {
             try (InputStream is = resource.getInputStream()) {
                 String html = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
+                // 2) 템플릿 내 플레이스홀더 치환
                 html = html.replace("{{verificationUrl}}", verificationUrl);
                 html = html.replace("{{year}}", String.valueOf(Year.now().getValue()));
                 html = html.replace("{{expiryMinutes}}", String.valueOf(expiryMinutes));
 
-
+                // 3) 완성된 HTML 반환
                 return html;
             }
         } catch (Exception e) {

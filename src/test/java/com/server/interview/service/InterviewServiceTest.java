@@ -2,12 +2,10 @@ package com.server.interview.service;
 
 import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.Interview;
+import com.server.interview.domain.InterviewNote;
 import com.server.interview.dto.*;
 import com.server.interview.exception.InterviewErrorCase;
-import com.server.interview.repository.InterviewNoteRepository;
-import com.server.interview.repository.InterviewParticipantRepository;
-import com.server.interview.repository.InterviewQuestionRepository;
-import com.server.interview.repository.InterviewRepository;
+import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -41,6 +39,7 @@ class InterviewServiceTest {
     private JobDescriptionRepository jobRepo;
     private ResumeRepository resumeRepo;
     private UserRepository userRepo;
+    private InterviewEvaluationRepository  interviewEvaluationRepository;
 
     private InterviewService interviewService;
 
@@ -53,6 +52,7 @@ class InterviewServiceTest {
         jobRepo = Mockito.mock(JobDescriptionRepository.class);
         resumeRepo = Mockito.mock(ResumeRepository.class);
         userRepo = Mockito.mock(UserRepository.class);
+        interviewEvaluationRepository =  Mockito.mock(InterviewEvaluationRepository.class);
 
         interviewService = new InterviewService(
                 interviewRepository,
@@ -61,7 +61,8 @@ class InterviewServiceTest {
                 questionRepository,
                 jobRepo,
                 resumeRepo,
-                userRepo
+                userRepo,
+                interviewEvaluationRepository
         );
     }
 
@@ -211,21 +212,42 @@ class InterviewServiceTest {
     void deleteInterviewSuccess() {
         Long interviewId = 1L;
 
+        // 주최자
         User organizer = createUser(1L, "org@test.com", "주최자");
 
+        // 인터뷰 Mock
         Interview mockInterview = mock(Interview.class);
         when(mockInterview.getOrganizer()).thenReturn(organizer);
 
+        // 인터뷰 조회
         when(interviewRepository.findById(interviewId))
                 .thenReturn(Optional.of(mockInterview));
 
+        // 유저 조회
         when(userRepo.findById(1L))
                 .thenReturn(Optional.of(organizer));
 
+        // 인터뷰 노트 Mock
+        InterviewNote mockNote = mock(InterviewNote.class);
+        when(noteRepository.findByInterviewId(interviewId))
+                .thenReturn(Optional.of(mockNote));
+
+        // 테스트 실행
         interviewService.deleteInterview(interviewId);
 
+        // 인터뷰 노트 삭제
+        verify(noteRepository).delete(mockNote);
+
+        // 질문 삭제
+        verify(questionRepository).deleteByInterviewId(interviewId);
+
+        // 평가 삭제
+        verify(interviewEvaluationRepository).deleteByInterviewId(interviewId);
+
+        // 인터뷰 삭제
         verify(interviewRepository).delete(mockInterview);
     }
+
 
     @Test
     @DisplayName("인터뷰 삭제 실패 - 인터뷰 없음 (NOT_FOUND)")

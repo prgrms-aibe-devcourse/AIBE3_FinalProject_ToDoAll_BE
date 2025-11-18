@@ -52,4 +52,19 @@ public class PasswordResetToken extends BaseEntity {
         token.expiresAt = expiresAt;
         return token;
     }
+    //토큰 평문을 SHA-256 해시로 변환
+
+    private static String hashToken(String token) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 알고리즘을 찾을 수 없습니다.", e);
+        }
+    }
 }

@@ -1,8 +1,10 @@
 package com.server.search.document;
 
 import com.server.resume.domain.Resume;
+import com.server.resume.domain.ResumeStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
@@ -102,5 +104,9 @@ public class ResumeDocument {
         );
 
         return sb.toString();
+    }
+
+    public Resume toEntity() {
+        return Resume.createFromDocument(this);
     }
 }

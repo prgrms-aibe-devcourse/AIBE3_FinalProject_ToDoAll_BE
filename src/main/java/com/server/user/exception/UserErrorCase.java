@@ -22,8 +22,6 @@ public enum UserErrorCase implements ErrorCase {
     PASSWORD_SAME_AS_OLD(HttpStatus.CONFLICT, 4093, "새 비밀번호는 이전 비밀번호와 같을 수 없습니다."),
 
 
-
-
     // 400 - 요청 형식/정책 위반
 
     USER_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, 3001, "요청 데이터 형식이 올바르지 않습니다."),

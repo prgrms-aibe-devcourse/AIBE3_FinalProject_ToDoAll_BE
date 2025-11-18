@@ -1,10 +1,7 @@
 package com.server.resume.controller;
 
 import com.server.global.response.CommonResponse;
-import com.server.resume.dto.ResumeCreateRequestDto;
-import com.server.resume.dto.ResumeResponseDto;
-import com.server.resume.dto.ResumeStatusUpdateDto;
-import com.server.resume.dto.ResumeStatusUpdateResponseDto;
+import com.server.resume.dto.*;
 import com.server.resume.service.ResumeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -70,6 +67,21 @@ public class ResumeController {
             @RequestBody @Valid ResumeStatusUpdateDto request
     ) {
         ResumeStatusUpdateResponseDto response = resumeService.updateResumeStatus(resumeId, request);
+        return ResponseEntity.ok(CommonResponse.success(response));
+    }
+
+    @PatchMapping("/{resumeId}/memo")
+    @Operation(summary = "이력서 메모 수정", description = "특정 이력서의 메모를 수정합니다. 예: NEW → BOOKMARK, SUBMITTED 등으로 변경할 수 있습니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "이력서 상태 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 상태 값 등)"),
+            @ApiResponse(responseCode = "404", description = "이력서를 찾을 수 없음")
+    })
+    public ResponseEntity<CommonResponse<ResumeMemoResponseDto>> updateResumeMemo(
+            @PathVariable Long resumeId,
+            @RequestBody ResumeMemoRequestDto request
+            ) {
+        ResumeMemoResponseDto response = resumeService.updateResumeMemo(resumeId, request);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 }

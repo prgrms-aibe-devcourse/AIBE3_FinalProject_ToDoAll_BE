@@ -3,7 +3,9 @@ package com.server.interview.domain;
 import com.server.global.entity.BaseEntity;
 import com.server.user.domain.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -34,13 +36,14 @@ public class InterviewEvaluation extends BaseEntity {
 
     // 종합 점수
     @Column(nullable = false)
-    private Integer scoreOverall;
+    private Double scoreOverall;
 
     // 평가 코멘트
     @Column(columnDefinition = "TEXT")
     private String comment;
 
-    // 면접 결과 (PASS, HOLD, FAIL)
+    // 면접 결과 (PASS, HOLD, FAIL, PENDING)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private InterviewResult result;
 
@@ -49,7 +52,7 @@ public class InterviewEvaluation extends BaseEntity {
                                          User evaluator,
                                          Integer scoreTech,
                                          Integer scoreComm,
-                                         Integer scoreOverall,
+                                         Double scoreOverall,
                                          String comment,
                                          InterviewResult result) {
         InterviewEvaluation eval = new InterviewEvaluation();
@@ -61,5 +64,16 @@ public class InterviewEvaluation extends BaseEntity {
         eval.comment = comment;
         eval.result = result;
         return eval;
+    }
+
+    public void update( Integer scoreTech, Integer scoreComm, Double scoreOverall, String comment) {
+        this.scoreTech = scoreTech;
+        this.scoreComm = scoreComm;
+        this.scoreOverall = scoreOverall;
+        this.comment = comment;
+    }
+
+    public void updateResult(InterviewResult newResult) {
+        this.result = newResult;
     }
 }

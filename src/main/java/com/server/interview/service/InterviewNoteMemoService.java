@@ -53,7 +53,7 @@ public class InterviewNoteMemoService {
     private void checkPermission(Long interviewId, Long userId) {
         boolean allowed = participantRepository.existsByInterviewIdAndUserId(interviewId, userId);
         if (!allowed) {
-            throw new ApplicationException(InterviewNoteErrorCase.FORBIDDEN);
+            throw new ApplicationException(InterviewNoteMemoErrorCase.FORBIDDEN);
         }
     }
 

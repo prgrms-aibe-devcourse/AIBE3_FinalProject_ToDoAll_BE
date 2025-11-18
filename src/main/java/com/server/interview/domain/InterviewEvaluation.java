@@ -34,13 +34,14 @@ public class InterviewEvaluation extends BaseEntity {
 
     // 종합 점수
     @Column(nullable = false)
-    private Integer scoreOverall;
+    private Double scoreOverall;
 
     // 평가 코멘트
     @Column(columnDefinition = "TEXT")
     private String comment;
 
-    // 면접 결과 (PASS, HOLD, FAIL)
+    // 면접 결과 (PASS, HOLD, FAIL, PENDING)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private InterviewResult result;
 
@@ -49,7 +50,7 @@ public class InterviewEvaluation extends BaseEntity {
                                          User evaluator,
                                          Integer scoreTech,
                                          Integer scoreComm,
-                                         Integer scoreOverall,
+                                         Double scoreOverall,
                                          String comment,
                                          InterviewResult result) {
         InterviewEvaluation eval = new InterviewEvaluation();

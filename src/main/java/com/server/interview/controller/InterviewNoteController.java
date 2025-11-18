@@ -26,7 +26,6 @@ public class InterviewNoteController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "인터뷰 노트 조회 성공"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 인터뷰입니다."),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 면접입니다."),
             @ApiResponse(responseCode = "403", description = "면접을 조회할 권한이 없습니다.")
     })
     public CommonResponse<InterviewNoteSearchResponseDto> getNote(

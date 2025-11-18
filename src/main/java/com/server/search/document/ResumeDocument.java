@@ -64,7 +64,7 @@ public class ResumeDocument {
                 .collect(Collectors.joining(", "));
 
         doc.skills = resume.getSkills().stream()
-                .map(s -> s.getSkill().getName())
+                .map(s -> s.getSkill().getName().toLowerCase())
                 .collect(Collectors.toList());
 
         doc.certificationSummary = resume.getCertifications().stream()

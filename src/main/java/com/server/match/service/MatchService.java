@@ -93,7 +93,9 @@ public class MatchService {
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
         // Elasticsearch 검색
-        Criteria criteria = new Criteria("skills").in(jd.getRequiredSkillNames());
+        Criteria criteria = new Criteria("skills").in(
+                jd.getRequiredSkillNames().stream().map(String::toLowerCase).toList()
+        );
         Query query = new CriteriaQuery(criteria, PageRequest.of(0, 10));
         SearchHits<ResumeDocument> hits = elasticsearchOperations.search(query, ResumeDocument.class);
 

@@ -72,4 +72,8 @@ public class InterviewEvaluation extends BaseEntity {
         this.scoreOverall = scoreOverall;
         this.comment = comment;
     }
+
+    public void updateResult(InterviewResult newResult) {
+        this.result = newResult;
+    }
 }

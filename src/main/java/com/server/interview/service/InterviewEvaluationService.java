@@ -159,4 +159,43 @@ public class InterviewEvaluationService {
                 evaluation.getComment()
         );
     }
+
+    @Transactional
+    public InterviewResultUpdateResponseDto updateResult(
+            Long interviewId,
+            Long evaluationId,
+            InterviewResultUpdateRequestDto request
+    ) {
+        checkInterview(interviewId);
+        User evaluator = getUser();
+        checkPermission(interviewId, evaluator.getId());
+        InterviewEvaluation evaluation = getEvaluationOrThrow(interviewId, evaluationId);
+
+        // result 필수 값 검증
+        if (request.result() == null) {
+            throw new ApplicationException(InterviewEvaluationErrorCase.RESULT_REQUIRED);
+        }
+
+        // 문자열 → Enum 변환 + 유효성 체크
+        InterviewResult newResult;
+        try {
+            newResult = InterviewResult.valueOf(request.result().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ApplicationException(InterviewEvaluationErrorCase.INVALID_RESULT);
+        }
+
+        // PENDING 은 이 API에서 허용하지 않음
+        if (newResult == InterviewResult.PENDING) {
+            throw new ApplicationException(InterviewEvaluationErrorCase.INVALID_RESULT);
+        }
+
+        // 결과 업데이트
+        evaluation.updateResult(newResult);
+
+        // 응답 반환
+        return new InterviewResultUpdateResponseDto(
+                evaluation.getId(),
+                evaluation.getResult().name()
+        );
+    }
 }

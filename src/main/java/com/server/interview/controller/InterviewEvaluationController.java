@@ -62,4 +62,16 @@ public class InterviewEvaluationController {
         InterviewEvaluationUpdateResponseDto response = interviewEvaluationService.update(interviewId, evaluationId, request);
         return CommonResponse.success(response);
     }
+
+    @PatchMapping("/{evaluationId}/result")
+    public CommonResponse<InterviewResultUpdateResponseDto> updateResult(
+            @PathVariable Long interviewId,
+            @PathVariable Long evaluationId,
+            @Valid @RequestBody InterviewResultUpdateRequestDto request
+    ) {
+        InterviewResultUpdateResponseDto response =
+                interviewEvaluationService.updateResult(interviewId, evaluationId, request);
+
+        return CommonResponse.success(response);
+    }
 }

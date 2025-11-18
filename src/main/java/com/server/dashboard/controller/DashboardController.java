@@ -29,7 +29,7 @@ import java.util.List;
 public class DashboardController {
     private final DashboardService dashboardService;
 
-
+    //TODO : 인가 로직 작성
     @GetMapping("/summary/active")
     @Operation(summary = "요약카드 - 활성 공고", description = "진행 중인 채용 공고 수")
     public CommonResponse<Integer> showActiveJobs () {

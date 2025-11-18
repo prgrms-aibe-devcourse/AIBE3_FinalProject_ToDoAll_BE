@@ -34,6 +34,6 @@ public class UserProfileUpdateRequestDto {
     @PastOrPresent(message = "생년월일은 오늘보다 미래일 수 없습니다.")
     private LocalDate birthDate;
 
-    private String gender; // 선택값
+    private Gender gender;
 
 }

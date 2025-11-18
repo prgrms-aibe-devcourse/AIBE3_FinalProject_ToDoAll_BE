@@ -41,9 +41,6 @@ public class UserController {
             @Valid @RequestBody ChangePasswordRequestDto request
     ) {
         // 혹시 인증 없이 들어온 경우 방어 코드
-        if (userId == null) {
-            throw ApplicationException.from(UserErrorCase.UNAUTHORIZED);
-        }
 
         userService.changePassword(
                 userId,
@@ -60,15 +57,11 @@ public class UserController {
     public CommonResponse<UserProfileResponseDto> getMyProfile(
             @AuthenticationPrincipal Long userId
     ) {
-        // 1) 인증 정보가 없으면 401 에러
-        if (userId == null) {
-            throw ApplicationException.from(UserErrorCase.UNAUTHORIZED);
-        }
 
-        // 2) 서비스 호출해서 프로필 조회
+        // 1) 서비스 호출해서 프로필 조회
         UserProfileResponseDto profile = userService.getMyProfile(userId);
 
-        // 3) 공통 응답 래퍼로 감싸서 반환
+        // 2) 공통 응답 래퍼로 감싸서 반환
         return CommonResponse.success(profile);
     }
 
@@ -79,15 +72,11 @@ public class UserController {
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody UserProfileUpdateRequestDto request
     ) {
-        // 1) 인증 정보가 없으면 401 에러
-        if (userId == null) {
-            throw ApplicationException.from(UserErrorCase.UNAUTHORIZED);
-        }
 
-        // 2) 서비스 호출해서 프로필 수정
+        // 1) 서비스 호출해서 프로필 수정
         UserProfileResponseDto updated = userService.updateMyProfile(userId, request);
 
-        // 3) 수정된 결과를 응답
+        // 2) 수정된 결과를 응답
         return CommonResponse.success(updated);
     }
 

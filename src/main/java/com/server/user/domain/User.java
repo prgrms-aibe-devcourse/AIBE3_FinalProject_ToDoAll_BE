@@ -34,8 +34,10 @@ public class User extends BaseEntity {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
-    @Column(name = "gender", length = 10)
-    private String gender; // DB에는 String으로 저장
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender")
+    private Gender gender;
+
 
     @Column(name = "company_name")
     private String companyName;
@@ -51,26 +53,6 @@ public class User extends BaseEntity {
 
     @Column(name = "email_expiry")
     private LocalDateTime emailExpiry;
-
-    // Enum 으로 꺼내 쓰고 싶을 때
-    public Gender getGenderEnum() {
-        if (this.gender == null) {
-            return null;
-        }
-        try {
-            return Gender.valueOf(this.gender);  // "MALE" -> Gender.MALE
-        } catch (IllegalArgumentException e) {
-            // DB에 이상한 값이 들어있을 때
-            return null;
-        }
-    }
-
-    // Enum 으로 세팅하고 싶을 때
-    public void setGenderEnum(Gender gender) {
-        this.gender = (gender != null) ? gender.name() : null; // Gender.MALE -> "MALE"
-    }
-
-
 
     public static User of(String email,
                           String password,
@@ -88,7 +70,7 @@ public class User extends BaseEntity {
         user.nickname = nickname;
         user.phoneNumber = phoneNumber;
         user.birthDate = birthDate;
-        user.setGenderEnum(gender);
+        user.gender = gender;
         user.companyName = companyName;
         user.position = position;
         user.status = EmailStatus.UNVERIFIED;
@@ -110,7 +92,7 @@ public class User extends BaseEntity {
         this.position = position;
         this.phoneNumber = phoneNumber;
         this.birthDate = birthDate;
-        this.setGenderEnum(gender);
+        this.gender = gender;
     }
     // 회원가입 전용 메서드
     public static User createForSignup(

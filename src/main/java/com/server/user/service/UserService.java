@@ -67,11 +67,50 @@ public class UserService {
         return UserSignupResponseDto.from(saved);
     }
 
+    // 마이페이지 - 내 정보 조회
+
+    public UserProfileResponseDto getMyProfile(Long userId) {
+        validateAuthenticated(userId); // 인증 여부 검증을 서비스에서 처리
+        // 1) userId 로 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+        // 2) 엔티티 -> DTO 변환
+        return UserProfileResponseDto.from(user);
+    }
+
+    // 마이페이지 - 내 정보 수정
+
+    @Transactional
+    public UserProfileResponseDto updateMyProfile(Long userId, UserProfileUpdateRequestDto request) {
+        validateAuthenticated(userId); // 인증 여부 검증
+
+        // 1) userId 로 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+
+        // 3) 엔티티의 프로필 업데이트 메서드 호출
+        user.updateProfile(
+                request.getName(),
+                request.getNickname(),
+                request.getPosition(),
+                request.getPhoneNumber(),
+                request.getBirthDate(),
+                request.getGender()
+        );
+
+        // 4) 변경된 user 엔티티를 응답 DTO로 변환해서 반환
+        return UserProfileResponseDto.from(user);
+    }
+
 
     //비밀번호 변경
 
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword) {
+        validateAuthenticated(userId); // 인증 여부 검증 (컨트롤러에서 제거됨)
+
 
         // 1) user 조회
         User user = userRepository.findById(userId)
@@ -97,47 +136,12 @@ public class UserService {
         user.changePassword(encodedNewPassword);
     }
 
-    // 마이페이지 - 내 정보 조회
-
-    public UserProfileResponseDto getMyProfile(Long userId) {
-        // 1) userId 로 사용자 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
-
-        // 2) 엔티티 -> DTO 변환
-        return UserProfileResponseDto.from(user);
-    }
-
-    @Transactional
-    public UserProfileResponseDto updateMyProfile(Long userId, UserProfileUpdateRequestDto request) {
-
-        // 1) userId 로 사용자 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
-
-        // 2) String → Gender enum 변환
-        Gender genderEnum = null;
-        if (request.getGender() != null && !request.getGender().isBlank()) {
-            try {
-                genderEnum = Gender.valueOf(request.getGender());
-            } catch (IllegalArgumentException e) {
-                // 변환 실패
-                throw ApplicationException.from(UserErrorCase.INVALID_GENDER);
-            }
+    // 인증 여부를 공통으로 검증하는 private 메서드
+    private void validateAuthenticated(Long userId) {
+        if (userId == null) {
+            // 로그인 정보가 없으면 UNAUTHORIZED 에러 반환
+            throw ApplicationException.from(UserErrorCase.UNAUTHORIZED);
         }
-
-        // 3) 엔티티의 프로필 업데이트 메서드 호출
-        user.updateProfile(
-                request.getName(),
-                request.getNickname(),
-                request.getPosition(),
-                request.getPhoneNumber(),
-                request.getBirthDate(),
-                genderEnum // 성별 enum 넘기기
-        );
-
-        // 4) 변경된 user 엔티티를 응답 DTO로 변환해서 반환
-        return UserProfileResponseDto.from(user);
     }
 
 }

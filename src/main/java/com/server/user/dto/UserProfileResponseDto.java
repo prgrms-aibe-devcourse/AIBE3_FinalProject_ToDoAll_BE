@@ -21,7 +21,7 @@ public class UserProfileResponseDto {
     private String position;       // 직책/직무
     private String phoneNumber;    // 전화번호
     private LocalDate birthDate;   // 생년월일
-    private String gender;         // 성별
+    private Gender gender;         //성별
 
     // User 엔티티에서 마이페이지 응답 DTO로 변환해주는 메서드
 

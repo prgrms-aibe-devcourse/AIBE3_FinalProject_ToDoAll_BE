@@ -61,18 +61,27 @@ public class JobDescriptionService {
         );
 
         jobRepository.save(jd);
+        jobRepository.flush();
 
         // 필수 기술 매핑
-        List<Skill> requiredSkills = skillRepository.findByNameIn(request.requiredSkills());
-        List<JobRequiredSkill> requiredSkillEntities = requiredSkills.stream()
-                .map(skill -> JobRequiredSkill.of(jd, skill))
+        List<JobRequiredSkill> requiredSkillEntities = request.requiredSkills().stream()
+                .map(skillName -> {
+                    String normalized = skillName.trim().toLowerCase();
+                    Skill skill = skillRepository.findByName(normalized)
+                            .orElseGet(() -> skillRepository.save(Skill.of(normalized)));
+                    return JobRequiredSkill.of(jd, skill);
+                })
                 .toList();
         jobRequiredSkillRepository.saveAll(requiredSkillEntities);
 
         // 우대 기술 매핑
-        List<Skill> preferredSkills = skillRepository.findByNameIn(request.preferredSkills());
-        List<JobPreferredSkill> preferredSkillEntities = preferredSkills.stream()
-                .map(skill -> JobPreferredSkill.of(jd, skill))
+        List<JobPreferredSkill> preferredSkillEntities = request.preferredSkills().stream()
+                .map(skillName -> {
+                    String normalized = skillName.trim().toLowerCase();
+                    Skill skill = skillRepository.findByName(normalized)
+                            .orElseGet(() -> skillRepository.save(Skill.of(normalized)));
+                    return JobPreferredSkill.of(jd, skill);
+                })
                 .toList();
         jobPreferredSkillRepository.saveAll(preferredSkillEntities);
 

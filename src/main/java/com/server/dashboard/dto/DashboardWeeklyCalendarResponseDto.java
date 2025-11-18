@@ -1,23 +1,75 @@
 package com.server.dashboard.dto;
 
+import com.server.dashboard.type.CustomDayOfWeek;
+
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Collection;
 import java.util.List;
+
+record DashboardCalendarEventContainer(
+        DashboardDailyCalendarDto mon,
+        DashboardDailyCalendarDto tue,
+        DashboardDailyCalendarDto wed,
+        DashboardDailyCalendarDto thu,
+        DashboardDailyCalendarDto fri,
+        DashboardDailyCalendarDto sat,
+        DashboardDailyCalendarDto sun
+        ) {
+    public void add(CustomDayOfWeek customDayOfWeek, Collection<DashboardCalendarEventDto> _calendarEventDtos) {
+        switch (customDayOfWeek) {
+            case MON->mon.addCalendarEvents(_calendarEventDtos);
+            case TUE->tue.addCalendarEvents(_calendarEventDtos);
+            case WED->wed.addCalendarEvents(_calendarEventDtos);
+            case THU->thu.addCalendarEvents(_calendarEventDtos);
+            case FRI->fri.addCalendarEvents(_calendarEventDtos);
+            case SAT->sat.addCalendarEvents(_calendarEventDtos);
+            case SUN->sun.addCalendarEvents(_calendarEventDtos);
+        }
+    }
+}
+
 
 public record DashboardWeeklyCalendarResponseDto(
     LocalDate weekStart,
     LocalDate weekEnd,
-    List<DashboardDailyCalendarResponseDto> dailyCalendars
+    DashboardCalendarEventContainer dailyCalendars
 ) {
-    public DashboardWeeklyCalendarResponseDto(LocalDate weekStart, LocalDate weekEnd) {
-        this(weekStart, weekEnd, new ArrayList<>());
+
+    public DashboardWeeklyCalendarResponseDto(LocalDate today) {
+        this(
+            getWeekStart(today),
+            getWeekEnd(today),
+            createCalendarEventContainer(getWeekStart(today))
+        );
     }
 
-    public void addDailyCalendars(Collection<DashboardDailyCalendarResponseDto> _dailyCalendars) {
-        dailyCalendars.addAll(_dailyCalendars);
+    private static LocalDate getWeekStart(LocalDate today) {
+        return today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
-    public void addDailyCalendars(DashboardDailyCalendarResponseDto dailyCalendarDto) {
-        addDailyCalendars(List.of(dailyCalendarDto));
+
+    private static LocalDate getWeekEnd(LocalDate today) {
+        return today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+    }
+
+    private static DashboardCalendarEventContainer createCalendarEventContainer(LocalDate weekStart) {
+        return new DashboardCalendarEventContainer(
+            new DashboardDailyCalendarDto(weekStart),
+            new DashboardDailyCalendarDto(weekStart.plusDays(1)),
+            new DashboardDailyCalendarDto(weekStart.plusDays(2)),
+            new DashboardDailyCalendarDto(weekStart.plusDays(3)),
+            new DashboardDailyCalendarDto(weekStart.plusDays(4)),
+            new DashboardDailyCalendarDto(weekStart.plusDays(5)),
+            new DashboardDailyCalendarDto(weekStart.plusDays(6))
+        );
+    }
+
+    public void addCalendarEvents(CustomDayOfWeek dayOfWeek, Collection<DashboardCalendarEventDto> calendarEventDtos) {
+        dailyCalendars.add(dayOfWeek, calendarEventDtos);
+    }
+
+    public void addCalendarEvents(CustomDayOfWeek dayOfWeek, DashboardCalendarEventDto calendarEventDto) {
+        addCalendarEvents(dayOfWeek, List.of(calendarEventDto));
     }
 }

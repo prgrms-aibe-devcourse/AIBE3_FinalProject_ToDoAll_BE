@@ -4,6 +4,7 @@ import com.server.dashboard.dto.*;
 import com.server.dashboard.service.DashboardService;
 
 import com.server.dashboard.type.CalendarEventType;
+import com.server.dashboard.type.CustomDayOfWeek;
 import com.server.dashboard.type.JobStatusOfProgress;
 import com.server.global.response.CommonResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,8 +71,8 @@ public class DashboardController {
         //Todo : 비즈니스 로직 작성
 
         detailJobResults.add(new DashboardDetailJobResultResponseDto("시니어 프론트엔드 개발자",  new ArrayList<>(List.of(1, 3, 4, 3)), JobStatusOfProgress.DOCUMENT));
-        detailJobResults.add(new DashboardDetailJobResultResponseDto("백엔드 개발자",  new ArrayList<>(List.of(1, 3, 4, 3)), JobStatusOfProgress.DOCUMENT));
-        detailJobResults.add(new DashboardDetailJobResultResponseDto("주니어 풀스택 개발자",  new ArrayList<>(List.of(1, 3, 4, 3)), JobStatusOfProgress.DOCUMENT));
+        detailJobResults.add(new DashboardDetailJobResultResponseDto("백엔드 개발자",  new ArrayList<>(List.of(2, 3, 11, 5)), JobStatusOfProgress.INTERVIEW));
+        detailJobResults.add(new DashboardDetailJobResultResponseDto("주니어 풀스택 개발자",  new ArrayList<>(List.of(9, 2, 1, 5)), JobStatusOfProgress.FINISHED));
 
         return CommonResponse.success(detailJobResults);
     }
@@ -82,31 +83,31 @@ public class DashboardController {
         //Todo : 비즈니스 로직 작성
         ArrayList<DashboardUpcomingInterviewResponseDto> upcomingInterviews = new ArrayList<>();
         upcomingInterviews.add(DashboardUpcomingInterviewResponseDto.from(
-                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
                 "김상진",
                 "시니어 프론트엔드 개발자",
                 new ArrayList<>(List.of("일접관, 이접관"))
         ));
         upcomingInterviews.add(DashboardUpcomingInterviewResponseDto.from(
-                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(3),
                 "김하진",
                 "백엔드 개발자",
                 new ArrayList<>(List.of("삼접관, 사접관"))
         ));
         upcomingInterviews.add(DashboardUpcomingInterviewResponseDto.from(
-                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(5),
                 "김중진",
                 "시니어 프론트엔드 개발자",
                 new ArrayList<>(List.of("오접관, 육접관"))
         ));
         upcomingInterviews.add(DashboardUpcomingInterviewResponseDto.from(
-                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(5),
                 "김일진",
                 "시니어 프론트엔드 개발자",
                 new ArrayList<>(List.of("칠접관, 팔접관"))
         ));
         upcomingInterviews.add(DashboardUpcomingInterviewResponseDto.from(
-                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(6),
                 "김희진",
                 "주니어 풀스택 개발자",
                 new ArrayList<>(List.of("구접관, 십접관"))
@@ -134,28 +135,45 @@ public class DashboardController {
     public CommonResponse<DashboardWeeklyCalendarResponseDto> showWeekCalendar() {
         //Todo : 비즈니스 로직 작성
         LocalDate today = LocalDate.now();
+        DashboardWeeklyCalendarResponseDto weeklyCalendarDto = new DashboardWeeklyCalendarResponseDto(today);
         LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate weekEnd = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-        DashboardWeeklyCalendarResponseDto weeklyCalendarDto = new DashboardWeeklyCalendarResponseDto(weekStart, weekEnd);
 
-        DashboardDailyCalendarResponseDto mon = new DashboardDailyCalendarResponseDto(weekStart);
-        mon.addCalendarEvents(List.of(
-                new DashboardCalendarEventResponseDto(weekStart.atTime(10, 0), CalendarEventType.INTERVIEW, 2),
-                new DashboardCalendarEventResponseDto(weekStart.atTime(9, 30), CalendarEventType.JOB_CLOSE, 1)
+        weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.MON, List.of(
+                new DashboardCalendarEventDto(weekStart.atTime(9, 30), CalendarEventType.JOB_CLOSE, 1),
+                new DashboardCalendarEventDto(weekStart.atTime(10, 0), CalendarEventType.INTERVIEW, 2),
+                new DashboardCalendarEventDto(weekStart.atTime(15, 0), CalendarEventType.INTERVIEW, 1)
         ));
 
-        LocalDate tueDate = weekStart.plusDays(1);
-        DashboardDailyCalendarResponseDto tue = new DashboardDailyCalendarResponseDto(tueDate);
-        tue.addCalendarEvents(new DashboardCalendarEventResponseDto(tueDate.atTime(9, 30), CalendarEventType.INTERVIEW, 1));
-
-        LocalDate friDate = weekStart.plusDays(4);
-        DashboardDailyCalendarResponseDto fri = new DashboardDailyCalendarResponseDto(friDate);
-        tue.addCalendarEvents(List.of(
-                new DashboardCalendarEventResponseDto(friDate.atTime(11, 20), CalendarEventType.INTERVIEW, 3),
-                new DashboardCalendarEventResponseDto(friDate.atTime(21, 40), CalendarEventType.JOB_CLOSE, 1)
+        weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.TUE, List.of(
+                new DashboardCalendarEventDto(weekStart.plusDays(1).atTime(11, 0), CalendarEventType.INTERVIEW, 3),
+                new DashboardCalendarEventDto(weekStart.plusDays(1).atTime(16, 30), CalendarEventType.JOB_CLOSE, 2)
         ));
 
-        weeklyCalendarDto.addDailyCalendars(List.of(mon, tue));
+        weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.WED, List.of(
+                new DashboardCalendarEventDto(weekStart.plusDays(2).atTime(9, 0), CalendarEventType.INTERVIEW, 1),
+                new DashboardCalendarEventDto(weekStart.plusDays(2).atTime(14, 0), CalendarEventType.INTERVIEW, 2)
+        ));
+
+        weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.THU, List.of(
+                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(10, 0), CalendarEventType.JOB_CLOSE, 1),
+                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(13, 30), CalendarEventType.INTERVIEW, 2),
+                new DashboardCalendarEventDto(weekStart.plusDays(3).atTime(17, 0), CalendarEventType.INTERVIEW, 1)
+        ));
+
+        weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.FRI, List.of(
+                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(9, 30), CalendarEventType.INTERVIEW, 3),
+                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(11, 0), CalendarEventType.INTERVIEW, 1),
+                new DashboardCalendarEventDto(weekStart.plusDays(4).atTime(18, 0), CalendarEventType.JOB_CLOSE, 1)
+        ));
+
+        weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.SAT, List.of(
+                new DashboardCalendarEventDto(weekStart.plusDays(5).atTime(10, 0), CalendarEventType.INTERVIEW, 1),
+                new DashboardCalendarEventDto(weekStart.plusDays(5).atTime(14, 0), CalendarEventType.INTERVIEW, 2)
+        ));
+
+        weeklyCalendarDto.addCalendarEvents(CustomDayOfWeek.SUN, List.of(
+                new DashboardCalendarEventDto(weekStart.plusDays(6).atTime(13, 0), CalendarEventType.INTERVIEW, 1)
+        ));
 
         return CommonResponse.success(weeklyCalendarDto);
     }

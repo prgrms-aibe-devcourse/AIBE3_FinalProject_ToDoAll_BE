@@ -41,7 +41,7 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("로그인 실패 -> 존재하지 않는 이메일");
-                    return ApplicationException.from(AuthErrorCase.AUTH_INVALID_CREDENTIAL);
+                    return ApplicationException.from(AuthErrorCase.AUTH_USER_NOT_FOUND);
                 });
 
         // 2) 비밀번호 확인

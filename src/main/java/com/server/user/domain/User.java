@@ -54,6 +54,7 @@ public class User extends BaseEntity {
     @Column(name = "email_expiry")
     private LocalDateTime emailExpiry;
 
+
     public static User of(String email,
                           String password,
                           String name,

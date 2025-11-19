@@ -19,7 +19,6 @@ import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
-@AllArgsConstructor
 public class InterviewQuestionAiService {
 
     private final InterviewRepository interviewRepository;
@@ -41,6 +40,23 @@ public class InterviewQuestionAiService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final ChatClient chatClient;
+
+    @Autowired
+    public InterviewQuestionAiService(InterviewRepository interviewRepository,
+                                      InterviewParticipantRepository participantRepository,
+                                      InterviewQuestionRepository questionRepository,
+                                      ResumeRepository resumeRepository,
+                                      UserRepository userRepository,
+                                      ObjectMapper objectMapper,
+                                      ChatClient.Builder chatClientBuilder) {
+        this.interviewRepository = interviewRepository;
+        this.participantRepository = participantRepository;
+        this.questionRepository = questionRepository;
+        this.resumeRepository = resumeRepository;
+        this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
+        this.chatClient = chatClientBuilder.build();
+    }
 
     // ===== 공통 유틸 (기존 InterviewQuestionService 로직 최대한 재사용) =====
 

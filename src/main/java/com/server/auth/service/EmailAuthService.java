@@ -142,7 +142,10 @@ public class EmailAuthService {
 
         // 2) 이미 사용된 토큰인지 확인
         if (token.isVerified()) {
-            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_ALREADY_VERIFIED);
+            userRepository.findByEmail(token.getEmail())
+                    .ifPresent(user -> user.markEmailVerified());
+
+            return EmailAuthCompleteResponseDto.from(token);
         }
 
         // 3) 만료 여부 확인
@@ -161,7 +164,7 @@ public class EmailAuthService {
         return EmailAuthCompleteResponseDto.from(token);
     }
 
-    // 회원가입 시 이메일+토큰이 정말 유효한지 재검증하는 헬퍼 메서드
+    // 회원가입 시 이메일이 정말 유효한지 재검증하는 헬퍼 메서드
     @Transactional(readOnly = true)
     public boolean isVerifiedEmail(String email, String token) {
         if (email == null || email.isBlank()) {

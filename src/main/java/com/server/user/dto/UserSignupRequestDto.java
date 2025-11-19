@@ -25,9 +25,6 @@ public class UserSignupRequestDto {
     )
     private String password; // 비밀번호
 
-    @NotBlank(message = "비밀번호 확인은 필수입니다.")
-    private String passwordConfirm; // 비밀번호 확인
-
     @NotBlank(message = "이름은 필수입니다.")
     @Size(min = 2, max = 50, message = "이름은 2~50자여야 합니다")
 
@@ -63,7 +60,6 @@ public class UserSignupRequestDto {
         req.token = token;
         req.email = email;
         req.password = password;
-        req.passwordConfirm = passwordConfirm;
         req.name = name;
         req.nickname = nickname;
         req.companyName = companyName;

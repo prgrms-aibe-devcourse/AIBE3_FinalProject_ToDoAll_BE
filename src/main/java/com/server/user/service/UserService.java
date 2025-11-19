@@ -45,21 +45,16 @@ public class UserService {
             throw ApplicationException.from(UserErrorCase.USER_ALREADY_EXISTS);
         }
 
-        // 2) 비밀번호 & 비밀번호 확인 불일치
-        if (!request.getPassword().equals(request.getPasswordConfirm())) {
-            throw ApplicationException.from(UserErrorCase.PASSWORD_CONFIRM_MISMATCH);
-        }
-
-        // 3) 비밀번호 정책 검사
+        // 2) 비밀번호 정책 검사
         passwordValidator.validateForSignup(
                 request.getPassword(),
                 request.getEmail()
         );
 
-        // 4) 비밀번호 암호화
+        // 3) 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // 5) 유저 생성
+        // 4) 유저 생성
         User newUser = User.createForSignup(
                 request.getEmail(),
                 encodedPassword,
@@ -69,10 +64,10 @@ public class UserService {
                 request.getPosition()
         );
 
-        // 6) 저장
+        // 5) 저장
         User saved = userRepository.save(newUser);
 
-        // 7) 응답 DTO
+        // 6) 응답 DTO
         return UserSignupResponseDto.from(saved);
     }
 

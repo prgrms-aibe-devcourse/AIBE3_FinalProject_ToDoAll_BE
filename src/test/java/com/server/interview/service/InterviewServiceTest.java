@@ -77,7 +77,7 @@ class InterviewServiceTest {
                 "nickname",
                 "010-1111-2222",
                 LocalDate.now(),
-                Gender.M,
+                Gender.MALE,
                 "Company",
                 "Dev"
         );

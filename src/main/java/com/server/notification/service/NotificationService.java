@@ -74,6 +74,8 @@ public class NotificationService {
         try {
             //send()는 “전송 요청”을 emitter 내부 큐에 쓰기만 한다. 추후 outputstream이 저장되고 flush될 때 실질적인 전송이 발생
             emitter.send(SseEmitter.event().data(data));
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("SSE 연결 실패 또는 클라이언트 종료", e);
+        }
     }
 }

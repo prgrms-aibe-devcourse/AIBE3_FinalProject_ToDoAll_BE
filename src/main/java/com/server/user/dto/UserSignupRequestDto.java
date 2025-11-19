@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserSignupRequestDto {
 
+    @NotBlank(message = "이메일 인증 토큰은 필수입니다.")
+    private String token;
+
     @NotBlank(message = "이메일 인증은 필수입니다.")
     private String email; // 회사 이메일
 
@@ -47,6 +50,7 @@ public class UserSignupRequestDto {
     private String position;
 
     public static UserSignupRequestDto of(
+            String token,
             String email,
             String password,
             String passwordConfirm,
@@ -56,6 +60,7 @@ public class UserSignupRequestDto {
             String position
     ) {
         UserSignupRequestDto req = new UserSignupRequestDto();
+        req.token = token;
         req.email = email;
         req.password = password;
         req.passwordConfirm = passwordConfirm;

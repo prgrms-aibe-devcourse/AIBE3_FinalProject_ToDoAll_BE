@@ -107,6 +107,7 @@ public class EmailAuthService {
         // 6) 인증 링크 생성
         String verificationLink = UriComponentsBuilder
                 .fromHttpUrl(authBaseUrl)
+                .queryParam("email", email)
                 .queryParam("token", token.getToken())
                 .toUriString();
 
@@ -160,7 +161,24 @@ public class EmailAuthService {
         return EmailAuthCompleteResponseDto.from(token);
     }
 
-     //회원가입 이메일 인증 HTML 템플릿 로드
+    // 회원가입 시 이메일+토큰이 정말 유효한지 재검증하는 헬퍼 메서드
+    @Transactional(readOnly = true)
+    public boolean isVerifiedEmail(String email, String token) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+
+        // 2) 공백 제거 + 소문자 통일
+        String normalizedEmail = email.trim().toLowerCase();
+
+        // 3) 해당 이메일에 대해 verifiedAt 이 null 이 아닌 토큰이 하나라도 있는지 확인
+        boolean exists = emailVerificationTokenRepository
+                .existsByEmailAndVerifiedAtIsNotNull(normalizedEmail);
+        return exists;
+    }
+
+
+    //회원가입 이메일 인증 HTML 템플릿 로드
 
     private String loadSignupVerificationTemplate(String verificationUrl) {
         try {

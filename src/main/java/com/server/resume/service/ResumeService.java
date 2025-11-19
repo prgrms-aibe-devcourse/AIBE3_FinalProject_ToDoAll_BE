@@ -9,9 +9,6 @@ import com.server.resume.domain.*;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
-import com.server.search.repository.ResumeSearchRepository;
-import com.server.search.service.ResumeSearchService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -27,8 +24,7 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final SkillRepository skillRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
-    private final ResumeSearchService resumeSearchService;
-    private final ResumeSearchRepository resumeSearchRepository;
+
 
     @Transactional(readOnly = true)
     public ResumeResponseDto getResumeById(Long resumeId) {
@@ -40,7 +36,6 @@ public class ResumeService {
 
     @Transactional
     public ResumeResponseDto createResume(ResumeCreateRequestDto request) {
-        System.out.println(">> 색인된 이력서 개수: " + resumeSearchRepository.count());
         if (request.jobDescriptionId() == null) {
             throw new ApplicationException(ResumeErrorCase.JD_NOT_FOUND);
         }
@@ -69,8 +64,6 @@ public class ResumeService {
         addSkills(savedResume, request.skills());
         addActivities(savedResume, request.activities());
         addCertifications(savedResume, request.certifications());
-
-        resumeSearchService.index(savedResume);
 
         return ResumeResponseDto.fromEntity(savedResume);
     }

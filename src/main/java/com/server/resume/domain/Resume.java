@@ -5,7 +5,6 @@ import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.Skill;
 import com.server.resume.exception.ResumeErrorCase;
-import com.server.search.document.ResumeDocument;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -159,21 +158,6 @@ public class Resume extends BaseEntity {
             throw new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND);
         }
         this.status = newStatus;
-    }
-
-    public static Resume createFromDocument(ResumeDocument doc) {
-        Resume resume = new Resume();
-        resume.name = doc.getName();
-        resume.gender = doc.getGender();
-        resume.birthDate = doc.getBirthDate();
-        resume.email = doc.getEmail();
-        resume.phone = doc.getPhone();
-        resume.address = doc.getAddress();
-        resume.detailAddress = doc.getDetailAddress();
-        resume.resumeFileUrl = doc.getResumeFileUrl();
-        resume.portfolioFileUrl = doc.getPortfolioFileUrl();
-        resume.status = ResumeStatus.NEW;
-        return resume;
     }
 
     public void updateMemo(String memo) {

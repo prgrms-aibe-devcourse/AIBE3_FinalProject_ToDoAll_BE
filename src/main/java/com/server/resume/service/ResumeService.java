@@ -9,6 +9,8 @@ import com.server.resume.domain.*;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
+import com.server.search.repository.ResumeSearchRepository;
+import com.server.search.service.ResumeSearchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,6 +27,8 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final SkillRepository skillRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
+    private final ResumeSearchService resumeSearchService;
+    private final ResumeSearchRepository resumeSearchRepository;
 
     @Transactional(readOnly = true)
     public ResumeResponseDto getResumeById(Long resumeId) {
@@ -36,7 +40,7 @@ public class ResumeService {
 
     @Transactional
     public ResumeResponseDto createResume(ResumeCreateRequestDto request) {
-
+        System.out.println(">> 색인된 이력서 개수: " + resumeSearchRepository.count());
         if (request.jobDescriptionId() == null) {
             throw new ApplicationException(ResumeErrorCase.JD_NOT_FOUND);
         }
@@ -58,15 +62,17 @@ public class ResumeService {
                 request.portfolioFileUrl(),
                 ResumeStatus.NEW
         );
+        Resume savedResume = resumeRepository.save(resume);
 
-        addEducations(resume, request.education());
-        addExperiences(resume, request.experience());
-        addSkills(resume, request.skills());
-        addActivities(resume, request.activities());
-        addCertifications(resume, request.certifications());
+        addEducations(savedResume, request.education());
+        addExperiences(savedResume, request.experience());
+        addSkills(savedResume, request.skills());
+        addActivities(savedResume, request.activities());
+        addCertifications(savedResume, request.certifications());
 
-        Resume saved = resumeRepository.save(resume);
-        return ResumeResponseDto.fromEntity(saved);
+        resumeSearchService.index(savedResume);
+
+        return ResumeResponseDto.fromEntity(savedResume);
     }
 
     @Transactional

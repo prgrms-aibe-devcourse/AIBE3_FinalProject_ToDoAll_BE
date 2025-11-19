@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -60,6 +62,14 @@ public class JobDescription extends BaseEntity {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
+    // 필수 스킬
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<JobRequiredSkill> requiredSkills = new ArrayList<>();
+
+    // 우대 스킬
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<JobPreferredSkill> preferredSkills = new ArrayList<>();
+
     public static JobDescription of(
             String title,
             String department,
@@ -85,7 +95,7 @@ public class JobDescription extends BaseEntity {
         jd.education = education;
         jd.salary = salary;
         jd.description = description;
-        jd.startDate = LocalDate.now();
+        jd.startDate = startDate != null ? startDate : LocalDate.now();
         jd.deadline = deadline;
         jd.status = status;
         jd.welfare = welfare;
@@ -116,5 +126,30 @@ public class JobDescription extends BaseEntity {
         this.welfare = dto.benefits();
         this.location = dto.location();
         this.thumbnailUrl = dto.thumbnailUrl();
+    }
+
+    // 필수 스킬 이름 반환
+    public List<String> getRequiredSkillNames() {
+        return requiredSkills.stream()
+                .map(r -> r.getSkill().getName().toLowerCase())
+                .toList();
+    }
+
+    // 우대 스킬 이름 반환
+    public List<String> getPreferredSkillNames() {
+        return preferredSkills.stream()
+                .map(p -> p.getSkill().getName().toLowerCase())
+                .toList();
+    }
+
+    // 스킬 연관 관계 추가 메서드
+    public void addRequiredSkill(Skill skill) {
+        JobRequiredSkill jrs = JobRequiredSkill.of(this, skill);
+        requiredSkills.add(jrs);
+    }
+
+    public void addPreferredSkill(Skill skill) {
+        JobPreferredSkill jps = JobPreferredSkill.of(this, skill);
+        preferredSkills.add(jps);
     }
 }

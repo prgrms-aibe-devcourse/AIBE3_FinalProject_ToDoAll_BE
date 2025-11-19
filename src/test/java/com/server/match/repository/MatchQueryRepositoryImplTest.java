@@ -115,8 +115,25 @@ class MatchQueryRepositoryImplTest {
         ));
 
         // Match 생성
-        Match m1 = Match.of(jd, resume1, LocalDateTime.now(), 80f, null, MatchStatus.APPLIED);
-        Match m2 = Match.of(jd, resume2, LocalDateTime.now().minusDays(1), 60f, null, MatchStatus.APPLIED);
+        Match m1 = Match.of(
+                jd,
+                resume1,
+                LocalDateTime.now(),
+                80f,        // matchScore
+                null,       // recommendationReason
+                null,       // resumeSummary
+                MatchStatus.APPLIED
+        );
+
+        Match m2 = Match.of(
+                jd,
+                resume2,
+                LocalDateTime.now().minusDays(1),
+                60f,        // matchScore
+                null,       // recommendationReason
+                null,       // resumeSummary
+                MatchStatus.APPLIED
+        );
 
         m1.setCreatedAt(LocalDateTime.of(2024, 2, 1, 10, 0));
         m2.setCreatedAt(LocalDateTime.of(2024, 2, 1, 9, 0));

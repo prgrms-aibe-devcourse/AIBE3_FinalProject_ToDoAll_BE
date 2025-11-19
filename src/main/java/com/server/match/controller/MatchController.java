@@ -8,6 +8,7 @@ import com.server.match.domain.MatchStatus;
 import com.server.match.dto.*;
 import com.server.match.exception.MatchErrorCase;
 import com.server.match.service.MatchService;
+import com.server.search.dto.ResumeRecommendationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -85,5 +86,18 @@ public class MatchController {
     ) {
         MatchResponseDto response = matchService.updateMatchStatus(matchId, request.status());
         return CommonResponse.success(response);
+    }
+
+    @GetMapping("/recommendations")
+    @Operation(summary = "JD 기반 추천 이력서 목록 조회", description = "JD 설명에 기반하여 Elasticsearch에서 자동으로 이력서를 추천합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "추천 목록 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "채용공고를 찾을 수 없음")
+    })
+    public CommonResponse<List<ResumeRecommendationDto>> recommendResumes(
+            @RequestParam @NotNull Long jdId
+    ) {
+        List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId);
+        return CommonResponse.success(recommendations);
     }
 }

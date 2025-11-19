@@ -1,10 +1,10 @@
-name: Dev CI pipeline
+name: Release CI pipeline
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["release"]
   pull_request:
-    branches: ["develop"]
+    branches: ["release"]
 
 jobs:
   build-and-test:

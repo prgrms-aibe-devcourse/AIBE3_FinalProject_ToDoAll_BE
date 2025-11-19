@@ -1,4 +1,4 @@
-package com.server.mcp.inf;
+package com.server.mcp.tool;
 
 import java.util.Map;
 

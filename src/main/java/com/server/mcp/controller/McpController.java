@@ -2,7 +2,7 @@ package com.server.mcp.controller;
 
 import com.server.mcp.dto.McpRequest;
 import com.server.mcp.dto.McpResponse;
-import com.server.mcp.inf.McpTool;
+import com.server.mcp.tool.McpTool;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

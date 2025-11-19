@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
-@RequestMapping("/api//v1/notifications")
+@RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
 @Tag(name = "NotificationController", description = "API SSE 통신 알림 컨트롤러")
 public class NotificationController {
@@ -17,6 +17,9 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     // SSE 구독 API
+    // SSE는 produces = "text/event-stream"
+    // 브라우저는 **응답의 Content-Type이 text/event-stream**이어야
+    // 이걸 SSE로 인식하고 스트리밍 연결을 유지함.
     @GetMapping(value = "/subscribe", produces = "text/event-stream")
     @Operation(summary = "SSE 구독", description = "SSE를 구독하여 Emitter를 생성합니다.")
     public SseEmitter subscribe(

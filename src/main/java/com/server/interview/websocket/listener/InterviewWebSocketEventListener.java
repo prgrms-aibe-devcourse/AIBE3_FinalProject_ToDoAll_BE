@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.security.Principal;
+
 @Component
 @RequiredArgsConstructor
 public class InterviewWebSocketEventListener {
@@ -20,9 +22,12 @@ public class InterviewWebSocketEventListener {
         String sessionId = accessor.getSessionId();
         String value = accessor.getFirstNativeHeader("interviewId");
 
+        Principal principal = accessor.getUser();
+        boolean isInterviewer = (principal != null);
+
         if(value != null) {
             Long interviewId = Long.parseLong(value);
-            interviewWebSocketService.handleUserJoin(interviewId, sessionId);
+            interviewWebSocketService.handleUserJoin(interviewId, sessionId, isInterviewer);
         }
     }
 

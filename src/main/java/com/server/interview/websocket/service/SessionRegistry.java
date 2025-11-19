@@ -11,15 +11,21 @@ public class SessionRegistry {
     private final Map<Long, Set<String>> interviewSessions = new HashMap<>();
 
     // sessionId -> interviewId
-    private final Map<String, Long> sessionIntervieMap = new HashMap<>();
+    private final Map<String, Long> sessionInterviewMap = new HashMap<>();
 
-    public void addSession(Long interviewId, String sessionId) {
+    // sessionId -> 면접관인지 여부
+    private final Map<String, Boolean> sessionInterviewrMap = new HashMap<>();
+
+    public void addSession(Long interviewId, String sessionId, boolean isInterviewer) {
         interviewSessions.computeIfAbsent(interviewId, k -> new HashSet<>())
                 .add(sessionId);
+
+        sessionInterviewMap.put(sessionId, interviewId);
+        sessionInterviewrMap.put(sessionId, isInterviewer);
     }
 
     public void removeSession(String sessionId) {
-        Long interviewId = sessionIntervieMap.get(sessionId);
+        Long interviewId = sessionInterviewMap.get(sessionId);
         if(interviewId == null) return;
 
         Set<String> sessions = interviewSessions.get(interviewId);
@@ -30,7 +36,8 @@ public class SessionRegistry {
             }
         }
 
-        sessionIntervieMap.remove(sessionId);
+        sessionInterviewMap.remove(sessionId);
+        sessionInterviewrMap.remove(sessionId);
     }
 
     public int getSessionCount(Long interviewId) {
@@ -38,6 +45,10 @@ public class SessionRegistry {
     }
 
     public Long getInterviewIdBySession(String sessionId) {
-        return sessionIntervieMap.get(sessionId);
+        return sessionInterviewMap.get(sessionId);
+    }
+
+    public boolean isInterviewer(String sessionId) {
+        return Boolean.TRUE.equals(sessionInterviewrMap.get(sessionId));
     }
 }

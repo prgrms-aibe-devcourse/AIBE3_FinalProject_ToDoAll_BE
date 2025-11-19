@@ -1,11 +1,14 @@
 package com.server.interview.websocket.service;
 
-import com.server.interview.websocket.dto.InterviewMessage;
+import com.server.interview.websocket.dto.ChatMessage;
+import com.server.interview.websocket.dto.NoteMessage;
+import com.server.interview.websocket.dto.SystemMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InterviewWebSocketService {
@@ -13,38 +16,69 @@ public class InterviewWebSocketService {
     private final SessionRegistry sessionRegistry;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void handleUserJoin(Long interviewId, String sessionId) {
-        sessionRegistry.addSession(interviewId, sessionId);
-        System.out.println("Join: " + sessionId + " -> interview " + interviewId);
+    public void handleUserJoin(Long interviewId, String sessionId, boolean isInterviewer) {
+        sessionRegistry.addSession(interviewId, sessionId, isInterviewer);
+        log.info("JOIN: sessionId={} interviewId={} interviewer={}", sessionId, interviewId, isInterviewer);
 
         broadcastSystemMessage(interviewId, "JOIN", "사용자가 입장했습니다.");
     }
 
     public void handleUserLeave(String sessionId) {
         Long interviewId = sessionRegistry.getInterviewIdBySession(sessionId);
-        if(interviewId != null) return;
+        if(interviewId == null) return;
 
         sessionRegistry.removeSession(sessionId);
-        System.out.println("Leave: " + sessionId + "  -> interview " + interviewId);
+        log.info("LEAVE: sessionId={} interviewId={}", sessionId, interviewId);
 
         broadcastSystemMessage(interviewId, "LEAVE", "사용자가 퇴장했습니다.");
 
         if(sessionRegistry.getSessionCount(interviewId) == 0) {
-            System.out.println("인터뷰 종료: " + interviewId + " 모든 사용자가 퇴장했습니다.");
+            log.info("INTERVIEW END: interviewId={} 모든 사용자가 퇴장했습니다.", interviewId);
         }
     }
 
     public void broadcastSystemMessage(Long interviewId, String event, String content) {
-        InterviewMessage message = InterviewMessage.of(
+        messagingTemplate.convertAndSend(
+                "/topic/interview/" + interviewId + "/system",
+                new SystemMessage(interviewId, event, content)
+        );
+        log.info("SYSTEM MESSAGE: interviewId={} event={} content={}", interviewId, event, content);
+    }
+
+
+    public void broadcastChatMessage(Long interviewId, ChatMessage message) {
+        ChatMessage outgoing = new ChatMessage(
                 interviewId,
-                event,
-                content
+                message.getSenderId(),
+                message.getSender(),
+                message.getContent()
         );
 
         messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/system",
-                message
+                "/topic/interview/" + interviewId + "/chat",
+                outgoing
         );
+        log.info("CHAT MESSAGE: interviewId={} senderId={} sender={} content={}", interviewId, message.getSenderId(), message.getSender(), message.getContent());
+    }
+
+    public void broadcastNoteMessage(Long interviewId, String sessionId, NoteMessage noteMessage) {
+        if(!sessionRegistry.isInterviewer(sessionId)) {
+            return;
+        }
+
+        NoteMessage outgoing = new NoteMessage(
+                interviewId,
+                noteMessage.getSenderId(),
+                noteMessage.getSender(),
+                noteMessage.getContent(),
+                noteMessage.getNoteId()
+        );
+
+        messagingTemplate.convertAndSend(
+                "/topic/interview/" + interviewId + "/note",
+                outgoing
+        );
+        log.info("NOTE MESSAGE: interviewId={} senderId={} sender={} noteId={}", interviewId, noteMessage.getSenderId(), noteMessage.getSender(), noteMessage.getNoteId());
     }
 
 }

@@ -50,7 +50,11 @@ public class SecurityConfig {
                                 "/api/v1/email-verifications/**", // 이메일 인증
                                 "/auth/login", // 로그인
                                 "/auth/password/**", // 비번 재설정
-                                "/api/v1/auth/**" // 비로그인 비번 재설정
+                                "/api/v1/auth/**", // 비로그인 비번 재설정
+                                "/api/v1/resumes/**", // ES 테스트용 임시 허용 (나중에 삭제)
+                                "/api/v1/jd/**", // ES 테스트용 임시 허용 (나중에 삭제)
+                                "/api/v1/search/**", // ES 테스트용 임시 허용 (나중에 삭제)
+                                "/api/v1/matches/**" // ES 테스트용 임시 허용 (나중에 삭제)
                         ).permitAll()
                         // preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

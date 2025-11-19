@@ -8,7 +8,6 @@ import com.server.match.domain.MatchStatus;
 import com.server.match.dto.*;
 import com.server.match.exception.MatchErrorCase;
 import com.server.match.service.MatchService;
-import com.server.search.dto.ResumeRecommendationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -72,32 +71,5 @@ public class MatchController {
     public CommonResponse<MatchDetailResponseDto> getMatchDetail(@PathVariable Long matchId) {
         MatchDetailResponseDto detail = matchService.getMatchDetail(matchId);
         return CommonResponse.success(detail);
-    }
-
-    @PatchMapping("/{matchId}/status")
-    @Operation(summary = "매칭 상태 변경", description = "특정 매칭의 상태를 변경합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "상태 변경 성공"),
-            @ApiResponse(responseCode = "404", description = "매칭 정보를 찾을 수 없음"),
-    })
-    public CommonResponse<MatchResponseDto> updateMatchStatus(
-            @PathVariable Long matchId,
-            @RequestBody @Valid MatchStatusUpdateRequestDto request
-    ) {
-        MatchResponseDto response = matchService.updateMatchStatus(matchId, request.status());
-        return CommonResponse.success(response);
-    }
-
-    @GetMapping("/recommendations")
-    @Operation(summary = "JD 기반 추천 이력서 목록 조회", description = "JD 설명에 기반하여 Elasticsearch에서 자동으로 이력서를 추천합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "추천 목록 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "채용공고를 찾을 수 없음")
-    })
-    public CommonResponse<List<ResumeRecommendationDto>> recommendResumes(
-            @RequestParam @NotNull Long jdId
-    ) {
-        List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId);
-        return CommonResponse.success(recommendations);
     }
 }

@@ -55,7 +55,8 @@ public class SecurityConfig {
                                 "/api/v1/jd/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/search/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/matches/**", // ES 테스트용 임시 허용 (나중에 삭제)
-                                "/api/v1/interviews/**" // AI 테스트용 임시 허용 (나중에 삭제)
+                                "/api/v1/interviews/**", // AI 테스트용 임시 허용 (나중에 삭제)
+                                "/mcp/**" // AI 테스트용 임시 허용 (나중에 삭제)
                         ).permitAll()
                         // preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

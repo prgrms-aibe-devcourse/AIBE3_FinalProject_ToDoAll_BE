@@ -21,6 +21,7 @@ import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -215,5 +216,47 @@ public class InterviewQuestionAiService {
                         q.getUpdatedAt()
                 ))
                 .toList();
+    }
+
+    public void requestAutoQuestionGenerate(Long interviewId, Long resumeId, Long jdId) {
+
+        String systemPrompt = buildPrompt(interviewId, resumeId, jdId);
+
+        chatClient.prompt()
+                .messages(
+                        new SystemMessage(systemPrompt)
+                )
+                .call();   // LLM이 MCP Tool 호출을 알아서 수행
+    }
+
+    private String buildPrompt(Long interviewId, Long resumeId, Long jdId) {
+
+        return """
+        너는 면접 질문을 자동 생성하는 Assistant이다.
+        네가 DB나 서버 데이터에 접근해야 할 때는 반드시 MCP tool을 사용해야 한다.
+        아래 MCP 도구들만 사용해서 데이터를 조회하고 저장해야 한다.
+
+        사용 가능한 MCP tool 목록:
+        1. get_resume(resume_id)
+        2. get_job_description(jd_id)
+        3. save_interview_questions(interview_id, questions)
+
+        면접 정보:
+        - interview_id: %d
+        - resume_id: %d
+        - jd_id: %d
+
+        해야 할 작업:
+        1. get_resume tool로 이력서 텍스트와 상세 정보를 가져온다.
+        2. get_job_description tool로 직무 정보를 가져온다.
+        3. 이력서와 JD를 기반으로 면접 질문 10개를 생성한다.
+           - 질문 유형(question_type): CORE, TECH, BEHAVIOR 중 하나
+           - 질문의 content는 구체적이고 면접용으로 적합해야 한다.
+        4. 생성한 질문들을 save_interview_questions tool로 저장한다.
+        5. 저장이 완료되면 "DONE"이라고 출력한다.
+
+        절대 JSON을 직접 반환하지 말고,
+        오직 MCP tool 호출만 사용해야 한다.
+        """.formatted(interviewId, resumeId, jdId);
     }
 }

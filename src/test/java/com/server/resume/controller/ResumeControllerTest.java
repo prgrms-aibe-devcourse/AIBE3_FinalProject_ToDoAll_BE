@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +48,7 @@ class ResumeControllerTest {
                 1L,
                 10L,
                 "백엔드 개발자",
+                LocalDateTime.now(),
                 "홍길동",
                 "M",
                 LocalDate.of(1990, 1, 1),
@@ -61,7 +63,8 @@ class ResumeControllerTest {
                 Collections.emptyList(),
                 "resume-url",
                 "portfolio-url",
-                ResumeStatus.NEW
+                ResumeStatus.NEW,
+                "memo"
         );
 
         resumeCreateRequestDto = new ResumeCreateRequestDto(

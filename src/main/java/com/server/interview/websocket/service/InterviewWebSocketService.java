@@ -1,13 +1,19 @@
 package com.server.interview.websocket.service;
 
+import com.server.interview.websocket.domain.ChatMessageEntity;
+import com.server.interview.websocket.domain.NoteMessageEntity;
 import com.server.interview.websocket.dto.ChatMessage;
 import com.server.interview.websocket.dto.NoteMessage;
 import com.server.interview.websocket.dto.SystemEventType;
 import com.server.interview.websocket.dto.SystemMessage;
+import com.server.interview.websocket.repository.ChatMessageRepository;
+import com.server.interview.websocket.repository.NoteMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -16,6 +22,8 @@ public class InterviewWebSocketService {
 
     private final SessionRegistry sessionRegistry;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMessageRepository chatMessageRepository;
+    private final NoteMessageRepository noteMessageRepository;
 
     public void handleUserJoin(Long interviewId, String sessionId, boolean isInterviewer) {
         sessionRegistry.addSession(interviewId, sessionId, isInterviewer);
@@ -48,6 +56,17 @@ public class InterviewWebSocketService {
 
 
     public void broadcastChatMessage(Long interviewId, ChatMessage message) {
+
+        ChatMessageEntity entity = ChatMessageEntity.builder()
+                .interviewId(interviewId)
+                .senderId(message.getSenderId())
+                .sender(message.getSender())
+                .content(message.getContent())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        chatMessageRepository.save(entity);
+
         ChatMessage outgoing = new ChatMessage(
                 interviewId,
                 message.getSenderId(),
@@ -67,6 +86,17 @@ public class InterviewWebSocketService {
             log.warn("NOTE MESSAGE 차단됨 - sessionId={} 는 면접관이 아님", sessionId);
             return;
         }
+
+        NoteMessageEntity entity = NoteMessageEntity.builder()
+                .interviewId(interviewId)
+                .senderId(noteMessage.getSenderId())
+                .sender(noteMessage.getSender())
+                .content(noteMessage.getContent())
+                .noteId(noteMessage.getNoteId())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        noteMessageRepository.save(entity);
 
         NoteMessage outgoing = new NoteMessage(
                 interviewId,

@@ -3,22 +3,22 @@ package com.server.interview.websocket.service;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class SessionRegistry {
 
     // interviewId -> sessionId 목록
-    private final Map<Long, Set<String>> interviewSessions = new HashMap<>();
+    private final Map<Long, Set<String>> interviewSessions = new ConcurrentHashMap<>();
 
     // sessionId -> interviewId
-    private final Map<String, Long> sessionInterviewMap = new HashMap<>();
+    private final Map<String, Long> sessionInterviewMap = new ConcurrentHashMap<>();
 
     // sessionId -> 면접관인지 여부
-    private final Map<String, Boolean> sessionInterviewrMap = new HashMap<>();
+    private final Map<String, Boolean> sessionInterviewrMap = new ConcurrentHashMap<>();
 
     public void addSession(Long interviewId, String sessionId, boolean isInterviewer) {
-        interviewSessions.computeIfAbsent(interviewId, k -> new HashSet<>())
-                .add(sessionId);
+        interviewSessions.computeIfAbsent(interviewId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
 
         sessionInterviewMap.put(sessionId, interviewId);
         sessionInterviewrMap.put(sessionId, isInterviewer);
@@ -28,13 +28,10 @@ public class SessionRegistry {
         Long interviewId = sessionInterviewMap.get(sessionId);
         if(interviewId == null) return;
 
-        Set<String> sessions = interviewSessions.get(interviewId);
-        if(sessions != null) {
+        interviewSessions.computeIfPresent(interviewId, (id, sessions) -> {
             sessions.remove(sessionId);
-            if(sessions.isEmpty()) {
-                interviewSessions.remove(interviewId);
-            }
-        }
+            return sessions.isEmpty() ? null : sessions; // 비면 map에서 제거
+        });
 
         sessionInterviewMap.remove(sessionId);
         sessionInterviewrMap.remove(sessionId);

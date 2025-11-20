@@ -1,7 +1,6 @@
 package com.server.user.service;
 
 import com.server.auth.exception.AuthErrorCase;
-import com.server.auth.repository.EmailVerificationTokenRepository;
 import com.server.auth.service.EmailAuthService;
 import com.server.global.exception.ApplicationException;
 import com.server.user.domain.User;
@@ -16,11 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.server.user.domain.Gender;
 
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,11 +27,12 @@ public class UserService {
     private final EmailAuthService emailAuthService;    // 이메일 인증 검증
 
 
+    //회원가입
     @Transactional
     public UserSignupResponseDto signup(UserSignupRequestDto request) {
 
         // 0) 이메일 인증 여부 확인 (이메일 + 토큰)
-        if (!emailAuthService.isVerifiedEmail(request.getEmail(), request.getToken())) {
+        if (!emailAuthService.isVerifiedEmail(request.getEmail())) {
             throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_REQUIRED);
         }
 

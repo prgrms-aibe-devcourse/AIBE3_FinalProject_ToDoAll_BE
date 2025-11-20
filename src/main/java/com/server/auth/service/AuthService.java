@@ -41,13 +41,13 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("로그인 실패 -> 존재하지 않는 이메일");
-                    return ApplicationException.from(AuthErrorCase.AUTH_USER_NOT_FOUND);
+                    return ApplicationException.from(AuthErrorCase.AUTH_EMAIL_NOT_FOUND);
                 });
 
         // 2) 비밀번호 확인
         if (!passwordEncoder.matches(password, user.getPassword())) {
             log.warn("로그인 실패 -> 비밀번호 불일치");
-            throw ApplicationException.from(AuthErrorCase.AUTH_INVALID_CREDENTIAL);
+            throw ApplicationException.from(AuthErrorCase.AUTH_PASSWORD_INCORRECT);
         }
 
         // 3) JWT 토큰 2개 생성

@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 public enum AuthErrorCase implements ErrorCase {
 
     // 401 - 인증 실패
-    AUTH_INVALID_CREDENTIAL(HttpStatus.UNAUTHORIZED, 2002, "비밀번호가 올바르지 않습니다."),
+    AUTH_INVALID_CREDENTIAL(HttpStatus.UNAUTHORIZED, 2002, "이메일 또는 비밀번호가 올바르지 않습니다."),
+    AUTH_PASSWORD_INCORRECT(HttpStatus.UNAUTHORIZED, 2003, "비밀번호가 올바르지 않습니다."),
+    AUTH_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, 2001, "등록되지 않은 이메일입니다."),
     AUTH_INVALID_TOKEN(HttpStatus.UNAUTHORIZED, 2001, "유효하지 않은 액세스 토큰입니다."),
     AUTH_INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 2003, "유효하지 않은 리프레시 토큰입니다."),
     AUTH_INVALID_PASSWORD_RESET_TOKEN(HttpStatus.UNAUTHORIZED, 2004, "비밀번호 재설정 토큰이 만료되었거나 유효하지 않습니다."),

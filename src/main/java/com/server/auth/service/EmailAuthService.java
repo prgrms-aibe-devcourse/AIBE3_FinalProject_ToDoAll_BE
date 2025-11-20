@@ -164,21 +164,24 @@ public class EmailAuthService {
         return EmailAuthCompleteResponseDto.from(token);
     }
 
-    // 회원가입 시 이메일이 정말 유효한지 재검증하는 헬퍼 메서드
-    @Transactional(readOnly = true)
-    public boolean isVerifiedEmail(String email, String token) {
-        if (email == null || email.isBlank()) {
-            return false;
+    // ✅ 회원가입에서 사용할 "이메일 인증 여부 확인" 메서드
+    public boolean isVerifiedEmail(String email) {
+        // 1) 앞뒤 공백 제거 + 소문자 통일
+        String normalizedEmail = normalizeEmail(email);
+
+        if (normalizedEmail == null || normalizedEmail.isEmpty()) {
+            return false; // 이메일이 이상하면 false
         }
 
-        // 2) 공백 제거 + 소문자 통일
-        String normalizedEmail = email.trim().toLowerCase();
+        // 2) 토큰 테이블에서 해당 이메일로 verifiedAt != null 인 레코드가 있는지 확인
+        boolean exists = emailVerificationTokenRepository.existsByEmailAndVerifiedAtIsNotNull(normalizedEmail);
 
-        // 3) 해당 이메일에 대해 verifiedAt 이 null 이 아닌 토큰이 하나라도 있는지 확인
-        boolean exists = emailVerificationTokenRepository
-                .existsByEmailAndVerifiedAtIsNotNull(normalizedEmail);
+        // 3) 로그 남기기 (디버깅용)
+        log.info("[EmailAuth] isVerifiedEmail: email={}, result={}", normalizedEmail, exists);
+
         return exists;
     }
+
 
 
     //회원가입 이메일 인증 HTML 템플릿 로드
@@ -203,5 +206,12 @@ public class EmailAuthService {
         } catch (Exception e) {
             return "아래 링크를 클릭하여 이메일 인증을 완료해주세요.\n" + verificationUrl;
         }
+    }
+    // 이메일 정규화: 앞뒤 공백 제거 + 소문자로 변환
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        return email.trim().toLowerCase();
     }
 }

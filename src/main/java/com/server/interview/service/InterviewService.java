@@ -9,12 +9,14 @@ import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.notification.dto.NotificationRequestDto;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class InterviewService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final InterviewEvaluationRepository interviewEvaluationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
@@ -48,7 +51,8 @@ public class InterviewService {
                 ()->new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND)
         );
 
-        User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+        Long UserId = 1L;
+        User organizer = userRepository.findById(UserId).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
 
         LocalDateTime scheduledAt =  interviewCreateRequestDto.scheduledAt();
         InterviewStatus status = InterviewStatus.WAITING;
@@ -96,7 +100,15 @@ public class InterviewService {
         interviewNoteRepository.save(interviewNote);
         //********************* 인터뷰 노트 생성 로직 ***********************//
 
-
+        // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
+        eventPublisher.publishEvent(
+                new NotificationRequestDto(
+                        UserId,
+                        "면접 생성 알림",
+                        "새로운 면접이 생성되었습니다!",
+                        interview.getCreatedAt()
+                )
+        );
         return new InterviewCreateResponseDto(interview.getId());
     }
 

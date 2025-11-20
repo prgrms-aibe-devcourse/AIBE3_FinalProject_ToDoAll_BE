@@ -20,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.context.ApplicationEventPublisher;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,6 +43,7 @@ class InterviewServiceTest {
     private ResumeRepository resumeRepo;
     private UserRepository userRepo;
     private InterviewEvaluationRepository  interviewEvaluationRepository;
+    private ApplicationEventPublisher eventPublisher;
 
     private InterviewService interviewService;
 
@@ -54,6 +57,7 @@ class InterviewServiceTest {
         resumeRepo = Mockito.mock(ResumeRepository.class);
         userRepo = Mockito.mock(UserRepository.class);
         interviewEvaluationRepository =  Mockito.mock(InterviewEvaluationRepository.class);
+        eventPublisher =  Mockito.mock(ApplicationEventPublisher.class);
 
         interviewService = new InterviewService(
                 interviewRepository,
@@ -63,7 +67,8 @@ class InterviewServiceTest {
                 jobRepo,
                 resumeRepo,
                 userRepo,
-                interviewEvaluationRepository
+                interviewEvaluationRepository,
+                eventPublisher
         );
     }
 

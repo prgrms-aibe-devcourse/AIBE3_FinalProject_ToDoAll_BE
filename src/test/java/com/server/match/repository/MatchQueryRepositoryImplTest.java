@@ -19,11 +19,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -151,35 +151,34 @@ class MatchQueryRepositoryImplTest {
         MatchSearchCondition condition = new MatchSearchCondition(
                 jd.getId(),
                 null,
-                MatchSortType.LATEST,
-                20,
-                0
+                MatchSortType.LATEST
         );
 
-        List<MatchListResponseDto> result = matchRepository.searchMatches(condition).getContent();
+        Pageable pageable = PageRequest.of(0, 20);
 
-        System.out.println(">>> RESULT ORDER:");
-        result.forEach(r -> System.out.println(r.name() + " / " + r.matchScore()));
+        List<MatchListResponseDto> result =
+                matchRepository.searchMatches(condition, pageable).getContent();
 
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).name()).isEqualTo("승인"); // 최신 createdAt
+        assertThat(result.get(0).name()).isEqualTo("승인"); // 최신
     }
 
     @Test
-    @DisplayName("QueryDSL: 점수순 정렬이 정상 작동")
+    @DisplayName("QueryDSL: 점수순 정렬 정상 작동")
     void testSearchMatches_scoreSort() {
         MatchSearchCondition condition = new MatchSearchCondition(
                 jd.getId(),
                 null,
-                MatchSortType.SCORE_DESC,
-                20,
-                0
+                MatchSortType.SCORE_DESC
         );
 
-        List<MatchListResponseDto> result = matchRepository.searchMatches(condition).getContent();
+        Pageable pageable = PageRequest.of(0, 20);
+
+        List<MatchListResponseDto> result =
+                matchRepository.searchMatches(condition, pageable).getContent();
 
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).matchScore()).isEqualTo(80f); // 높은 점수 첫 번째
+        assertThat(result.get(0).matchScore()).isEqualTo(80f); // 높은 점수
     }
 
     @Test
@@ -188,12 +187,13 @@ class MatchQueryRepositoryImplTest {
         MatchSearchCondition condition = new MatchSearchCondition(
                 jd.getId(),
                 MatchStatus.APPLIED,
-                MatchSortType.LATEST,
-                20,
-                0
+                MatchSortType.LATEST
         );
 
-        List<MatchListResponseDto> result = matchRepository.searchMatches(condition).getContent();
+        Pageable pageable = PageRequest.of(0, 20);
+
+        List<MatchListResponseDto> result =
+                matchRepository.searchMatches(condition, pageable).getContent();
 
         assertThat(result).hasSize(2);
     }

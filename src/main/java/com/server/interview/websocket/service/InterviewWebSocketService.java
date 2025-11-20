@@ -2,6 +2,7 @@ package com.server.interview.websocket.service;
 
 import com.server.interview.websocket.dto.ChatMessage;
 import com.server.interview.websocket.dto.NoteMessage;
+import com.server.interview.websocket.dto.SystemEventType;
 import com.server.interview.websocket.dto.SystemMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ public class InterviewWebSocketService {
         sessionRegistry.addSession(interviewId, sessionId, isInterviewer);
         log.info("JOIN: sessionId={} interviewId={} interviewer={}", sessionId, interviewId, isInterviewer);
 
-        broadcastSystemMessage(interviewId, "JOIN", "사용자가 입장했습니다.");
+        broadcastSystemMessage(interviewId, SystemEventType.JOIN, "사용자가 입장했습니다.");
     }
 
     public void handleUserLeave(String sessionId) {
@@ -30,14 +31,14 @@ public class InterviewWebSocketService {
         sessionRegistry.removeSession(sessionId);
         log.info("LEAVE: sessionId={} interviewId={}", sessionId, interviewId);
 
-        broadcastSystemMessage(interviewId, "LEAVE", "사용자가 퇴장했습니다.");
+        broadcastSystemMessage(interviewId, SystemEventType.LEAVE, "사용자가 퇴장했습니다.");
 
         if(sessionRegistry.getSessionCount(interviewId) == 0) {
             log.info("INTERVIEW END: interviewId={} 모든 사용자가 퇴장했습니다.", interviewId);
         }
     }
 
-    public void broadcastSystemMessage(Long interviewId, String event, String content) {
+    public void broadcastSystemMessage(Long interviewId, SystemEventType event, String content) {
         messagingTemplate.convertAndSend(
                 "/topic/interview/" + interviewId + "/system",
                 new SystemMessage(interviewId, event, content)
@@ -62,7 +63,8 @@ public class InterviewWebSocketService {
     }
 
     public void broadcastNoteMessage(Long interviewId, String sessionId, NoteMessage noteMessage) {
-        if(!sessionRegistry.isInterviewer(sessionId)) {
+        if (!sessionRegistry.isInterviewer(sessionId)) {
+            log.warn("NOTE MESSAGE 차단됨 - sessionId={} 는 면접관이 아님", sessionId);
             return;
         }
 

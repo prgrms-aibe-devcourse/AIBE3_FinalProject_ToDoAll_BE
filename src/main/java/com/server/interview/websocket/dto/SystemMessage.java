@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SystemMessage extends InterviewMessage {
 
-    private String event;
+    private SystemEventType event;
     private String content;
 
-    public SystemMessage(Long interviewId, String event, String content) {
+    public SystemMessage(Long interviewId, SystemEventType event, String content) {
         super(MessageType.SYSTEM, interviewId);
         this.event = event;
         this.content = content;

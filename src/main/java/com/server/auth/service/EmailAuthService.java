@@ -130,9 +130,7 @@ public class EmailAuthService {
         }
     }
 
-
     //이메일 인증 완료 처리
-
     @Transactional
     public EmailAuthCompleteResponseDto completeAuth(String tokenValue) {
 
@@ -156,15 +154,14 @@ public class EmailAuthService {
         // 4) 인증 완료 처리
         token.markAsVerified();
 
-        // 5) 해당 이메일 User 찾아서 상태 변경
+        // 5) 해당 이메일 User 찾아서 이메일 인증 완료로 변경
         userRepository.findByEmail(token.getEmail())
                 .ifPresent(user -> user.markEmailVerified());
 
-        // 6) 응답 DTO로 변환
         return EmailAuthCompleteResponseDto.from(token);
     }
 
-    // ✅ 회원가입에서 사용할 "이메일 인증 여부 확인" 메서드
+    // 회원가입에서 사용할 이메일 인증 여부 확인 메서드
     public boolean isVerifiedEmail(String email) {
         // 1) 앞뒤 공백 제거 + 소문자 통일
         String normalizedEmail = normalizeEmail(email);
@@ -173,10 +170,9 @@ public class EmailAuthService {
             return false; // 이메일이 이상하면 false
         }
 
-        // 2) 토큰 테이블에서 해당 이메일로 verifiedAt != null 인 레코드가 있는지 확인
+        // 2) 해당 이메일로 인증 완료된 토큰 기록 있는지 확인
         boolean exists = emailVerificationTokenRepository.existsByEmailAndVerifiedAtIsNotNull(normalizedEmail);
 
-        // 3) 로그 남기기 (디버깅용)
         log.info("[EmailAuth] isVerifiedEmail: email={}, result={}", normalizedEmail, exists);
 
         return exists;

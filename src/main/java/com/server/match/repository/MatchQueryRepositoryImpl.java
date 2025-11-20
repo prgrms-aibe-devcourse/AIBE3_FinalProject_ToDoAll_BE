@@ -3,7 +3,6 @@ package com.server.match.repository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.server.match.domain.MatchSortType;
 import com.server.match.domain.QMatch;
 import com.server.match.dto.MatchListResponseDto;
 import com.server.match.dto.MatchSearchCondition;
@@ -45,11 +44,14 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             baseQuery.where(match.status.eq(condition.status()));
         }
 
-        if (condition.getSortSafe() == MatchSortType.SCORE_DESC) {
-            baseQuery.orderBy(match.matchScore.desc());
-        } else {
-            baseQuery.orderBy(match.appliedAt.desc());
-        }
+        // 정렬 조건 처리 (Pageable 기반)
+        pageable.getSort().forEach(order -> {
+            if (order.getProperty().equals("matchScore")) {
+                baseQuery.orderBy(order.isAscending() ? match.matchScore.asc() : match.matchScore.desc());
+            } else if (order.getProperty().equals("appliedAt")) {
+                baseQuery.orderBy(order.isAscending() ? match.appliedAt.asc() : match.appliedAt.desc());
+            }
+        });
 
         List<MatchListResponseDto> content = baseQuery
                 .offset(pageable.getOffset())

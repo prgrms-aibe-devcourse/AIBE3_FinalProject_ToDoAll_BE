@@ -138,7 +138,7 @@ public class MatchService {
         return results;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<MatchListResponseDto> getMatchedResumesPaged(MatchSearchCondition condition, Pageable pageable) {
         return matchRepository.searchMatches(condition, pageable);
     }

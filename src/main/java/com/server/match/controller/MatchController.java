@@ -1,12 +1,11 @@
 package com.server.match.controller;
 
-import com.server.global.exception.ApplicationException;
 import com.server.global.response.CommonResponse;
+import com.server.global.response.PagedResponse;
 import com.server.match.domain.Match;
 import com.server.match.domain.MatchSortType;
 import com.server.match.domain.MatchStatus;
 import com.server.match.dto.*;
-import com.server.match.exception.MatchErrorCase;
 import com.server.match.service.MatchService;
 import com.server.search.dto.ResumeRecommendationDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +14,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -47,20 +48,24 @@ public class MatchController {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    public CommonResponse<List<MatchListResponseDto>> getMatchedResumes(
+    public CommonResponse<PagedResponse<MatchListResponseDto>> getMatchedResumes(
             @RequestParam @NotNull Long jdId,
             @RequestParam(required = false) MatchStatus status,
-            @RequestParam(required = false, defaultValue = "LATEST") MatchSortType sort,
-            @RequestParam(required = false, defaultValue = "20") Integer limit,
-            @RequestParam(required = false, defaultValue = "0") Integer offset
+            @RequestParam(required = false) MatchSortType sort,
+            Pageable pageable
     ) {
-        if (jdId == null || jdId <= 0) {
-            throw new ApplicationException(MatchErrorCase.JD_INVALID_ID);
-        }
+        MatchSearchCondition condition = new MatchSearchCondition(jdId, status, sort);
+        Page<MatchListResponseDto> page = matchService.getMatchedResumesPaged(condition, pageable);
 
-        MatchSearchCondition condition = new MatchSearchCondition(jdId, status, sort, limit, offset);
-        List<MatchListResponseDto> result = matchService.getMatchedResumes(condition);
-        return CommonResponse.success(result);
+        PagedResponse<MatchListResponseDto> response = new PagedResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
+
+        return CommonResponse.success(response);
     }
 
     @GetMapping("/{matchId}")

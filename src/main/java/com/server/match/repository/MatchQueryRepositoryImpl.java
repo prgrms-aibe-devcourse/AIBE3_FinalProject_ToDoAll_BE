@@ -11,8 +11,9 @@ import com.server.resume.domain.QResume;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import com.querydsl.core.types.dsl.Expressions;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -21,7 +22,7 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<MatchListResponseDto> searchMatches(MatchSearchCondition condition) {
+    public Page<MatchListResponseDto> searchMatches(MatchSearchCondition condition, Pageable pageable) {
         QMatch match = QMatch.match;
         QResume resume = QResume.resume;
 
@@ -32,7 +33,6 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
                         resume.name,
                         match.matchScore,
                         match.status,
-                        // ES 도입 전 임시 데이터
                         Expressions.constant("75%"),
                         Expressions.constant(List.of("Kafka", "Redis")),
                         Expressions.constant("React/Node.js 기반 3년 경력 보유")
@@ -45,21 +45,19 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             baseQuery.where(match.status.eq(condition.status()));
         }
 
-        // 정렬 기준
         if (condition.sort() == MatchSortType.SCORE_DESC) {
             baseQuery.orderBy(match.matchScore.desc());
         } else {
             baseQuery.orderBy(match.appliedAt.desc());
         }
 
-        int page = condition.getPage();
-        int size = condition.getPageSize();
-
         List<MatchListResponseDto> content = baseQuery
-                .offset((long) page * size)
-                .limit(size)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
-        return new PageImpl<>(content, PageRequest.of(page, size), content.size());
+        long total = baseQuery.fetchCount();
+
+        return new PageImpl<>(content, pageable, total);
     }
 }

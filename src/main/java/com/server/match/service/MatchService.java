@@ -138,7 +138,9 @@ public class MatchService {
 
     @Transactional(readOnly = true)
     public List<MatchListResponseDto> getMatchedResumes(MatchSearchCondition condition) {
-        return matchRepository.searchMatches(condition).getContent();
+        return matchRepository
+                .searchMatches(condition, PageRequest.of(condition.getPage(), condition.getPageSize()))
+                .getContent();
     }
 
     @Transactional(readOnly = true)

@@ -24,6 +24,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -150,11 +151,10 @@ class MatchQueryRepositoryImplTest {
     void testSearchMatches_defaultSort() {
         MatchSearchCondition condition = new MatchSearchCondition(
                 jd.getId(),
-                null,
-                MatchSortType.LATEST
+                null
         );
 
-        Pageable pageable = PageRequest.of(0, 20);
+        Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "appliedAt"));
 
         List<MatchListResponseDto> result =
                 matchRepository.searchMatches(condition, pageable).getContent();
@@ -163,16 +163,16 @@ class MatchQueryRepositoryImplTest {
         assertThat(result.get(0).name()).isEqualTo("승인"); // 최신
     }
 
+
     @Test
     @DisplayName("QueryDSL: 점수순 정렬 정상 작동")
     void testSearchMatches_scoreSort() {
         MatchSearchCondition condition = new MatchSearchCondition(
                 jd.getId(),
-                null,
-                MatchSortType.SCORE_DESC
+                null
         );
 
-        Pageable pageable = PageRequest.of(0, 20);
+        Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "matchScore"));
 
         List<MatchListResponseDto> result =
                 matchRepository.searchMatches(condition, pageable).getContent();
@@ -186,11 +186,10 @@ class MatchQueryRepositoryImplTest {
     void testSearchMatches_withStatusFilter() {
         MatchSearchCondition condition = new MatchSearchCondition(
                 jd.getId(),
-                MatchStatus.APPLIED,
-                MatchSortType.LATEST
+                MatchStatus.APPLIED
         );
 
-        Pageable pageable = PageRequest.of(0, 20);
+        Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "appliedAt"));
 
         List<MatchListResponseDto> result =
                 matchRepository.searchMatches(condition, pageable).getContent();

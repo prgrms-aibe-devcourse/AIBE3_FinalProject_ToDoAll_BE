@@ -72,14 +72,14 @@ class MatchControllerTest {
 
         mockMvc.perform(get("/api/v1/matches")
                         .param("jdId", "1")
-                        .param("sort", "LATEST")
+                        .param("matchSort", "LATEST")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].resumeId").value(1L))
-                .andExpect(jsonPath("$.data[0].name").value("홍길동"))
-                .andExpect(jsonPath("$.data[0].skillMatchRate").value("75%"))
-                .andExpect(jsonPath("$.data[0].summary").value("React/Node.js 기반 3년 경력 보유"))
-                .andExpect(jsonPath("$.data[0].missingSkills[0]").value("Kafka"));
+                .andExpect(jsonPath("$.data.content[0].resumeId").value(1L))
+                .andExpect(jsonPath("$.data.content[0].name").value("홍길동"))
+                .andExpect(jsonPath("$.data.content[0].skillMatchRate").value("75%"))
+                .andExpect(jsonPath("$.data.content[0].summary").value("React/Node.js 기반 3년 경력 보유"))
+                .andExpect(jsonPath("$.data.content[0].missingSkills[0]").value("Kafka"));
     }
 
     @Test

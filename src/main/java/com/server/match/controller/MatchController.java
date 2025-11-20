@@ -1,11 +1,12 @@
 package com.server.match.controller;
 
+import com.server.global.exception.ApplicationException;
 import com.server.global.response.CommonResponse;
 import com.server.global.response.PagedResponse;
 import com.server.match.domain.Match;
-import com.server.match.domain.MatchSortType;
 import com.server.match.domain.MatchStatus;
 import com.server.match.dto.*;
+import com.server.match.exception.MatchErrorCase;
 import com.server.match.service.MatchService;
 import com.server.search.dto.ResumeRecommendationDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,6 +54,10 @@ public class MatchController {
             @RequestParam(required = false) MatchStatus status,
             Pageable pageable
     ) {
+        if (jdId <= 0) {
+            throw new ApplicationException(MatchErrorCase.JD_INVALID_ID);
+        }
+
         MatchSearchCondition condition = new MatchSearchCondition(jdId, status);
         Page<MatchListResponseDto> page = matchService.getMatchedResumesPaged(condition, pageable);
 

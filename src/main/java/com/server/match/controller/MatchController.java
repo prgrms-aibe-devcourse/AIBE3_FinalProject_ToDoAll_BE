@@ -51,7 +51,7 @@ public class MatchController {
     public CommonResponse<PagedResponse<MatchListResponseDto>> getMatchedResumes(
             @RequestParam @NotNull Long jdId,
             @RequestParam(required = false) MatchStatus status,
-            @RequestParam(required = false) MatchSortType sort,
+            @RequestParam(required = false, name = "matchSort") MatchSortType sort,
             Pageable pageable
     ) {
         MatchSearchCondition condition = new MatchSearchCondition(jdId, status, sort);

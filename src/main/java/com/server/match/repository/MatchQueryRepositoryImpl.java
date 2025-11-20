@@ -45,7 +45,7 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             baseQuery.where(match.status.eq(condition.status()));
         }
 
-        if (condition.sort() == MatchSortType.SCORE_DESC) {
+        if (condition.getSortSafe() == MatchSortType.SCORE_DESC) {
             baseQuery.orderBy(match.matchScore.desc());
         } else {
             baseQuery.orderBy(match.appliedAt.desc());

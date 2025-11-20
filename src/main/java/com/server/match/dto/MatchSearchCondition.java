@@ -6,10 +6,10 @@ import com.server.match.domain.MatchStatus;
 public record MatchSearchCondition(
         Long jdId,
         MatchStatus status,
-        MatchSortType sort
+        MatchSortType matchSort
 ) {
     public MatchSortType getSortSafe() {
-        return sort != null ? sort : MatchSortType.LATEST;
+        return matchSort != null ? matchSort : MatchSortType.LATEST;
     }
 }
 

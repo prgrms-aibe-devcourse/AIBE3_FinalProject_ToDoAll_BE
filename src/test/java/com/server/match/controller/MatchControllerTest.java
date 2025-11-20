@@ -12,6 +12,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -58,8 +61,14 @@ class MatchControllerTest {
                 .summary("React/Node.js 기반 3년 경력 보유")
                 .build();
 
-        Mockito.when(matchService.getMatchedResumes(any()))
-                .thenReturn(List.of(responseDto));
+        PageImpl<MatchListResponseDto> page = new PageImpl<>(
+                List.of(responseDto),
+                PageRequest.of(0, 20),
+                1
+        );
+
+        Mockito.when(matchService.getMatchedResumesPaged(any(), any(Pageable.class)))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/matches")
                         .param("jdId", "1")

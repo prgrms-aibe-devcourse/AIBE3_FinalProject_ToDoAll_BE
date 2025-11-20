@@ -5,6 +5,7 @@ import com.server.resume.domain.Resume;
 import com.server.resume.domain.ResumeStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ public record ResumeResponseDto(
         Long id,
         Long jobId,
         String jobTitle,
+        LocalDateTime applyDate,
         String name,
         String gender,
         LocalDate birthDate,
@@ -26,7 +28,8 @@ public record ResumeResponseDto(
         List<ResumeCertificationResponseDto> certifications,
         String resumeFileUrl,
         String portfolioFileUrl,
-        ResumeStatus status
+        ResumeStatus status,
+        String memo
 ) {
     public static ResumeResponseDto fromEntity(
             Resume resume
@@ -42,6 +45,7 @@ public record ResumeResponseDto(
                 resume.getId(),
                 jobId,
                 jobTitle,
+                resume.getCreatedAt(),
                 resume.getName(),
                 resume.getGender(),
                 resume.getBirthDate(),
@@ -66,7 +70,8 @@ public record ResumeResponseDto(
                                         .collect(Collectors.toList()),
                 resume.getResumeFileUrl(),
                 resume.getPortfolioFileUrl(),
-                resume.getStatus()
+                resume.getStatus(),
+                resume.getMemo()
         );
     }
 }

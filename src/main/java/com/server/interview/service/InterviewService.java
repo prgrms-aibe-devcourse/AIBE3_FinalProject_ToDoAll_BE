@@ -37,6 +37,7 @@ public class InterviewService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final InterviewEvaluationRepository interviewEvaluationRepository;
+    private final InterviewQuestionAiService interviewQuestionAiService;
 
     @Transactional
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
@@ -97,7 +98,11 @@ public class InterviewService {
         interviewNoteRepository.save(interviewNote);
         //********************* 인터뷰 노트 생성 로직 ***********************//
 
-
+        //********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
+        interviewQuestionAiService.requestAutoQuestionGenerate(
+                interview.getId(), resume.getId(), jobDescription.getId()
+        );
+        //********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
         return new InterviewCreateResponseDto(interview.getId());
     }
 

@@ -22,6 +22,7 @@ import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ public class InterviewQuestionAiService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final ChatClient chatClient;
+    private final ToolCallbackProvider toolCallbackProvider;
 
     @Autowired
     public InterviewQuestionAiService(InterviewRepository interviewRepository,
@@ -49,7 +51,7 @@ public class InterviewQuestionAiService {
                                       ResumeRepository resumeRepository,
                                       UserRepository userRepository,
                                       ObjectMapper objectMapper,
-                                      ChatClient.Builder chatClientBuilder) {
+                                      ChatClient.Builder chatClientBuilder, ToolCallbackProvider toolCallbackProvider) {
         this.interviewRepository = interviewRepository;
         this.participantRepository = participantRepository;
         this.questionRepository = questionRepository;
@@ -57,6 +59,7 @@ public class InterviewQuestionAiService {
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
         this.chatClient = chatClientBuilder.build();
+        this.toolCallbackProvider = toolCallbackProvider;
     }
 
     // ===== 공통 유틸 (기존 InterviewQuestionService 로직 최대한 재사용) =====
@@ -223,40 +226,87 @@ public class InterviewQuestionAiService {
         String systemPrompt = buildPrompt(interviewId, resumeId, jdId);
 
         chatClient.prompt()
-                .messages(
-                        new SystemMessage(systemPrompt)
-                )
+                .system(systemPrompt)
+                .toolCallbacks(toolCallbackProvider)
                 .call();   // LLM이 MCP Tool 호출을 알아서 수행
     }
 
     private String buildPrompt(Long interviewId, Long resumeId, Long jdId) {
 
         return """
-        너는 면접 질문을 자동 생성하는 Assistant이다.
-        네가 DB나 서버 데이터에 접근해야 할 때는 반드시 MCP tool을 사용해야 한다.
-        아래 MCP 도구들만 사용해서 데이터를 조회하고 저장해야 한다.
+    너는 채용 면접 질문을 자동으로 생성하는 Assistant이다.
+    네가 DB나 서버 데이터를 조회하거나 저장할 때는 반드시 MCP tool만 사용해야 한다.
+    임의로 HTTP 요청을 만들거나, JSON을 직접 반환해서는 안 된다.
 
-        사용 가능한 MCP tool 목록:
-        1. get_resume(resume_id)
-        2. get_job_description(jd_id)
-        3. save_interview_questions(interview_id, questions)
+    [사용 가능한 MCP tool]
 
-        면접 정보:
-        - interview_id: %d
-        - resume_id: %d
-        - jd_id: %d
+    1) get_resume
+       - 설명: 이력서 상세 정보를 가져온다.
+       - 파라미터:
+         - resumeId (Long): 이력서 ID
 
-        해야 할 작업:
-        1. get_resume tool로 이력서 텍스트와 상세 정보를 가져온다.
-        2. get_job_description tool로 직무 정보를 가져온다.
-        3. 이력서와 JD를 기반으로 면접 질문 10개를 생성한다.
-           - 질문 유형(question_type): CORE, TECH, BEHAVIOR 중 하나
-           - 질문의 content는 구체적이고 면접용으로 적합해야 한다.
-        4. 생성한 질문들을 save_interview_questions tool로 저장한다.
-        5. 저장이 완료되면 "DONE"이라고 출력한다.
+    2) get_job_description
+       - 설명: 직무 기술서(JD) 정보를 가져온다.
+       - 파라미터:
+         - jobDescriptionId (Long): JD ID
 
-        절대 JSON을 직접 반환하지 말고,
-        오직 MCP tool 호출만 사용해야 한다.
-        """.formatted(interviewId, resumeId, jdId);
+    3) save_interview_questions
+       - 설명: 생성한 면접 질문들을 해당 인터뷰에 저장한다.
+       - 파라미터:
+         - interviewId (Long): 면접 ID
+         - questions (List<object>): 질문 리스트
+           각 원소는 다음 필드를 가진다.
+           - questionType (String): "CORE", "TECH", "BEHAVIOR" 중 하나
+           - content (String): 실제 질문 내용 (한국어로 작성)
+
+    [현재 인터뷰 컨텍스트]
+
+    - interviewId = %d
+    - resumeId = %d
+    - jobDescriptionId = %d
+
+    [해야 할 작업]
+
+    1. get_resume(resumeId = %d) MCP tool을 호출해서 이력서 정보를 가져온다.
+    2. get_job_description(jobDescriptionId = %d) MCP tool을 호출해서 JD 정보를 가져온다.
+    3. 이력서와 JD를 비교하여, 다음 기준을 만족하는 면접 질문 10개를 생성한다.
+       - 질문은 모두 한국어로 작성한다.
+       - questionType:
+         * CORE: 인성/지원동기/커리어 방향 등 전반적인 질문
+         * TECH: JD에 나온 기술 스택, 프로젝트 경험, 문제 해결 능력 등 기술 질문
+         * BEHAVIOR: 협업, 갈등 해결, 리더십, 실패 경험 등 행동 기반 질문
+       - content:
+         * 실제 면접에서 바로 사용할 수 있을 만큼 구체적이어야 한다.
+         * "자기소개 해보세요"처럼 너무 포괄적인 질문만 만들지 말고,
+           이력서와 JD에 나온 키워드를 활용해 구체적인 맥락을 붙인다.
+
+    4. 생성한 질문들을 questions 배열로 구성한 후,
+       save_interview_questions(
+         interviewId = %d,
+         questions = [
+           { "questionType": "CORE",  "content": "..." },
+           { "questionType": "TECH",  "content": "..." },
+           { "questionType": "BEHAVIOR", "content": "..." },
+           ...
+         ]
+       ) MCP tool을 한 번 호출하여 저장한다.
+
+    5. 모든 질문이 성공적으로 저장되면 최종 응답으로는
+       문자열 "DONE" 만 출력한다.
+       그 외의 설명, JSON, 마크다운, 자연어 코멘트를 절대 출력하지 않는다.
+
+    [중요 규칙]
+
+    - 반드시 위에 정의된 MCP tool들(get_resume, get_job_description, save_interview_questions)만 사용해야 한다.
+    - 존재하지 않는 tool 이름을 만들거나, 잘못된 파라미터 이름을 사용하지 말 것.
+    - JSON을 직접 반환하지 말고, 오직 MCP tool 호출을 통해서만 DB에 접근할 것.
+    """.formatted(
+                interviewId,
+                resumeId,
+                jdId,
+                resumeId,
+                jdId,
+                interviewId
+        );
     }
 }

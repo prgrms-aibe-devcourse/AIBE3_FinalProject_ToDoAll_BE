@@ -1,13 +1,13 @@
 package com.server.interview.websocket.service;
 
+import com.server.interview.dto.InterviewNoteMemoCreateRequestDto;
+import com.server.interview.service.InterviewNoteMemoService;
 import com.server.interview.websocket.domain.ChatMessageEntity;
-import com.server.interview.websocket.domain.NoteMessageEntity;
 import com.server.interview.websocket.dto.ChatMessage;
 import com.server.interview.websocket.dto.NoteMessage;
 import com.server.interview.websocket.dto.SystemEventType;
 import com.server.interview.websocket.dto.SystemMessage;
 import com.server.interview.websocket.repository.ChatMessageRepository;
-import com.server.interview.websocket.repository.NoteMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,7 +23,7 @@ public class InterviewWebSocketService {
     private final SessionRegistry sessionRegistry;
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageRepository chatMessageRepository;
-    private final NoteMessageRepository noteMessageRepository;
+    private final InterviewNoteMemoService interviewNoteMemoService;
 
     public void handleUserJoin(Long interviewId, String sessionId, boolean isInterviewer) {
         sessionRegistry.addSession(interviewId, sessionId, isInterviewer);
@@ -87,28 +87,14 @@ public class InterviewWebSocketService {
             return;
         }
 
-        NoteMessageEntity entity = NoteMessageEntity.builder()
-                .interviewId(interviewId)
-                .senderId(noteMessage.getSenderId())
-                .sender(noteMessage.getSender())
-                .content(noteMessage.getContent())
-                .noteId(noteMessage.getNoteId())
-                .createdAt(LocalDateTime.now())
-                .build();
+        InterviewNoteMemoCreateRequestDto requestDto =
+                new InterviewNoteMemoCreateRequestDto(noteMessage.getContent());
 
-        noteMessageRepository.save(entity);
-
-        NoteMessage outgoing = new NoteMessage(
-                interviewId,
-                noteMessage.getSenderId(),
-                noteMessage.getSender(),
-                noteMessage.getContent(),
-                noteMessage.getNoteId()
-        );
+        interviewNoteMemoService.create(interviewId, requestDto);
 
         messagingTemplate.convertAndSend(
                 "/topic/interview/" + interviewId + "/note",
-                outgoing
+                noteMessage
         );
         log.info("NOTE MESSAGE: interviewId={} senderId={} sender={} noteId={}", interviewId, noteMessage.getSenderId(), noteMessage.getSender(), noteMessage.getNoteId());
     }

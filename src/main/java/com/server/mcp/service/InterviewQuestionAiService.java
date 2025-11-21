@@ -26,9 +26,11 @@ import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +44,7 @@ public class InterviewQuestionAiService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final ChatClient chatClient;
-    private final ToolCallbackProvider toolCallbackProvider;
+    private final RestTemplate restTemplate;
 
     @Autowired
     public InterviewQuestionAiService(InterviewRepository interviewRepository,
@@ -51,7 +53,7 @@ public class InterviewQuestionAiService {
                                       ResumeRepository resumeRepository,
                                       UserRepository userRepository,
                                       ObjectMapper objectMapper,
-                                      ChatClient.Builder chatClientBuilder, ToolCallbackProvider toolCallbackProvider) {
+                                      ChatClient.Builder chatClientBuilder) {
         this.interviewRepository = interviewRepository;
         this.participantRepository = participantRepository;
         this.questionRepository = questionRepository;
@@ -59,7 +61,7 @@ public class InterviewQuestionAiService {
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
         this.chatClient = chatClientBuilder.build();
-        this.toolCallbackProvider = toolCallbackProvider;
+        this.restTemplate = new RestTemplate();
     }
 
     // ===== 공통 유틸 (기존 InterviewQuestionService 로직 최대한 재사용) =====
@@ -220,15 +222,19 @@ public class InterviewQuestionAiService {
                 ))
                 .toList();
     }
-
     public void requestAutoQuestionGenerate(Long interviewId, Long resumeId, Long jdId) {
+        var request = Map.of(
+                "interviewId", interviewId,
+                "resumeId", resumeId,
+                "jdId", jdId
+        );
 
-        String systemPrompt = buildPrompt(interviewId, resumeId, jdId);
-
-        chatClient.prompt()
-                .system(systemPrompt)
-                .toolCallbacks(toolCallbackProvider)
-                .call();   // LLM이 MCP Tool 호출을 알아서 수행
+        restTemplate.postForEntity(
+                "http://localhost:8090/api/ai/interviews/generate-questions",
+                request,
+                Void.class
+        );
+        System.out.println("End RequestAutoQuestionGenerate");
     }
 
     private String buildPrompt(Long interviewId, Long resumeId, Long jdId) {

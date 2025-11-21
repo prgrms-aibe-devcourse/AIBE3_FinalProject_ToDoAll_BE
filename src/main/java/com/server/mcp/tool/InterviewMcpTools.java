@@ -1,13 +1,11 @@
 package com.server.mcp.tool;
 
 import com.server.global.exception.ApplicationException;
-import com.server.interview.domain.Interview;
 import com.server.interview.domain.QuestionType;
 import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.repository.InterviewRepository;
 import com.server.interview.service.InterviewQuestionService;
-import com.server.interview.service.InterviewService;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -20,13 +18,16 @@ import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.resume.service.ResumeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class InterviewMcpTools {
@@ -36,6 +37,7 @@ public class InterviewMcpTools {
     private final InterviewRepository interviewRepository;
     private final ResumeRepository resumeRepository;
 
+    @Transactional(readOnly = true)
     @McpTool(
             name = "get_resume",
             description = "이력서 내용을 MCP를 통해 LLM에게 제공"
@@ -72,7 +74,7 @@ public class InterviewMcpTools {
                         skill.getProficiencyLevel()
                 )).toList();
         List<String> skillNames = resume.getSkills().stream().map(skill -> skill.getSkill().getName()).toList();
-
+        log.info("getResume {}", resumeId);
         return Map.of(
                 "experience", experienceList,
                 "education", educationList,
@@ -81,6 +83,7 @@ public class InterviewMcpTools {
         );
     }
 
+    @Transactional(readOnly = true)
     @McpTool(
             name = "get_job_description",
             description = "직무 기술서 내용을 MCP를 통해 LLM에게 제공"
@@ -91,6 +94,7 @@ public class InterviewMcpTools {
         JobDescription jobDescription = jobDescriptionRepository.findById(jdId).orElseThrow(
                 () -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND)
         );
+        log.info("getJobDescription {}", jobDescription);
         return Map.of(
                 "description", jobDescription.getDescription(),
                 "experience", jobDescription.getExperience(),
@@ -101,6 +105,7 @@ public class InterviewMcpTools {
         );
     }
 
+    @Transactional
     @McpTool(
             name = "save_interview_questions",
             description = "면접 질문을 생성하고 이를 DB에 저장"
@@ -125,7 +130,7 @@ public class InterviewMcpTools {
         );
 
         interviewQuestionService.updateQuestions(interviewId, requestDto);
-
+        log.info("saveInterviewQuestions {}", interviewId);
         return Map.of(
                 "status", "success",
                 "savedCount", items.size()

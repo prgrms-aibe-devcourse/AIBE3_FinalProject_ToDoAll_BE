@@ -9,6 +9,7 @@ import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.mcp.dto.InterviewCreatedEvent;
 import com.server.mcp.service.InterviewQuestionAiService;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
@@ -16,6 +17,7 @@ import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +39,7 @@ public class InterviewService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final InterviewEvaluationRepository interviewEvaluationRepository;
-    private final InterviewQuestionAiService interviewQuestionAiService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
@@ -99,8 +101,12 @@ public class InterviewService {
         //********************* 인터뷰 노트 생성 로직 ***********************//
 
         //********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
-        interviewQuestionAiService.requestAutoQuestionGenerate(
-                interview.getId(), resume.getId(), jobDescription.getId()
+        applicationEventPublisher.publishEvent(
+                new InterviewCreatedEvent(
+                        interview.getId(),
+                        resume.getId(),
+                        jobDescription.getId()
+                )
         );
         //********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
         return new InterviewCreateResponseDto(interview.getId());

@@ -1,5 +1,6 @@
 package com.server.interview.websocket.listener;
 
+import com.server.global.config.security.jwt.JwtAuthentication;
 import com.server.interview.websocket.service.InterviewWebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -23,11 +24,17 @@ public class InterviewWebSocketEventListener {
         String value = accessor.getFirstNativeHeader("interviewId");
 
         Principal principal = accessor.getUser();
+        Long userId = null;
+
+        if (principal instanceof JwtAuthentication auth) {
+            userId = auth.getUserId();
+        }
+
         boolean isInterviewer = (principal != null);
 
         if(value != null) {
             Long interviewId = Long.parseLong(value);
-            interviewWebSocketService.handleUserJoin(interviewId, sessionId, isInterviewer);
+            interviewWebSocketService.handleUserJoin(interviewId, userId, sessionId, isInterviewer);
         }
     }
 

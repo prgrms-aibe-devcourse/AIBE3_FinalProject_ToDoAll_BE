@@ -1,13 +1,19 @@
 package com.server.interview.websocket.service;
 
+import com.server.interview.dto.InterviewNoteMemoCreateRequestDto;
+import com.server.interview.service.InterviewNoteMemoService;
+import com.server.interview.websocket.domain.ChatMessageEntity;
 import com.server.interview.websocket.dto.ChatMessage;
 import com.server.interview.websocket.dto.NoteMessage;
 import com.server.interview.websocket.dto.SystemEventType;
 import com.server.interview.websocket.dto.SystemMessage;
+import com.server.interview.websocket.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -16,9 +22,11 @@ public class InterviewWebSocketService {
 
     private final SessionRegistry sessionRegistry;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMessageRepository chatMessageRepository;
+    private final InterviewNoteMemoService interviewNoteMemoService;
 
-    public void handleUserJoin(Long interviewId, String sessionId, boolean isInterviewer) {
-        sessionRegistry.addSession(interviewId, sessionId, isInterviewer);
+    public void handleUserJoin(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
+        sessionRegistry.addSession(interviewId, userId, sessionId, isInterviewer);
         log.info("JOIN: sessionId={} interviewId={} interviewer={}", sessionId, interviewId, isInterviewer);
 
         broadcastSystemMessage(interviewId, SystemEventType.JOIN, "사용자가 입장했습니다.");
@@ -48,6 +56,17 @@ public class InterviewWebSocketService {
 
 
     public void broadcastChatMessage(Long interviewId, ChatMessage message) {
+
+        ChatMessageEntity entity = ChatMessageEntity.builder()
+                .interviewId(interviewId)
+                .senderId(message.getSenderId())
+                .sender(message.getSender())
+                .content(message.getContent())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        chatMessageRepository.save(entity);
+
         ChatMessage outgoing = new ChatMessage(
                 interviewId,
                 message.getSenderId(),
@@ -68,17 +87,14 @@ public class InterviewWebSocketService {
             return;
         }
 
-        NoteMessage outgoing = new NoteMessage(
-                interviewId,
-                noteMessage.getSenderId(),
-                noteMessage.getSender(),
-                noteMessage.getContent(),
-                noteMessage.getNoteId()
-        );
+        InterviewNoteMemoCreateRequestDto requestDto =
+                new InterviewNoteMemoCreateRequestDto(noteMessage.getContent());
+
+        interviewNoteMemoService.create(interviewId, requestDto);
 
         messagingTemplate.convertAndSend(
                 "/topic/interview/" + interviewId + "/note",
-                outgoing
+                noteMessage
         );
         log.info("NOTE MESSAGE: interviewId={} senderId={} sender={} noteId={}", interviewId, noteMessage.getSenderId(), noteMessage.getSender(), noteMessage.getNoteId());
     }

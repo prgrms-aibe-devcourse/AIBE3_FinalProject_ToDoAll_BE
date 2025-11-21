@@ -25,8 +25,8 @@ public class InterviewWebSocketService {
     private final ChatMessageRepository chatMessageRepository;
     private final InterviewNoteMemoService interviewNoteMemoService;
 
-    public void handleUserJoin(Long interviewId, String sessionId, boolean isInterviewer) {
-        sessionRegistry.addSession(interviewId, sessionId, isInterviewer);
+    public void handleUserJoin(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
+        sessionRegistry.addSession(interviewId, userId, sessionId, isInterviewer);
         log.info("JOIN: sessionId={} interviewId={} interviewer={}", sessionId, interviewId, isInterviewer);
 
         broadcastSystemMessage(interviewId, SystemEventType.JOIN, "사용자가 입장했습니다.");

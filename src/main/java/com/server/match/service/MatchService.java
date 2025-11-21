@@ -21,10 +21,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.Criteria;
 import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,26 +93,24 @@ public class MatchService {
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
     public List<ResumeRecommendationDto> recommendResumes(Long jdId) {
-        System.out.println(">> 색인된 이력서 개수: " + resumeSearchRepository.count());
         JobDescription jd = jobDescriptionRepository.findById(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
-        // Elasticsearch 검색
-        Criteria criteria = new Criteria("skills").in(
-                jd.getRequiredSkillNames().stream().map(String::toLowerCase).toList()
-        );
+        String queryText = jd.getDescription() + " " + String.join(" ", jd.getRequiredSkillNames());
+
+        Criteria criteria = new Criteria("fullText").matches(queryText);
         Query query = new CriteriaQuery(criteria, PageRequest.of(0, 10));
+
         SearchHits<ResumeDocument> hits = elasticsearchOperations.search(query, ResumeDocument.class);
 
-        List<ResumeRecommendationDto> results = hits.getSearchHits().stream()
-                .map(hit -> hit.getContent())
-                .map(doc -> {
-                    // 중복 매칭 체크
-                    boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), doc.getId());
-                    if (exists) return null;
-
+        return hits.getSearchHits().stream()
+                .map(hit -> {
+                    ResumeDocument doc = hit.getContent();
                     Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
                     if (resume == null) return null;
+
+                    boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), doc.getId());
+                    if (exists) return null;
 
                     float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
@@ -134,8 +132,6 @@ public class MatchService {
                 })
                 .filter(dto -> dto != null)
                 .toList();
-
-        return results;
     }
 
     @Transactional(readOnly = true)

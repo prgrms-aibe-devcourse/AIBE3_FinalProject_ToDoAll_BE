@@ -44,7 +44,6 @@ public class ResumeDocument {
 
     private String fullText;
 
-
     public static ResumeDocument of(Resume resume) {
         ResumeDocument doc = new ResumeDocument();
 

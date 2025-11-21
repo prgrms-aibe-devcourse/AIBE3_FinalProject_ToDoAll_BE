@@ -98,7 +98,8 @@ public class MatchService {
 
         String queryText = jd.getDescription() + " " + String.join(" ", jd.getRequiredSkillNames());
 
-        Criteria criteria = new Criteria("fullText").matches(queryText);
+        Criteria criteria = new Criteria("fullText").matches(queryText)
+                .and(new Criteria("jdId").is(jd.getId()));
         Query query = new CriteriaQuery(criteria, PageRequest.of(0, 10));
 
         SearchHits<ResumeDocument> hits = elasticsearchOperations.search(query, ResumeDocument.class);

@@ -42,6 +42,7 @@ public class ResumeDocument {
     private String certificationSummary;
     private String activitySummary;
 
+    @Field(type = FieldType.Text, analyzer = "korean")
     private String fullText;
 
     public static ResumeDocument of(Resume resume) {

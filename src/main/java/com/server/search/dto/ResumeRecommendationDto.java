@@ -25,11 +25,15 @@ public record ResumeRecommendationDto(
             List<String> missingSkills,
             String summary
     ) {
+        int totalRequired = missingSkills.size() + (int) doc.getSkills().stream()
+                .filter(skill -> !missingSkills.contains(skill))
+                .count();
+
         float percentage = 0f;
-        int totalSkills = doc.getSkills().size() + missingSkills.size();
-        if (totalSkills > 0) {
-            percentage = (float) (doc.getSkills().size()) / totalSkills;
+        if (totalRequired > 0) {
+            percentage = (float) (totalRequired - missingSkills.size()) / totalRequired;
         }
+
         String skillMatchRate = Math.round(percentage * 100) + "%";
 
         return new ResumeRecommendationDto(
@@ -37,7 +41,7 @@ public record ResumeRecommendationDto(
                 resume.getName(),
                 resume.getGender(),
                 resume.getBirthDate(),
-                Math.round(score * 1000f) / 10f, // 예시: 0.835 → 83.5으로 변환
+                Math.round(score * 1000f) / 10f,
                 skillMatchRate,
                 missingSkills,
                 summary,

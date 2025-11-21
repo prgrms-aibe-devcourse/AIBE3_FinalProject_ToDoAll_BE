@@ -29,7 +29,7 @@ public class EmailAuthController {
 
     //이메일 인증 완료
 
-    @GetMapping("/{token}")
+    @GetMapping("/complete")
     public CommonResponse<EmailAuthCompleteResponseDto> completeEmailAuth(
             @RequestParam("token") String token
     ) {

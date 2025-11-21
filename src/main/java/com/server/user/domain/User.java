@@ -46,36 +46,10 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EmailStatus status = EmailStatus.UNVERIFIED;
+    private EmailStatus status = EmailStatus.UNVERIFIED; //이메일 인증 상태
 
     @Column(name = "email_token", unique = true)
     private String emailToken;
-
-    @Column(name = "email_expiry")
-    private LocalDateTime emailExpiry;
-
-    public static User of(String email,
-                          String password,
-                          String name,
-                          String nickname,
-                          String phoneNumber,
-                          LocalDate birthDate,
-                          Gender gender,
-                          String companyName,
-                          String position) {
-        User user = new User();
-        user.email = email;
-        user.password = password;
-        user.name = name;
-        user.nickname = nickname;
-        user.phoneNumber = phoneNumber;
-        user.birthDate = birthDate;
-        user.gender = gender;
-        user.companyName = companyName;
-        user.position = position;
-        user.status = EmailStatus.UNVERIFIED;
-        return user;
-    }
 
     // 마이페이지 정보 수정
 

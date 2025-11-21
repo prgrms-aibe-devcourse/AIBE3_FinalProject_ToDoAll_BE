@@ -70,14 +70,11 @@ class InterviewServiceTest {
     // ======================= 공통 User 생성 메서드 =========================
 
     private User createUser(Long id, String email, String name) {
-        User user = User.of(
+        User user = User.createForSignup(
                 email,
                 "pw",
                 name,
                 "nickname",
-                "010-1111-2222",
-                LocalDate.now(),
-                Gender.M,
                 "Company",
                 "Dev"
         );

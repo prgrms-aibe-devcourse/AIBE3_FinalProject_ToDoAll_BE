@@ -121,7 +121,11 @@ public class MatchService {
                     System.out.println(">>> 계산된 matchScore: " + score);
 
                     String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
+
                     String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
+                    if (reason == null || reason.isBlank()) {
+                        reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
+                    }
 
                     Match match = Match.of(
                             jd,
@@ -134,7 +138,7 @@ public class MatchService {
                     );
                     matchRepository.save(match);
 
-                    return ResumeRecommendationDto.from(resume, doc, score, missingSkills, summary);
+                    return ResumeRecommendationDto.from(resume, doc, score, missingSkills, summary, reason);
                 })
                 .filter(dto -> dto != null)
                 .toList();

@@ -16,14 +16,16 @@ public record ResumeRecommendationDto(
         List<String> missingSkills,
         String summary,
         List<String> skills,
-        String status
+        String status,
+        String recommendationReason
 ) {
     public static ResumeRecommendationDto from(
             Resume resume,
             ResumeDocument doc,
             float score,
             List<String> missingSkills,
-            String summary
+            String summary,
+            String recommendationReason
     ) {
         int totalRequired = missingSkills.size() + (int) doc.getSkills().stream()
                 .filter(skill -> !missingSkills.contains(skill))
@@ -46,7 +48,8 @@ public record ResumeRecommendationDto(
                 missingSkills,
                 summary,
                 doc.getSkills(),
-                "RECOMMENDED"
+                "RECOMMENDED",
+                recommendationReason
         );
     }
 }

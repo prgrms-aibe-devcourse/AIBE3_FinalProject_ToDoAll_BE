@@ -114,6 +114,12 @@ public class MatchService {
 
                     float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
+
+                    System.out.println(">>> JD 필수 스킬: " + jd.getRequiredSkillNames());
+                    System.out.println(">>> 이력서 보유 스킬: " + doc.getSkills());
+                    System.out.println(">>> 계산된 missingSkills: " + missingSkills);
+                    System.out.println(">>> 계산된 matchScore: " + score);
+
                     String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
                     String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
 

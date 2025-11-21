@@ -27,6 +27,8 @@ public class ResumeDocument {
     @Field(type = FieldType.Date, format = DateFormat.date)
     private LocalDate birthDate;
 
+    @Field(type = FieldType.Long)
+    private Long jdId;
 
     private String email;
     private String phone;
@@ -52,6 +54,8 @@ public class ResumeDocument {
         doc.name = resume.getName();
         doc.gender = resume.getGender();
         doc.birthDate = resume.getBirthDate();
+
+        doc.jdId = resume.getJobDescription().getId();
 
         doc.email = resume.getEmail();
         doc.phone = resume.getPhone();

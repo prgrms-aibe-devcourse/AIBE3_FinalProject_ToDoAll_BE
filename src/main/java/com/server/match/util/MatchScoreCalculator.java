@@ -4,7 +4,9 @@ import com.server.jd.domain.JobDescription;
 import com.server.search.document.ResumeDocument;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MatchScoreCalculator {
 
@@ -27,17 +29,19 @@ public class MatchScoreCalculator {
 
     public static List<String> getMissingSkills(JobDescription jd, ResumeDocument resume) {
         List<String> requiredSkills = jd.getRequiredSkillNames();
+        List<String> preferredSkills = jd.getPreferredSkillNames();
         List<String> resumeSkills = resume.getSkills().stream()
                 .map(String::toLowerCase)
                 .toList();
 
-        List<String> missing = new ArrayList<>();
-        for (String required : requiredSkills) {
-            if (!resumeSkills.contains(required)) {
-                missing.add(required);
-            }
+        Set<String> missing = new HashSet<>();
+        for (String skill : requiredSkills) {
+            if (!resumeSkills.contains(skill)) missing.add(skill);
+        }
+        for (String skill : preferredSkills) {
+            if (!resumeSkills.contains(skill)) missing.add(skill);
         }
 
-        return missing;
+        return new ArrayList<>(missing);
     }
 }

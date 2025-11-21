@@ -34,7 +34,7 @@ public class InterviewWebSocketEventListener {
 
         if(value != null) {
             Long interviewId = Long.parseLong(value);
-            interviewWebSocketService.handleUserJoin(interviewId,  userId, sessionId, isInterviewer);
+            interviewWebSocketService.handleUserJoin(interviewId, userId, sessionId, isInterviewer);
         }
     }
 

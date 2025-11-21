@@ -10,7 +10,6 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
-import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -41,23 +40,21 @@ class WebSocketValidationTest {
     }
 
     private StompSession connect() throws Exception {
-        WebSocketClient standardWebSocketClient = new StandardWebSocketClient();
 
+        List<Transport> transports =
+                List.of(new WebSocketTransport(new StandardWebSocketClient()));
 
-        List<Transport> transports = List.of(new WebSocketTransport(standardWebSocketClient));
         SockJsClient sockJsClient = new SockJsClient(transports);
+        stompClient = new WebSocketStompClient(sockJsClient); // ✔ 기존 stompClient 재사용
 
-        WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
-        CompletableFuture<StompSession> future = stompClient
-                .connectAsync(
-                        "ws://localhost:" + port + "/ws/interview",
-                        new StompSessionHandlerAdapter() {}
-                );
-
-        return future.get(2, TimeUnit.SECONDS);
+        return stompClient.connectAsync(
+                "ws://localhost:" + port + "/ws/interview",
+                new StompSessionHandlerAdapter() {}
+        ).get(2, TimeUnit.SECONDS);
     }
+
 
     @Test
     void invalidMessage_shouldNotBeBroadcast() throws Exception {

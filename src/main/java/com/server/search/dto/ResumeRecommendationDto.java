@@ -25,7 +25,11 @@ public record ResumeRecommendationDto(
             List<String> missingSkills,
             String summary
     ) {
-        float percentage = (float) (doc.getSkills().size() - missingSkills.size()) / doc.getSkills().size();
+        float percentage = 0f;
+        int totalSkills = doc.getSkills().size() + missingSkills.size();
+        if (totalSkills > 0) {
+            percentage = (float) (doc.getSkills().size()) / totalSkills;
+        }
         String skillMatchRate = Math.round(percentage * 100) + "%";
 
         return new ResumeRecommendationDto(

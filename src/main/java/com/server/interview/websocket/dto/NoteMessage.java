@@ -16,10 +16,10 @@ public class NoteMessage extends InterviewMessage {
     @NotBlank(message = "sender는 비어 있을 수 없습니다.")
     private String sender;
 
-    @NotNull(message = "noteId는 null일 수 없습니다.")
+    @NotBlank(message = "content는 비어 있을 수 없습니다.")
     private String content;
 
-    @NotBlank(message = "content는 비어 있을 수 없습니다.")
+    @NotNull(message = "noteId는 null일 수 없습니다.")
     private Long noteId;
 
     @Builder

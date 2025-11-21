@@ -27,14 +27,14 @@ public class SessionRegistry {
         return interviewLocks.computeIfAbsent(interviewId, id -> new Object());
     }
 
-    protected void validateInterviewId(Long interviewId) {
-        // if (!interviewService.existsById(interviewId)) {
-        //     throw new IllegalArgumentException("Invalid interviewId: " + interviewId);
-        // }
-    }
+//    protected void validateInterviewId(Long interviewId) {
+//        // if (!interviewService.existsById(interviewId)) {
+//        //     throw new IllegalArgumentException("Invalid interviewId: " + interviewId);
+//        // }
+//    }
 
     public void addSession(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
-        validateInterviewId(interviewId);
+       //validateInterviewId(interviewId);
         Object lock = getLock(interviewId);
 
         synchronized (lock) {

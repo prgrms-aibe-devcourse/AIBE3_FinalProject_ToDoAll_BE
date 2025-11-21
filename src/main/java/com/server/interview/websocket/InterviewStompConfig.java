@@ -2,7 +2,6 @@ package com.server.interview.websocket;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -14,7 +13,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * - 클라이언트와 서버 간의 실시간 통신을 위한 엔드포인트 및 브로커 구성
  */
 
-@EnableWebSocket
 @Configuration
 @EnableWebSocketMessageBroker
 public class InterviewStompConfig implements WebSocketMessageBrokerConfigurer {

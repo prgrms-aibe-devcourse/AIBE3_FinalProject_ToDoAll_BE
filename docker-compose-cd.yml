@@ -13,9 +13,10 @@ services:
       AWS_RDS_URL : ${AWS_RDS_URL}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       AWS_RDS_ROOT_PASSWORD: ${AWS_RDS_ROOT_PASSWORD}
-      MAIL_USERNAME: ${MAIL_USERNAME}    #  메일 계정
-      MAIL_PASSWORD: ${MAIL_PASSWORD}    #  메일 앱 비밀번호
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      OPENAI_API_KEY_AI: ${OPENAI_API_KEY_AI}
       TZ: Asia/Seoul
     restart: on-failure
     volumes:

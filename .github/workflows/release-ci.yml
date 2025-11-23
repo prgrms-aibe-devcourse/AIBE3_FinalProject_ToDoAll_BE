@@ -149,6 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [makeTagAndRelease, build-and-test]
     steps:
+      - uses: actions/checkout@v4
       - name: Build Docker Compose (dev)
         run: |
           OWNER_NAME=${{ github.repository_owner }}

@@ -1,10 +1,14 @@
-name: Release CI pipeline
+name: Release CI/CD pipeline
 
 on:
   push:
     branches: ["release"]
   pull_request:
     branches: ["release"]
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
   build-and-test:
@@ -15,7 +19,6 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
         ports:
           - 3306:3306
         options: >-
@@ -33,16 +36,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
-
-    env:
-      SPRING_PROFILES_ACTIVE: ci
-      MYSQL_URL: jdbc:mysql://127.0.0.1:3306/jobda_db
-      MYSQL_USERNAME: root
-      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-      SPRING_DATA_REDIS_HOST: 127.0.0.1
-      SPRING_DATA_REDIS_PORT: 6379
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -132,5 +125,80 @@ jobs:
 
       - name: Build Docker Compose (dev)
         run: |
+          OWNER_NAME=${{ github.repository_owner }}
+          IMAGE_TAG=${{ needs.makeTagAndRelease.outputs.tag_name }}
+          REPO_URL="https://github.com/${{ github.repository }}"
+        
           docker compose -f docker-compose-dev.yml build
           docker compose -f docker-compose-dev.yml config
+
+  makeTagAndRelease:
+    runs-on: ubuntu-latest
+
+    outputs:
+      tag_name: ${{ steps.create_tag.outputs.new_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: create_tag
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.create_tag.outputs.new_tag }}
+          release_name: Release ${{ steps.create_tag.outputs.new_tag }}
+          body: ${{ steps.create_tag.outputs.changelog }}
+
+  pushDockerImage :
+    runs-on: ubuntu-latest
+    needs: [makeTagAndRelease, build-and-test]
+    steps:
+      - name: Login to Github Container Registry (ghcr)
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name : Push Docker Compose
+        run: |
+          OWNER_NAME=${{ github.repository_owner }} \
+          IMAGE_TAG=${{ needs.makeTagAndRelease.outputs.tag_name }} \
+          docker compose -f docker-compose-dev.yml push app
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: pushDockerImage
+    steps:
+      - name: Copy docker-compose-cd.yml to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.AWS_SSH_HOST }}
+          username: ${{ secrets.AWS_SSH_USERNAME }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          port: ${{ secrets.AWS_SSH_PORT }}
+          source: docker-compose-cd.yml
+          target: /home/ubuntu/jobda/
+          overwrite: true
+
+      - name: AWS SSM Send-Command
+        uses: peterkimzz/aws-ssm-send-command@master
+        id: ssm
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          instance-ids: ${{ secrets.AWS_EC2_INSTANCE_ID }}
+          working-directory: /home/ubuntu/jobda/
+          comment: Deploy
+          command: |
+            set -e
+            echo "=== 배포 시작 ==="
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            docker compose -f docker-compose-cd.yml pull app
+            docker compose -f docker-compose-cd.yml up -d
+            echo "=== 배포 완료 ==="
+

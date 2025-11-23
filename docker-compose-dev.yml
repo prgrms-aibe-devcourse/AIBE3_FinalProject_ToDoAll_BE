@@ -1,8 +1,12 @@
 services:
   app:
+    image: ghcr.io/${OWNER_NAME}/jobda-app:${IMAGE_TAG}
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        OWNER : ${OWNER_NAME}
+        REPO_URL : ${REPO_URL}
     container_name: jobda-app
     ports:
       - "8080:8080"
@@ -12,6 +16,7 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
+      WAIT_FOR_DB : true
       SPRING_PROFILES_ACTIVE: docker
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}

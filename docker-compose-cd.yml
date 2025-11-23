@@ -1,0 +1,47 @@
+services:
+  app:
+    image: ghcr.io/${OWNER_NAME}/jobda-app:${IMAGE_TAG}
+    container_name: jobda-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      WAIT_FOR_DB : false
+      SPRING_PROFILES_ACTIVE: cd
+      AWS_RDS_URL : ${AWS_RDS_URL}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      AWS_RDS_ROOT_PASSWORD: ${AWS_RDS_ROOT_PASSWORD}
+      MAIL_USERNAME: ${MAIL_USERNAME}    #  메일 계정
+      MAIL_PASSWORD: ${MAIL_PASSWORD}    #  메일 앱 비밀번호
+      JWT_SECRET: ${JWT_SECRET}
+      TZ: Asia/Seoul
+    restart: on-failure
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7.2
+    container_name: jobda-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis-data:
+  mysql-data:

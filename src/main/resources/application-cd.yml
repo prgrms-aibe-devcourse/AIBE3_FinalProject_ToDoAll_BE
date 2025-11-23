@@ -69,6 +69,9 @@ jwt:
 management:
   server:
     port: 8081
+  health:
+    elasticsearch:
+      enabled: false
   endpoints:
     web:
       base-path: /actuator

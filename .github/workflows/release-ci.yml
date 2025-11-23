@@ -123,6 +123,13 @@ jobs:
       - name: Build with QueryDSL & run tests
         run: ./gradlew clean build --stacktrace
 
+      - name: Upload jar artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: jobda-app-jar
+          path: build/libs/*.jar
+
   makeTagAndRelease:
     if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     needs: build-and-test
@@ -144,7 +151,7 @@ jobs:
           release_name: Release ${{ steps.create_tag.outputs.new_tag }}
           body: ${{ steps.create_tag.outputs.changelog }}
 
-  pushDockerImage :
+  pushDockerCompose :
     if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
     needs: [makeTagAndRelease, build-and-test]
@@ -161,6 +168,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download jar artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: jobda-app-jar
+          path: build/libs
+
       - name: Build Docker Compose (dev)
         run: |
           docker compose -f docker-compose-dev.yml build
@@ -175,14 +189,12 @@ jobs:
 
       - name : Push Docker Compose
         run: |
-          OWNER_NAME=${{ github.repository_owner }} \
-          IMAGE_TAG=${{ needs.makeTagAndRelease.outputs.tag_name }} \
           docker compose -f docker-compose-dev.yml push app
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
-    needs: pushDockerImage
+    needs: pushDockerCompose
 
     env:
       OWNER_NAME: ${{ github.repository_owner }}

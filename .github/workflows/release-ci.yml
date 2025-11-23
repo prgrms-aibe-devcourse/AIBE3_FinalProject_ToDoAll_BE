@@ -210,6 +210,7 @@ jobs:
       OPENAI_API_KEY : ${{ secrets.OPENAI_API_KEY }}
 
     steps:
+      - uses: actions/checkout@v4
       - name: Copy docker-compose-cd.yml to EC2
         uses: appleboy/scp-action@v1
         with:

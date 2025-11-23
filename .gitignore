@@ -41,6 +41,7 @@ application.yml
 
 ### .env ###
 .env
+.env.prod
 
 ### QueryDSL ###
 /build/generated/

@@ -1,14 +1,16 @@
 spring:
+
+  application:
+    name: jobda-server
+
+  jackson:
+    time-zone: Asia/Seoul
+
   datasource:
     url: jdbc:mysql://${AWS_RDS_URL}:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true
     username: admin
     password: ${AWS_RDS_ROOT_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-  data:
-    redis:
-      host: redis
-      port: 6379
 
   jpa:
     open-in-view: false
@@ -19,9 +21,10 @@ spring:
         format_sql: true
         show_sql: true
 
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+  data:
+    redis:
+      host: redis
+      port: 6379
 
   mail:
     host: smtp.gmail.com
@@ -41,15 +44,27 @@ spring:
       chat:
         model: gpt-4o-mini
 
-jwt:
-  secret: ${JWT_SECRET}
-  access-exp: 3600000
-  refresh-exp: 604800000
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
 
 logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+app:
+  email:
+    auth-expiry-minutes: 30
+    auth-base-url: http://localhost:5173/signup/form
+  password-reset:
+    expiry-minutes: 30
+    frontend-url: http://localhost:5173/reset-password
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-exp: 3600000
+  refresh-exp: 604800000
 
 management:
   server:
@@ -62,7 +77,4 @@ management:
   endpoint:
     health:
       show-details: always
-app:
-  email:
-    auth-expiry-minutes: 30
-    auth-base-url: http://localhost:5173/signup/form
+

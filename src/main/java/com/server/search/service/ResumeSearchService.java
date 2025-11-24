@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.server.resume.domain.QResume.resume;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,11 @@ public class ResumeSearchService {
 
     // 개별 색인
     public void index(Resume resume) {
+        // JD 또는 스킬 정보가 없는 이력서는 색인에서 제외
+        if (resume.getJobDescription() == null || resume.getSkills().isEmpty()) {
+            System.out.println("색인 제외: 이력서 ID " + resume.getId() + " (JD 또는 스킬 없음)");
+            return;
+        }
         ResumeDocument document = ResumeDocument.of(resume);
         resumeSearchRepository.save(document);
     }
@@ -40,15 +48,26 @@ public class ResumeSearchService {
     public void indexAll() {
         List<Resume> resumes = resumeRepository.findAll();
         for (Resume resume : resumes) {
-            ResumeDocument document = ResumeDocument.of(resume);
-            resumeSearchRepository.save(document);
-        }
+            if (resume.getSkills().isEmpty() || resume.getJobDescription() == null) {
+                System.out.println("색인 제외: 이력서 ID " + resume.getId() + " (JD 또는 스킬 없음)");
+                continue;
+            }
 
-        System.out.println(">> 색인 완료: 총 " + resumes.size() + "개");
+            System.out.println("색인 대상: 이력서 ID " + resume.getId() +
+                    " / JD ID: " + resume.getJobDescription().getId() +
+                    " / Skills: " + resume.getSkills().stream()
+                    .map(s -> s.getSkill().getName()).collect(Collectors.toList()));
+
+            index(resume);  // 실제 색인 메서드 호출
+        }
     }
 
     public long count() {
         return resumeSearchRepository.count();
+    }
+
+    public List<ResumeDocument> findAllIndexedResumes() {
+        return resumeSearchRepository.findAll();
     }
 
     // 주석 풀면 서버 실행 시 자동 색인

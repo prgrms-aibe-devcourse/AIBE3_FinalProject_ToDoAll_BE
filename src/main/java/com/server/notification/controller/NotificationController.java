@@ -1,12 +1,18 @@
 package com.server.notification.controller;
 
-import com.server.notification.dto.NotificationDto;
+import com.server.global.response.CommonResponse;
+import com.server.notification.dto.NotificationResponseDto;
 import com.server.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/notifications")
@@ -28,13 +34,31 @@ public class NotificationController {
         return notificationService.subscribe(userId);
     }
 
-    // 테스트용: 서버 → 클라 알림 보내기 실제 환경에서는 사용되지 않는 api
-    @PostMapping("/send")
-    @Operation(summary = "SSE 알림 전송 테스트 api", description = "서버에서 클라이언트로 알림이 정상적으로 보내는지 확인하는 test api입니다.")
-    public void send(
-            @RequestParam Long userId,
-            @RequestBody NotificationDto dto
+    // 알림 조회
+    @GetMapping("")
+    @Operation(summary = "알림 다건 조회 api", description = "유저의 알림 다건 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "알림 조회 성공")
+    })
+    public CommonResponse<List<NotificationResponseDto>> getNotifications(
+            @AuthenticationPrincipal Long userId
     ) {
-        notificationService.send(userId, dto);
+        List<NotificationResponseDto> response = notificationService.getNotifications(userId);
+        return CommonResponse.success(response);
+    }
+
+    // 읽음 처리
+    @PatchMapping("/{notificationId}/read")
+    @Operation(summary = "알림 읽음 처리 api", description = "읽은 알림의 상태 변경")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "알림 상태 변경 성공"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 알림")
+    })
+    public CommonResponse<String> markRead(
+            @PathVariable Long notificationId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        notificationService.markRead(notificationId, userId);
+        return CommonResponse.success("읽음 처리 성공");
     }
 }

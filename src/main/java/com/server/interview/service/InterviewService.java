@@ -3,6 +3,7 @@ package com.server.interview.service;
 import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.*;
 import com.server.interview.dto.*;
+import com.server.interview.event.InterviewCreatedEvent;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.exception.InterviewNoteErrorCase;
 import com.server.interview.repository.*;
@@ -15,6 +16,7 @@ import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class InterviewService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final InterviewEvaluationRepository interviewEvaluationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
@@ -48,7 +51,8 @@ public class InterviewService {
                 ()->new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND)
         );
 
-        User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+        Long UserId = 1L;
+        User organizer = userRepository.findById(UserId).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
 
         LocalDateTime scheduledAt =  interviewCreateRequestDto.scheduledAt();
         InterviewStatus status = InterviewStatus.WAITING;
@@ -95,6 +99,9 @@ public class InterviewService {
         );
         interviewNoteRepository.save(interviewNote);
         //********************* 인터뷰 노트 생성 로직 ***********************//
+
+        // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
+        eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId()));
 
 
         return new InterviewCreateResponseDto(interview.getId());

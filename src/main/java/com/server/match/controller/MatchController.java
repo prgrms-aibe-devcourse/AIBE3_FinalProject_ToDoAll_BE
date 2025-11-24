@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -106,7 +107,11 @@ public class MatchController {
     public CommonResponse<List<ResumeRecommendationDto>> recommendResumes(
             @RequestParam @NotNull Long jdId
     ) {
-        List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId);
-        return CommonResponse.success(recommendations);
+        try {
+            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId);
+            return CommonResponse.success(recommendations);
+        } catch (IOException e) {
+            throw new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND, e);
+        }
     }
 }

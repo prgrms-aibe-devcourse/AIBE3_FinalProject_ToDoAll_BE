@@ -1,5 +1,6 @@
 package com.server.search.document;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.server.resume.domain.Resume;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @NoArgsConstructor
 @Document(indexName = "resume")

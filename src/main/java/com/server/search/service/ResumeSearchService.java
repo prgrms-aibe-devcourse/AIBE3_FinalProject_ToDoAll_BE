@@ -21,6 +21,11 @@ public class ResumeSearchService {
 
     // 개별 색인
     public void index(Resume resume) {
+        // JD 또는 스킬 정보가 없는 이력서는 색인에서 제외
+        if (resume.getJobDescription() == null || resume.getSkills().isEmpty()) {
+            System.out.println("색인 제외: 이력서 ID " + resume.getId() + " (JD 또는 스킬 없음)");
+            return;
+        }
         ResumeDocument document = ResumeDocument.of(resume);
         resumeSearchRepository.save(document);
     }
@@ -40,11 +45,10 @@ public class ResumeSearchService {
     public void indexAll() {
         List<Resume> resumes = resumeRepository.findAll();
         for (Resume resume : resumes) {
-            ResumeDocument document = ResumeDocument.of(resume);
-            resumeSearchRepository.save(document);
+            index(resume); // 위에서 조건 필터링 포함
         }
 
-        System.out.println(">> 색인 완료: 총 " + resumes.size() + "개");
+        System.out.println(">> 색인 완료: 총 " + resumes.size() + "개 시도 (실제 색인 개수는 로그 확인)");
     }
 
     public long count() {

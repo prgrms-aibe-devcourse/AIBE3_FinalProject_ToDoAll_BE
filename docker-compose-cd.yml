@@ -1,6 +1,9 @@
 services:
   app:
     image: ghcr.io/${OWNER_NAME}/jobda-app:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: jobda-app
     ports:
       - "8080:8080"
@@ -43,4 +46,3 @@ services:
 
 volumes:
   redis-data:
-  mysql-data:

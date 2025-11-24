@@ -11,7 +11,7 @@ permissions:
   packages: write
 
 jobs:
-  build-and-test:
+  Test-And-Build:
     runs-on: ubuntu-latest
 
     services:
@@ -130,9 +130,9 @@ jobs:
           name: jobda-app-jar
           path: build/libs/*.jar
 
-  makeTagAndRelease:
+  Make-Tag-And-Release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/release'
-    needs: build-and-test
+    needs: Test-And-Build
     runs-on: ubuntu-latest
 
     outputs:
@@ -151,20 +151,14 @@ jobs:
           release_name: Release ${{ steps.create_tag.outputs.new_tag }}
           body: ${{ steps.create_tag.outputs.changelog }}
 
-  pushDockerCompose :
+  Compose-Build-And-Push :
     if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
-    needs: [makeTagAndRelease, build-and-test]
+    needs: [Make-Tag-And-Release, Test-And-Build]
 
     env:
       OWNER_NAME: ${{ github.repository_owner }}
-      IMAGE_TAG: ${{ needs.makeTagAndRelease.outputs.tag_name }}
-      REPO_URL: https://github.com/${{ github.repository }}
-      MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      IMAGE_TAG: ${{ needs.Make-Tag-And-Release.outputs.tag_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -175,10 +169,10 @@ jobs:
           name: jobda-app-jar
           path: build/libs
 
-      - name: Build Docker Compose (dev)
+      - name: Build Docker Compose
         run: |
-          docker compose -f docker-compose-dev.yml build
-          docker compose -f docker-compose-dev.yml config
+          docker compose -f docker-compose-cd.yml build
+          docker compose -f docker-compose-cd.yml config
 
       - name: Login to Github Container Registry (ghcr)
         uses: docker/login-action@v2
@@ -189,12 +183,12 @@ jobs:
 
       - name : Push Docker Compose
         run: |
-          docker compose -f docker-compose-dev.yml push app
+          docker compose -f docker-compose-cd.yml push app
 
-  deploy:
+  Deploy-Compose:
     if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
-    needs: [pushDockerCompose, makeTagAndRelease]
+    needs: [Compose-Build-And-Push, Make-Tag-And-Release]
 
     steps:
       - uses: actions/checkout@v4
@@ -222,7 +216,7 @@ jobs:
             
             cat > .env << EOF
             OWNER_NAME=${{ github.repository_owner }}
-            IMAGE_TAG=${{ needs.makeTagAndRelease.outputs.tag_name }}
+            IMAGE_TAG=${{ needs.Make-Tag-And-Release.outputs.tag_name }}
             AWS_RDS_URL=${{ secrets.AWS_RDS_URL }}
             MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
             AWS_RDS_ROOT_PASSWORD=${{ secrets.AWS_RDS_ROOT_PASSWORD }}

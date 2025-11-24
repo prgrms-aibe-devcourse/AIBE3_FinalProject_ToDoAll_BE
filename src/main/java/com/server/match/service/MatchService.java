@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -110,6 +111,9 @@ public class MatchService {
                     ResumeDocument doc = hit.getContent();
                     Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
                     if (resume == null) return null;
+
+                    // JD ID가 일치하지 않으면 추천 제외
+                    if (!Objects.equals(resume.getJobDescription().getId(), jd.getId())) return null;
 
                     boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), doc.getId());
                     if (exists) return null;

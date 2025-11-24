@@ -84,7 +84,9 @@ dependencies {
 
     // Elastic Search
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
-    // implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.18'
+    implementation 'co.elastic.clients:elasticsearch-java:8.13.4'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.3'
+    implementation 'jakarta.json:jakarta.json-api:2.1.1'
 
     // Spring AI
     implementation(platform("org.springframework.ai:spring-ai-bom:1.1.0"))

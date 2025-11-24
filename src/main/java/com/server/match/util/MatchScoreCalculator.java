@@ -28,8 +28,12 @@ public class MatchScoreCalculator {
     }
 
     public static List<String> getMissingSkills(JobDescription jd, ResumeDocument resume) {
-        List<String> requiredSkills = jd.getRequiredSkillNames();
-        List<String> preferredSkills = jd.getPreferredSkillNames();
+        List<String> requiredSkills = jd.getRequiredSkillNames().stream()
+                .map(String::toLowerCase)
+                .toList();
+        List<String> preferredSkills = jd.getPreferredSkillNames().stream()
+                .map(String::toLowerCase)
+                .toList();
         List<String> resumeSkills = resume.getSkills().stream()
                 .map(String::toLowerCase)
                 .toList();

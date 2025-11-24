@@ -1,10 +1,8 @@
 package com.server.mcp.service;
 
-import com.server.interview.service.InterviewService;
-import com.server.mcp.dto.InterviewCreatedEvent;
+import com.server.mcp.dto.InterviewCreatedAiEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -13,7 +11,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class InterviewAiListener {
     private final InterviewQuestionAiService interviewQuestionAiService;
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleInterviewCreated(InterviewCreatedEvent event) {
+    public void handleInterviewCreated(InterviewCreatedAiEvent event) {
         interviewQuestionAiService.requestAutoQuestionGenerate(
                 event.interviewId(),
                 event.resumeId(),

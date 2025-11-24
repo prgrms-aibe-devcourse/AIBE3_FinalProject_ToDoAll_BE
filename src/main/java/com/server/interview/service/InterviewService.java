@@ -10,7 +10,7 @@ import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
-import com.server.mcp.service.InterviewQuestionAiService;
+import com.server.mcp.dto.InterviewCreatedAiEvent;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
@@ -106,15 +106,15 @@ public class InterviewService {
         eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId()));
 
 
-        //********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
-//        applicationEventPublisher.publishEvent(
-//                new InterviewCreatedEvent(
-//                        interview.getId(),
-//                        resume.getId(),
-//                        jobDescription.getId()
-//                )
-//        );
-        //********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
+        // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
+        applicationEventPublisher.publishEvent(
+                new InterviewCreatedAiEvent(
+                        interview.getId(),
+                        resume.getId(),
+                        jobDescription.getId()
+                )
+        );
+        // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
         return new InterviewCreateResponseDto(interview.getId());
     }
 

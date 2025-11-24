@@ -1,6 +1,6 @@
 package com.server.mcp.dto;
 
-public record InterviewCreatedEvent(
+public record InterviewCreatedAiEvent(
         Long interviewId,
         Long resumeId,
         Long jdId

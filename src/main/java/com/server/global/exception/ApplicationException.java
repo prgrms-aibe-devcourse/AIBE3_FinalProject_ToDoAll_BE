@@ -12,6 +12,11 @@ public class ApplicationException extends RuntimeException {
         this.errorCase = errorCase;
     }
 
+    public ApplicationException(ErrorCase errorCase, Throwable cause) {
+        super(errorCase.getMessage(), cause);
+        this.errorCase = errorCase;
+    }
+
     public static ApplicationException from(ErrorCase errorCase) {
         return new ApplicationException(errorCase);
     }

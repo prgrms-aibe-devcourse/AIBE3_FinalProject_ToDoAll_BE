@@ -11,3 +11,4 @@ public class AiConfig {
         return builder.build();
     }
 }
+

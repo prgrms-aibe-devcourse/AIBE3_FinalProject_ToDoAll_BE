@@ -1,22 +1,35 @@
 package com.server.global.config.elasticsearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.client.ClientConfiguration;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 
 @Configuration
-public class ElasticsearchConfig extends ElasticsearchConfiguration {
+public class ElasticsearchConfig {
 
-    @Value("${spring.data.elasticsearch.uris}")
-    private String host;
+    @Value("${spring.elasticsearch.uris}")
+    private String elasticsearchUrl;
 
-    @Override
-    public ClientConfiguration clientConfiguration() {
-        return ClientConfiguration.builder()
-                .connectedTo(host)
-                .withConnectTimeout(10000)
-                .withSocketTimeout(30000)
-                .build();
+    @Bean
+    public ElasticsearchClient elasticsearchClient() {
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        JacksonJsonpMapper jsonpMapper = new JacksonJsonpMapper(objectMapper);
+
+        RestClient restClient = RestClient.builder(HttpHost.create(elasticsearchUrl)).build();
+        ElasticsearchTransport transport = new RestClientTransport(restClient, jsonpMapper);
+
+        return new ElasticsearchClient(transport);
     }
 }

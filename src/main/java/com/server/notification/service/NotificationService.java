@@ -1,16 +1,18 @@
 package com.server.notification.service;
 
 import com.server.global.exception.ApplicationException;
-import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.notification.domain.Notification;
 import com.server.notification.dto.NotificationRequestDto;
 import com.server.notification.dto.NotificationResponseDto;
+import com.server.notification.event.NotificationCreatedEvent;
 import com.server.notification.exception.NotificationErrorCase;
 import com.server.notification.repository.EmitterRepository;
 import com.server.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -22,12 +24,13 @@ import java.util.List;
 public class NotificationService {
 
     private final EmitterRepository emitterRepository;
-    private final InterviewParticipantRepository participantRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final NotificationRepository notificationRepository;
 
     private static final Long TIMEOUT = 1000L * 60 * 60; // 1시간
 
     // 클라이언트가 구독할 때 호출
+    @Transactional
     public SseEmitter subscribe(Long userId) {
 
         SseEmitter emitter = new SseEmitter(TIMEOUT);
@@ -47,31 +50,46 @@ public class NotificationService {
     }
 
     // 알림 생성 + DB 저장 + SSE 실시간
-    @Transactional
-    public void notifyUser(NotificationRequestDto requestDto) {
+    // DB 저장 + 이벤트 발행
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void notifyUser(NotificationRequestDto dto) {
 
-        // DB 저장
-        Notification notification = Notification.of(requestDto.userId(), requestDto.title(), requestDto.message());
-        notificationRepository.save(notification);
-
-        Long UserId = requestDto.userId();
-
-        NotificationResponseDto responseDto = new NotificationResponseDto(
-                notification.getId(),
-                notification.getTitle(),
-                notification.getMessage(),
-                notification.isReadFlag(),
-                notification.getCreatedAt()
+        // 1) DB 저장
+        Notification saved = Notification.of(
+                dto.userId(),
+                dto.type(),
+                dto.title(),
+                dto.message(),
+                dto.payload()
         );
+        notificationRepository.save(saved);
 
-        // SSE 전송
-        if (emitterRepository.hasEmitter(UserId)) {
-            SseEmitter emitter = emitterRepository.get(UserId);
-            try {
-                emitter.send(SseEmitter.event().name("notification").data(responseDto));
-            } catch (Exception e) {
-                emitterRepository.delete(UserId);
-            }
+        // 2) 이벤트 발행 (트랜잭션 종료 후 SSE 전송)
+        eventPublisher.publishEvent(new NotificationCreatedEvent(saved));
+    }
+
+    // SSE 전송 (트랜잭션 바깥)
+    @Transactional
+    public void sendSse(Notification notification) {
+
+        Long userId = notification.getUserId();
+
+        if (!emitterRepository.hasEmitter(userId)) {
+            return; // SSE 구독 안한 상태일 수도 있음
+        }
+
+        SseEmitter emitter = emitterRepository.get(userId);
+
+        NotificationResponseDto responseDto = NotificationResponseDto.from(notification);
+
+        try {
+            emitter.send(
+                    SseEmitter.event()
+                            .name("notification")
+                            .data(responseDto)
+            );
+        } catch (Exception e) {
+            emitterRepository.delete(userId);
         }
     }
 
@@ -88,15 +106,19 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationResponseDto> getNotifications(Long userId) {
 
+        // 테스트를 위해 하드코딩 나중에 삭제
         userId = 1L;
+
         //userId에 해당하는 알림들 최신순으로 다건 조회
         List<Notification> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
         return notifications.stream()
                 .map(n -> new NotificationResponseDto(
                         n.getId(),
+                        n.getType(),
                         n.getTitle(),
                         n.getMessage(),
+                        n.getPayload(),
                         n.isReadFlag(),
                         n.getCreatedAt()
                 ))

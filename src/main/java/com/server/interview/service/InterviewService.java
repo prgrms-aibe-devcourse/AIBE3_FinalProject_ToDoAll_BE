@@ -3,13 +3,13 @@ package com.server.interview.service;
 import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.*;
 import com.server.interview.dto.*;
+import com.server.interview.event.InterviewCreatedEvent;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.exception.InterviewNoteErrorCase;
 import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
-import com.server.notification.dto.NotificationRequestDto;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
@@ -101,14 +101,9 @@ public class InterviewService {
         //********************* 인터뷰 노트 생성 로직 ***********************//
 
         // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
-        eventPublisher.publishEvent(
-                new NotificationRequestDto(
-                        UserId,
-                        "면접 생성 알림",
-                        "새로운 면접이 생성되었습니다!",
-                        interview.getCreatedAt()
-                )
-        );
+        eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId()));
+
+
         return new InterviewCreateResponseDto(interview.getId());
     }
 

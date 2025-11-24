@@ -1,7 +1,6 @@
 package com.server.notification.controller;
 
 import com.server.global.response.CommonResponse;
-import com.server.notification.dto.NotificationRequestDto;
 import com.server.notification.dto.NotificationResponseDto;
 import com.server.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,15 +60,5 @@ public class NotificationController {
         notificationService.markRead(notificationId);
 
         return CommonResponse.success("읽음 처리 성공");
-
-    }
-
-    // 테스트용: 서버 → 클라 알림 보내기 실제 환경에서는 사용되지 않는 api
-    @PostMapping("/send")
-    @Operation(summary = "SSE 알림 전송 테스트 api", description = "서버에서 클라이언트로 알림이 정상적으로 보내는지 확인하는 test api입니다.")
-    public void send(
-            @RequestBody NotificationRequestDto dto
-    ) {
-        notificationService.notifyUser(dto);
     }
 }

@@ -1,19 +1,12 @@
 package com.server.notification.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.server.notification.domain.NotificationType;
 
-import java.time.LocalDateTime;
-
-public record NotificationRequestDto(
-        @NotNull
+public record NotificationRequestDto (
         Long userId,
-
-        @NotBlank
+        NotificationType type,
         String title,
-
-        @NotBlank
         String message,
-
-        LocalDateTime createdAt
-) {}
+        NotificationPayload payload
+) {
+}

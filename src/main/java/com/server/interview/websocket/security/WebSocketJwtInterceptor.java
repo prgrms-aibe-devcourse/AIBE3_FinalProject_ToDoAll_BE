@@ -2,6 +2,7 @@ package com.server.interview.websocket.security;
 
 import com.server.global.config.security.jwt.JwtAuthentication;
 import com.server.global.config.security.jwt.JwtTokenProvider;
+import com.server.interview.repository.InterviewParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -19,6 +20,7 @@ import java.security.Principal;
 public class WebSocketJwtInterceptor implements ChannelInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final InterviewParticipantRepository participantRepository;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -26,27 +28,44 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
 
         if(StompCommand.CONNECT.equals(accessor.getCommand())) {
             String token = accessor.getFirstNativeHeader("Authorization");
+            String interviewIdHeader = accessor.getFirstNativeHeader("interviewId");
 
-            if(token == null || token.isBlank() || !token.startsWith("Bearer ")) {
-                log.info("지원자 접속");
-                accessor.setUser(new AnonymousPrincipal());
-                return message;
+            if(interviewIdHeader == null) {
+                throw new IllegalArgumentException("interviewId 헤더가 필요합니다.");
             }
 
-            try {
-                token = token.substring(7);
-                Long userId = jwtTokenProvider.getUserId(token);
-                accessor.setUser(new JwtAuthentication(userId));
-            } catch (Exception e) {
+            Long interviewId = Long.parseLong(interviewIdHeader);
+
+            if(token != null && token.startsWith("Bearer ")) {
+                String rawToken = token.substring(7);
+
+                try {
+                    Long userId = jwtTokenProvider.getUserId(rawToken);
+
+                    boolean isParticipant = participantRepository.existsByInterviewIdAndUserId(interviewId, userId);
+
+                    if(!isParticipant) {
+                        log.warn("로그인 사용자가 participant가 아니므로 차단되었습니다.");
+                        throw new IllegalArgumentException("해당 인터뷰의 참여자가 아닙니다.");
+                    }
+
+                    accessor.setUser(new JwtAuthentication(userId));
+                    log.info("INTERVIEW CONNECT");
+                } catch (Exception e) {
+                    log.warn("JWT 파싱 실패 → 익명 처리", e);
+                    accessor.setUser(new AnonymousPrincipal());
+                }
+            } else {
                 accessor.setUser(new AnonymousPrincipal());
+                log.info("INTERVIEW CONNECT: anonymous");
             }
         }
 
         if(StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String destination = accessor.getDestination();
+            Principal principal = accessor.getUser();
 
             if(destination != null && destination.contains("/note")) {
-                Principal principal = accessor.getUser();
                 boolean isInterviewer = principal instanceof JwtAuthentication;
 
                 if(!isInterviewer) {

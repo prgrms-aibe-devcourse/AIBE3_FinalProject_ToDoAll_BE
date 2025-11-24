@@ -51,6 +51,10 @@ public class ResumeSearchService {
         return resumeSearchRepository.count();
     }
 
+    public List<ResumeDocument> findAllIndexedResumes() {
+        return resumeSearchRepository.findAll();
+    }
+
     // 주석 풀면 서버 실행 시 자동 색인
     /*
     @PostConstruct

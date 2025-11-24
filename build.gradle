@@ -114,5 +114,5 @@ tasks.register("act", Exec) {
     group = "dev"
     description = "Run GitHub Actions locally with act (pull_request)"
 
-    commandLine "act", "pull_request", "--secret-file", ".env", "-j", "build-and-test"
+    commandLine "act", "pull_request", "--secret-file", ".env", "-j", "Test-And-Build"
 }

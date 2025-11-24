@@ -1,5 +1,8 @@
 package com.server.match.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.server.ai.service.AiRecommendationService;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
@@ -19,16 +22,11 @@ import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.query.Criteria;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -42,7 +40,7 @@ public class MatchService {
     private final ResumeRepository resumeRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
     private final ResumeSearchService resumeSearchService;
-    private final ElasticsearchOperations elasticsearchOperations;
+    private final ElasticsearchClient elasticsearchClient;
     private final AiRecommendationService aiRecommendationService;
     private final ResumeSearchRepository resumeSearchRepository;
 
@@ -94,37 +92,41 @@ public class MatchService {
 
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
-    public List<ResumeRecommendationDto> recommendResumes(Long jdId) {
+    public List<ResumeRecommendationDto> recommendResumes(Long jdId) throws IOException {
         JobDescription jd = jobDescriptionRepository.findById(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
-        String queryText = jd.getDescription() + " " + String.join(" ", jd.getRequiredSkillNames());
+        String queryText = String.join(" ", jd.getRequiredSkillNames()) + " " +
+                String.join(" ", jd.getPreferredSkillNames());
 
-        Criteria criteria = new Criteria("fullText").matches(queryText)
-                .and(new Criteria("jdId").is(jd.getId()));
-        Query query = new CriteriaQuery(criteria, PageRequest.of(0, 10));
+        // Java client 사용
+        SearchRequest searchRequest = new SearchRequest.Builder()
+                .index("resume")
+                .query(q -> q.bool(b -> b
+                        .must(m1 -> m1.match(t -> t.field("fullText").query(queryText)))
+                        .must(m2 -> m2.term(t -> t.field("jdId").value(jdId)))
+                ))
+                .size(10)
+                .build();
 
-        SearchHits<ResumeDocument> hits = elasticsearchOperations.search(query, ResumeDocument.class);
+        SearchResponse<ResumeDocument> response = elasticsearchClient.search(
+                searchRequest,
+                ResumeDocument.class
+        );
 
-        return hits.getSearchHits().stream()
+        return response.hits().hits().stream()
                 .map(hit -> {
-                    ResumeDocument doc = hit.getContent();
+                    ResumeDocument doc = hit.source();
+                    if (doc == null) return null;
+
                     Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
                     if (resume == null) return null;
 
-                    // JD ID가 일치하지 않으면 추천 제외
-                    if (!Objects.equals(resume.getJobDescription().getId(), jd.getId())) return null;
-
-                    boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), doc.getId());
+                    boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jdId, doc.getId());
                     if (exists) return null;
 
                     float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
-
-                    System.out.println(">>> JD 필수 스킬: " + jd.getRequiredSkillNames());
-                    System.out.println(">>> 이력서 보유 스킬: " + doc.getSkills());
-                    System.out.println(">>> 계산된 missingSkills: " + missingSkills);
-                    System.out.println(">>> 계산된 matchScore: " + score);
 
                     String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
 
@@ -133,20 +135,12 @@ public class MatchService {
                         reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
                     }
 
-                    Match match = Match.of(
-                            jd,
-                            resume,
-                            LocalDateTime.now(),
-                            score,
-                            reason,
-                            summary,
-                            MatchStatus.RECOMMENDED
-                    );
+                    Match match = Match.of(jd, resume, LocalDateTime.now(), score, reason, summary, MatchStatus.RECOMMENDED);
                     matchRepository.save(match);
 
                     return ResumeRecommendationDto.from(resume, doc, score, missingSkills, summary, reason);
                 })
-                .filter(dto -> dto != null)
+                .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())
                 .toList();
     }

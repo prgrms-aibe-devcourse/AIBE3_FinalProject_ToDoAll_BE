@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.server.resume.domain.QResume.resume;
 
 @Service
 @RequiredArgsConstructor
@@ -45,10 +48,18 @@ public class ResumeSearchService {
     public void indexAll() {
         List<Resume> resumes = resumeRepository.findAll();
         for (Resume resume : resumes) {
-            index(resume); // 위에서 조건 필터링 포함
-        }
+            if (resume.getSkills().isEmpty() || resume.getJobDescription() == null) {
+                System.out.println("색인 제외: 이력서 ID " + resume.getId() + " (JD 또는 스킬 없음)");
+                continue;
+            }
 
-        System.out.println(">> 색인 완료: 총 " + resumes.size() + "개 시도 (실제 색인 개수는 로그 확인)");
+            System.out.println("색인 대상: 이력서 ID " + resume.getId() +
+                    " / JD ID: " + resume.getJobDescription().getId() +
+                    " / Skills: " + resume.getSkills().stream()
+                    .map(s -> s.getSkill().getName()).collect(Collectors.toList()));
+
+            index(resume);  // 실제 색인 메서드 호출
+        }
     }
 
     public long count() {

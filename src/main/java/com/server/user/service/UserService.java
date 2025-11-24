@@ -1,5 +1,7 @@
 package com.server.user.service;
 
+import com.server.auth.exception.AuthErrorCase;
+import com.server.auth.service.EmailAuthService;
 import com.server.global.exception.ApplicationException;
 import com.server.user.domain.User;
 import com.server.user.dto.UserProfileResponseDto;
@@ -13,44 +15,42 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.server.user.domain.Gender;
 
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
+    private final EmailAuthService emailAuthService;    // 이메일 인증 검증
 
+
+    //회원가입
     @Transactional
     public UserSignupResponseDto signup(UserSignupRequestDto request) {
+
+        // 0) 이메일 인증 여부 확인 (이메일 + 토큰)
+        if (!emailAuthService.isVerifiedEmail(request.getEmail())) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_REQUIRED);
+        }
 
         // 1) 이메일 중복 검사
         if (userRepository.existsByEmail(request.getEmail())) {
             throw ApplicationException.from(UserErrorCase.USER_ALREADY_EXISTS);
         }
 
-        // 2) 비밀번호 & 비밀번호 확인 불일치
-        if (!request.getPassword().equals(request.getPasswordConfirm())) {
-            throw ApplicationException.from(UserErrorCase.PASSWORD_CONFIRM_MISMATCH);
-        }
-
-        // 3) 비밀번호 정책 검사
+        // 2) 비밀번호 정책 검사
         passwordValidator.validateForSignup(
                 request.getPassword(),
                 request.getEmail()
         );
 
-        // 4) 비밀번호 암호화
+        // 3) 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // 5) 엔티티 생성
+        // 4) 유저 생성
         User newUser = User.createForSignup(
                 request.getEmail(),
                 encodedPassword,
@@ -60,10 +60,10 @@ public class UserService {
                 request.getPosition()
         );
 
-        // 6) 저장
+        // 5) 저장
         User saved = userRepository.save(newUser);
 
-        // 7) 응답 DTO
+        // 6) 응답 DTO
         return UserSignupResponseDto.from(saved);
     }
 

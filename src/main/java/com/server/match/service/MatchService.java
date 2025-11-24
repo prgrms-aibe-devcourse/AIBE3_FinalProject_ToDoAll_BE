@@ -18,7 +18,9 @@ import com.server.search.dto.ResumeRecommendationDto;
 import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.Criteria;
@@ -137,8 +139,8 @@ public class MatchService {
     }
 
     @Transactional(readOnly = true)
-    public List<MatchListResponseDto> getMatchedResumes(MatchSearchCondition condition) {
-        return matchRepository.searchMatches(condition).getContent();
+    public Page<MatchListResponseDto> getMatchedResumesPaged(MatchSearchCondition condition, Pageable pageable) {
+        return matchRepository.searchMatches(condition, pageable);
     }
 
     @Transactional(readOnly = true)

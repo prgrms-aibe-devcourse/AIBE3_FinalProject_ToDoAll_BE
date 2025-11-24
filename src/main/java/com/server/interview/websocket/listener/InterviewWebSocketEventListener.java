@@ -30,7 +30,7 @@ public class InterviewWebSocketEventListener {
             userId = auth.getUserId();
         }
 
-        boolean isInterviewer = (principal != null);
+        boolean isInterviewer = principal instanceof JwtAuthentication;
 
         if(value != null) {
             Long interviewId = Long.parseLong(value);

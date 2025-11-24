@@ -55,10 +55,10 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 알림")
     })
     public CommonResponse<String> markRead(
-            @PathVariable Long notificationId
+            @PathVariable Long notificationId,
+            @AuthenticationPrincipal Long userId
     ) {
-        notificationService.markRead(notificationId);
-
+        notificationService.markRead(notificationId, userId);
         return CommonResponse.success("읽음 처리 성공");
     }
 }

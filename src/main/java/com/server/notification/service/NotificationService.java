@@ -90,6 +90,7 @@ public class NotificationService {
             );
         } catch (Exception e) {
             emitterRepository.delete(userId);
+            log.warn("SSE 전송 실패", e);
         }
     }
 
@@ -106,31 +107,25 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationResponseDto> getNotifications(Long userId) {
 
-        // 테스트를 위해 하드코딩 나중에 삭제
-        userId = 1L;
-
         //userId에 해당하는 알림들 최신순으로 다건 조회
         List<Notification> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
         return notifications.stream()
-                .map(n -> new NotificationResponseDto(
-                        n.getId(),
-                        n.getType(),
-                        n.getTitle(),
-                        n.getMessage(),
-                        n.getPayload(),
-                        n.isReadFlag(),
-                        n.getCreatedAt()
-                ))
+                .map(NotificationResponseDto::from)
                 .toList();
+
     }
 
     @Transactional
-    public void markRead(Long notificationId) {
+    public void markRead(Long notificationId, Long currentUserId) {
+
         //알림 단건 조회
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOTIFICATION_NOT_FOUND));
 
+        if (!notification.getUserId().equals(currentUserId)) {
+            throw new ApplicationException(NotificationErrorCase.FORBIDDEN);
+        }
         // 읽음 표시
         notification.markRead();
     }

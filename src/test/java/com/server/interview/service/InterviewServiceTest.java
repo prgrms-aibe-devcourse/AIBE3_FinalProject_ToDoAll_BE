@@ -44,6 +44,7 @@ class InterviewServiceTest {
     private UserRepository userRepo;
     private InterviewEvaluationRepository  interviewEvaluationRepository;
     private ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher applicationEventPublisher;
 
     private InterviewService interviewService;
 
@@ -58,6 +59,7 @@ class InterviewServiceTest {
         userRepo = Mockito.mock(UserRepository.class);
         interviewEvaluationRepository =  Mockito.mock(InterviewEvaluationRepository.class);
         eventPublisher =  Mockito.mock(ApplicationEventPublisher.class);
+        applicationEventPublisher = Mockito.mock(ApplicationEventPublisher.class);
 
         interviewService = new InterviewService(
                 interviewRepository,
@@ -68,7 +70,8 @@ class InterviewServiceTest {
                 resumeRepo,
                 userRepo,
                 interviewEvaluationRepository,
-                eventPublisher
+                eventPublisher,
+                applicationEventPublisher
         );
     }
 

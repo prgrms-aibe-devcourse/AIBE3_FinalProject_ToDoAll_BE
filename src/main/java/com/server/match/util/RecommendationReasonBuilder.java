@@ -22,3 +22,4 @@ public class RecommendationReasonBuilder {
         return "다음 기술 경험이 공고와 일치합니다: " + String.join(", ", matchedSkills);
     }
 }
+

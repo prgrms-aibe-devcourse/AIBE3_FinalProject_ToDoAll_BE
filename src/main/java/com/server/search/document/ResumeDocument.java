@@ -1,5 +1,6 @@
 package com.server.search.document;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.server.resume.domain.Resume;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @NoArgsConstructor
 @Document(indexName = "resume")
@@ -27,6 +29,8 @@ public class ResumeDocument {
     @Field(type = FieldType.Date, format = DateFormat.date)
     private LocalDate birthDate;
 
+    @Field(type = FieldType.Long)
+    private Long jdId;
 
     private String email;
     private String phone;
@@ -42,8 +46,8 @@ public class ResumeDocument {
     private String certificationSummary;
     private String activitySummary;
 
+    @Field(type = FieldType.Text, analyzer = "korean")
     private String fullText;
-
 
     public static ResumeDocument of(Resume resume) {
         ResumeDocument doc = new ResumeDocument();
@@ -52,6 +56,8 @@ public class ResumeDocument {
         doc.name = resume.getName();
         doc.gender = resume.getGender();
         doc.birthDate = resume.getBirthDate();
+
+        doc.jdId = resume.getJobDescription().getId();
 
         doc.email = resume.getEmail();
         doc.phone = resume.getPhone();

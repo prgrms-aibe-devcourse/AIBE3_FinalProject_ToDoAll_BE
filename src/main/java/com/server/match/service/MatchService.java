@@ -1,5 +1,8 @@
 package com.server.match.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.server.ai.service.AiRecommendationService;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
@@ -18,17 +21,16 @@ import com.server.search.dto.ResumeRecommendationDto;
 import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.Criteria;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
-import org.springframework.data.elasticsearch.core.query.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +40,7 @@ public class MatchService {
     private final ResumeRepository resumeRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
     private final ResumeSearchService resumeSearchService;
-    private final ElasticsearchOperations elasticsearchOperations;
+    private final ElasticsearchClient elasticsearchClient;
     private final AiRecommendationService aiRecommendationService;
     private final ResumeSearchRepository resumeSearchRepository;
 
@@ -90,55 +92,62 @@ public class MatchService {
 
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
-    public List<ResumeRecommendationDto> recommendResumes(Long jdId) {
-        System.out.println(">> 색인된 이력서 개수: " + resumeSearchRepository.count());
+    public List<ResumeRecommendationDto> recommendResumes(Long jdId) throws IOException {
         JobDescription jd = jobDescriptionRepository.findById(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
-        // Elasticsearch 검색
-        Criteria criteria = new Criteria("skills").in(
-                jd.getRequiredSkillNames().stream().map(String::toLowerCase).toList()
-        );
-        Query query = new CriteriaQuery(criteria, PageRequest.of(0, 10));
-        SearchHits<ResumeDocument> hits = elasticsearchOperations.search(query, ResumeDocument.class);
+        String queryText = String.join(" ", jd.getRequiredSkillNames()) + " " +
+                String.join(" ", jd.getPreferredSkillNames());
 
-        List<ResumeRecommendationDto> results = hits.getSearchHits().stream()
-                .map(hit -> hit.getContent())
-                .map(doc -> {
-                    // 중복 매칭 체크
-                    boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), doc.getId());
-                    if (exists) return null;
+        // Java client 사용
+        SearchRequest searchRequest = new SearchRequest.Builder()
+                .index("resume")
+                .query(q -> q.bool(b -> b
+                        .must(m1 -> m1.match(t -> t.field("fullText").query(queryText)))
+                        .must(m2 -> m2.term(t -> t.field("jdId").value(jdId)))
+                ))
+                .size(10)
+                .build();
+
+        SearchResponse<ResumeDocument> response = elasticsearchClient.search(
+                searchRequest,
+                ResumeDocument.class
+        );
+
+        return response.hits().hits().stream()
+                .map(hit -> {
+                    ResumeDocument doc = hit.source();
+                    if (doc == null) return null;
 
                     Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
                     if (resume == null) return null;
 
+                    boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jdId, doc.getId());
+                    if (exists) return null;
+
                     float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
-                    String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
-                    String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
 
-                    Match match = Match.of(
-                            jd,
-                            resume,
-                            LocalDateTime.now(),
-                            score,
-                            reason,
-                            summary,
-                            MatchStatus.RECOMMENDED
-                    );
+                    String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
+
+                    String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
+                    if (reason == null || reason.isBlank()) {
+                        reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
+                    }
+
+                    Match match = Match.of(jd, resume, LocalDateTime.now(), score, reason, summary, MatchStatus.RECOMMENDED);
                     matchRepository.save(match);
 
-                    return ResumeRecommendationDto.from(resume, doc, score, missingSkills, summary);
+                    return ResumeRecommendationDto.from(resume, doc, score, missingSkills, summary, reason);
                 })
-                .filter(dto -> dto != null)
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())
                 .toList();
-
-        return results;
     }
 
     @Transactional(readOnly = true)
-    public List<MatchListResponseDto> getMatchedResumes(MatchSearchCondition condition) {
-        return matchRepository.searchMatches(condition).getContent();
+    public Page<MatchListResponseDto> getMatchedResumesPaged(MatchSearchCondition condition, Pageable pageable) {
+        return matchRepository.searchMatches(condition, pageable);
     }
 
     @Transactional(readOnly = true)

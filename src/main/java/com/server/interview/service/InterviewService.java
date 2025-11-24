@@ -3,13 +3,13 @@ package com.server.interview.service;
 import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.*;
 import com.server.interview.dto.*;
+import com.server.interview.event.InterviewCreatedEvent;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.exception.InterviewNoteErrorCase;
 import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
-import com.server.mcp.dto.InterviewCreatedEvent;
 import com.server.mcp.service.InterviewQuestionAiService;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
@@ -40,6 +40,7 @@ public class InterviewService {
     private final UserRepository userRepository;
     private final InterviewEvaluationRepository interviewEvaluationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
@@ -52,7 +53,8 @@ public class InterviewService {
                 ()->new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND)
         );
 
-        User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+        Long UserId = 1L;
+        User organizer = userRepository.findById(UserId).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
 
         LocalDateTime scheduledAt =  interviewCreateRequestDto.scheduledAt();
         InterviewStatus status = InterviewStatus.WAITING;
@@ -100,14 +102,18 @@ public class InterviewService {
         interviewNoteRepository.save(interviewNote);
         //********************* 인터뷰 노트 생성 로직 ***********************//
 
+        // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
+        eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId()));
+
+
         //********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
-        applicationEventPublisher.publishEvent(
-                new InterviewCreatedEvent(
-                        interview.getId(),
-                        resume.getId(),
-                        jobDescription.getId()
-                )
-        );
+//        applicationEventPublisher.publishEvent(
+//                new InterviewCreatedEvent(
+//                        interview.getId(),
+//                        resume.getId(),
+//                        jobDescription.getId()
+//                )
+//        );
         //********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
         return new InterviewCreateResponseDto(interview.getId());
     }

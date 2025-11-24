@@ -1,8 +1,11 @@
 package com.server.search.controller;
 
+import com.server.search.document.ResumeDocument;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -31,5 +34,10 @@ public class ResumeIndexController {
     public String count() {
         long count = resumeSearchService.count();
         return "총 색인된 이력서 수: " + count;
+    }
+
+    @GetMapping("/indexed")
+    public List<ResumeDocument> getAllIndexedResumes() {
+        return resumeSearchService.findAllIndexedResumes();
     }
 }

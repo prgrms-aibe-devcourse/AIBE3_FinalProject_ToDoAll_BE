@@ -31,9 +31,12 @@ public class UserService {
     @Transactional
     public UserSignupResponseDto signup(UserSignupRequestDto request) {
 
-        // 0) 이메일 인증 여부 확인 (이메일 + 토큰)
-        if (!emailAuthService.isVerifiedEmail(request.getEmail())) {
-            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_REQUIRED);
+        // 0) 이메일 인증 토큰 검증 및 사용 처리
+        String verifiedEmail = emailAuthService.validateAndUseToken(request.getToken());
+
+        // 0-1) 토큰에서 나온 이메일과 요청 이메일 일치 확인
+        if (!verifiedEmail.equalsIgnoreCase(request.getEmail())) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_TOKEN_INVALID);
         }
 
         // 1) 이메일 중복 검사

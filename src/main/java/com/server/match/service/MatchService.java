@@ -44,7 +44,7 @@ public class MatchService {
     private final AiRecommendationService aiRecommendationService;
     private final KeywordExtractorService keywordExtractorService;
 
-    // JD 지원 + 매칭 등록 
+    // JD 지원 + 매칭 등록
     @Transactional
     public Match applyToJobDescription(MatchRequestDto dto) {
         JobDescription jd = jobDescriptionRepository.findById(dto.jdId())

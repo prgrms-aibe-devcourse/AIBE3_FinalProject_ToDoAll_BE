@@ -133,8 +133,19 @@ public class MatchService {
                     boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jdId, doc.getId());
                     if (exists) return null;
 
-                    // matchScore 계산 개선
-                    float score = MatchScoreCalculator.calculateMatchScoreWithKeywords(jd, doc, resume, jdKeywords);
+                    // MatchScore 계산 (스킬 + 학력 + 자격증 + 활동)
+                    float matchScore = MatchScoreCalculator.calculateMatchScoreWithKeywords(jd, doc, resume, jdKeywords);
+
+                    // ES 점수 반영
+                    float esScore = hit.score() != null ? hit.score().floatValue() : 0.0f;
+
+                    // 최종 점수 결과 = MatchScore * 0.7 + ES Score 정규화 * 0.3
+                    float normalizedEsScore = response.hits().maxScore() != null && response.hits().maxScore() > 0
+                            ? (float) (esScore / response.hits().maxScore())
+                            : 0.0f;
+
+                    float finalScore = (matchScore * 0.7f) + (normalizedEsScore * 0.3f);
+
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
 
                     String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
@@ -144,10 +155,10 @@ public class MatchService {
                         reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
                     }
 
-                    Match match = Match.of(jd, resume, LocalDateTime.now(), score, reason, summary, MatchStatus.RECOMMENDED);
+                    Match match = Match.of(jd, resume, LocalDateTime.now(), finalScore, reason, summary, MatchStatus.RECOMMENDED);;
                     matchRepository.save(match);
 
-                    return ResumeRecommendationDto.from(resume, doc, score, missingSkills, summary, reason);
+                    return ResumeRecommendationDto.from(resume, doc, finalScore, missingSkills, summary, reason);
                 })
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())

@@ -45,7 +45,7 @@ public class InterviewService {
     @Transactional
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
 
-        //********************* 인터뷰 생성 로직 *************************//
+        // 인터뷰 생성 로직
         JobDescription jobDescription = jobDescriptionRepository.findById(interviewCreateRequestDto.jdId()).orElseThrow(
                 () -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND)
         );
@@ -62,9 +62,8 @@ public class InterviewService {
         Interview interview = Interview.of(jobDescription, resume, organizer, scheduledAt, status);
 
         interviewRepository.save(interview);
-        //********************* 인터뷰 생성 로직 *************************//
 
-        //********************* 인터뷰 참여자 생성 로직 *************************//
+        // 인터뷰 참여자 생성 로직
         // organizer 먼저 등록
         InterviewParticipant organizerPart =
                 InterviewParticipant.of(interview, organizer, InterviewRole.INTERVIEWER, LocalDateTime.now());
@@ -93,14 +92,12 @@ public class InterviewService {
 
             interviewParticipantRepository.saveAll(observers);
         }
-        //********************* 인터뷰 참여자 생성 로직 *************************//
 
-        //********************* 인터뷰 노트 생성 로직 ***********************//
+        // 인터뷰 노트 생성 로직
         InterviewNote interviewNote = InterviewNote.of(
                 interview
         );
         interviewNoteRepository.save(interviewNote);
-        //********************* 인터뷰 노트 생성 로직 ***********************//
 
         // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
         eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId()));

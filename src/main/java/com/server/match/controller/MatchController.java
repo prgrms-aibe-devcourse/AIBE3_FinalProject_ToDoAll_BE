@@ -29,17 +29,17 @@ public class MatchController {
 
     private final MatchService matchService;
 
-    @PostMapping
-    @Operation(summary = "JD에 지원자 매칭 정보 등록", description = "JD에 특정 이력서가 지원하도록 매칭 정보를 생성합니다.")
+    @PostMapping("/apply")
+    @Operation(summary = "JD 지원 (매칭 등록 포함)", description = "JD에 지원하면 자동으로 매칭 정보도 생성됩니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "매칭 등록 성공"),
-            @ApiResponse(responseCode = "404", description = "채용공고 또는 이력서를 찾을 수 없음"),
-            @ApiResponse(responseCode = "409", description = "이미 매칭된 정보가 존재함")
+            @ApiResponse(responseCode = "200", description = "지원 성공"),
+            @ApiResponse(responseCode = "404", description = "JD 또는 이력서 없음"),
+            @ApiResponse(responseCode = "409", description = "이미 지원됨")
     })
-    public CommonResponse<MatchResponseDto> registerMatch(
+    public CommonResponse<MatchResponseDto> applyToJobDescription(
             @RequestBody @Valid MatchRequestDto dto
     ) {
-        Match match = matchService.registerMatch(dto);
+        Match match = matchService.applyToJobDescription(dto);
         MatchResponseDto response = new MatchResponseDto(match.getId(), match.getStatus());
         return CommonResponse.success(response);
     }

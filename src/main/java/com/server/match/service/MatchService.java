@@ -44,10 +44,9 @@ public class MatchService {
     private final AiRecommendationService aiRecommendationService;
     private final KeywordExtractorService keywordExtractorService;
 
-
-    // 매칭 등록 (지원자 직접 지원)
+    // JD 지원 + 매칭 등록 
     @Transactional
-    public Match registerMatch(MatchRequestDto dto) {
+    public Match applyToJobDescription(MatchRequestDto dto) {
         JobDescription jd = jobDescriptionRepository.findById(dto.jdId())
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
@@ -58,35 +57,8 @@ public class MatchService {
             throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_EXISTS);
         }
 
-        // 이력서 색인 or 조회
-        ResumeDocument doc = resumeSearchService.find(resume.getId())
-                .orElseGet(() -> {
-                    resumeSearchService.index(resume);
-                    return ResumeDocument.of(resume);
-                });
-
-        // AI 추천 사유 + 요약
-        String recommendation = aiRecommendationService.generateRecommendation(
-                jd.getDescription(), doc.getFullText()
-        );
-
-        String resumeSummary = aiRecommendationService.generateResumeSummary(doc.getFullText());
-
-        // 매칭 점수
-        float score = MatchScoreCalculator.calculateMatchScore(jd, doc, resume);
-
-        Match match = Match.of(
-                jd,
-                resume,
-                LocalDateTime.now(),
-                score,
-                recommendation,
-                resumeSummary,
-                MatchStatus.APPLIED
-        );
-
+        Match match = Match.ofForApplication(jd, resume);
         matchRepository.save(match);
-        resumeSearchService.index(resume);
 
         return match;
     }

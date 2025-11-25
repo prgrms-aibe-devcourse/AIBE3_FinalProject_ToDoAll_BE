@@ -146,28 +146,28 @@ INSERT INTO resume_skills (resume_id, skill_id, proficiency_level) VALUES
 (3019, 14, 'INTERMEDIATE'), (3019, 21, 'INTERMEDIATE'), (3019, 3, 'INTERMEDIATE');
 
 
--- 자격,어학 등 정보 
+-- 자격,어학 등 정보
 INSERT INTO resume_certifications (resume_id, type, name, score_or_level) VALUES
-(3000, 'TECHNICAL', '정보처리기사', '합격'),
-(3001, 'LANGUAGE', 'TOEIC', '870'),
-(3002, 'TECHNICAL', 'SQLD', '취득'),
-(3003, 'LANGUAGE', 'OPIc', 'IH'),
-(3004, 'TECHNICAL', 'ADsP', '취득'),
-(3005, 'LANGUAGE', 'TOEFL', '94'),
-(3006, 'TECHNICAL', '정보보안기사', '합격'),
-(3007, 'TECHNICAL', '리눅스마스터 2급', '합격'),
-(3008, 'TECHNICAL', '네트워크관리사 2급', '합격'),
-(3009, 'LANGUAGE', 'TOEIC Speaking', 'Level 7'),
-(3010, 'TECHNICAL', 'AWS Certified Solutions Architect', 'Associate'),
-(3011, 'LANGUAGE', 'TOEIC', '930'),
-(3012, 'TECHNICAL', '정보처리산업기사', '합격'),
-(3013, 'TECHNICAL', '빅데이터분석기사', '취득'),
-(3014, 'TECHNICAL', 'SAP FI 자격증', '취득'),
-(3015, 'LANGUAGE', 'TOEIC Speaking', 'Level 6'),
-(3016, 'TECHNICAL', 'Kotlin 개발자 인증', '합격'),
-(3017, 'TECHNICAL', '게임 기획 전문가', '취득'),
-(3018, 'TECHNICAL', 'IoT 전문가 자격증', '합격'),
-(3019, 'TECHNICAL', '리눅스 마스터 1급', '합격');
+                                                                              (3000, 'LICENSE', '정보처리기사', '합격'),
+                                                                              (3001, 'LANGUAGE', 'TOEIC', '870'),
+                                                                              (3002, 'LICENSE', 'SQLD', '취득'),
+                                                                              (3003, 'LANGUAGE', 'OPIc', 'IH'),
+                                                                              (3004, 'LICENSE', 'ADsP', '취득'),
+                                                                              (3005, 'LANGUAGE', 'TOEFL', '94'),
+                                                                              (3006, 'LICENSE', '정보보안기사', '합격'),
+                                                                              (3007, 'LICENSE', '리눅스마스터 2급', '합격'),
+                                                                              (3008, 'LICENSE', '네트워크관리사 2급', '합격'),
+                                                                              (3009, 'LANGUAGE', 'TOEIC Speaking', 'Level 7'),
+                                                                              (3010, 'LICENSE', 'AWS Certified Solutions Architect', 'Associate'),
+                                                                              (3011, 'LANGUAGE', 'TOEIC', '930'),
+                                                                              (3012, 'LICENSE', '정보처리산업기사', '합격'),
+                                                                              (3013, 'LICENSE', '빅데이터분석기사', '취득'),
+                                                                              (3014, 'LICENSE', 'SAP FI 자격증', '취득'),
+                                                                              (3015, 'LANGUAGE', 'TOEIC Speaking', 'Level 6'),
+                                                                              (3016, 'LICENSE', 'Kotlin 개발자 인증', '합격'),
+                                                                              (3017, 'LICENSE', '게임 기획 전문가', '취득'),
+                                                                              (3018, 'LICENSE', 'IoT 전문가 자격증', '합격'),
+                                                                              (3019, 'LICENSE', '리눅스 마스터 1급', '합격');
 
 -- 관련 활동 및 수상 정보
 INSERT INTO resume_activities (resume_id, title, type, organization) VALUES
@@ -191,3 +191,4 @@ INSERT INTO resume_activities (resume_id, title, type, organization) VALUES
                                                                          (3017, 'RPG 게임엔진 개발', 'PROJECT', '게임개발 동아리'),
                                                                          (3018, 'IoT 해커톤 우승', 'ACTIVITY', 'IoT Korea Hackathon'),
                                                                          (3019, '리눅스 커널 스터디', 'EDUCATION', 'Infra Study Group');
+

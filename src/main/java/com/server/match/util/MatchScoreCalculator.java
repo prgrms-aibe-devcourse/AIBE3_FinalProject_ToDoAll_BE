@@ -25,9 +25,9 @@ public class MatchScoreCalculator {
         float preferredScore = preferredSkills.isEmpty() ? 0 : (float) matchedPreferred / preferredSkills.size();
         float skillScore = (requiredScore * 0.7f) + (preferredScore * 0.3f);
 
-        // 학력 점수 (컴퓨터,정보 전공 + 학점 ≥ 3.0)
+        // 학력 점수 (컴퓨터,정보,소프트웨어 전공 + 학점 ≥ 3.0)
         float educationScore = resume.getEducations().stream()
-                .filter(e -> e.getMajor().toLowerCase().contains("컴퓨터") || e.getMajor().toLowerCase().contains("정보"))
+                .filter(e -> e.getMajor().toLowerCase().contains("컴퓨터") || e.getMajor().toLowerCase().contains("정보") || e.getMajor().toLowerCase().contains("소프트웨어"))
                 .map(e -> e.getGpa() >= 3.0 ? 1f : 0.7f)
                 .findFirst().orElse(0f);
 

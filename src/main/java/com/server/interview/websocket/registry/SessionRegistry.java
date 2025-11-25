@@ -13,21 +13,13 @@ public class SessionRegistry {
 
     private final Map<String, SessionInfo> sessions = new ConcurrentHashMap<>();
 
-    // interviewId -> lock 객체
-    private final Map<Long, Object> interviewLocks = new ConcurrentHashMap<>();
-
-    private Object getLock(Long interviewId) {
-        return interviewLocks.computeIfAbsent(interviewId, id -> new Object());
-    }
-
 
     public void addSession(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
 
         if (userId == null) userId = -1L;
 
-        Object lock = getLock(interviewId);
 
-        synchronized (lock) {
+        synchronized (interviewSessions.computeIfAbsent(interviewId, id -> ConcurrentHashMap.newKeySet())) {
             String existing = findSessionByUser(interviewId, userId);
             if(existing != null && !existing.equals(sessionId)) {
                 removeSessionInternal(existing);
@@ -59,14 +51,9 @@ public class SessionRegistry {
         if (info == null) return;
 
         Long interviewId = info.getInterviewId();
-        Object lock = getLock(interviewId);
 
-        synchronized (lock) {
+        synchronized (interviewSessions.computeIfAbsent(interviewId, id -> ConcurrentHashMap.newKeySet())) {
             removeSessionInternal(sessionId);
-
-            if (!interviewSessions.containsKey(interviewId)) {
-                interviewLocks.remove(interviewId);
-            }
         }
     }
 

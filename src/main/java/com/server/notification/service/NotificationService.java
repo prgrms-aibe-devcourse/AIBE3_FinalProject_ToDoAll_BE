@@ -4,7 +4,6 @@ import com.server.global.exception.ApplicationException;
 import com.server.notification.domain.Notification;
 import com.server.notification.dto.NotificationRequestDto;
 import com.server.notification.dto.NotificationResponseDto;
-import com.server.notification.event.NotificationCreatedEvent;
 import com.server.notification.exception.NotificationErrorCase;
 import com.server.notification.repository.EmitterRepository;
 import com.server.notification.repository.NotificationRepository;
@@ -49,27 +48,23 @@ public class NotificationService {
         return emitter; // 리턴이 끝나야 emitter에 HTTP OutputStream이 저장됨
     }
 
-    // 알림 생성 + DB 저장 + SSE 실시간
-    // DB 저장 + 이벤트 발행
+    // Notification 저장
+    // AFTER_COMMIT 뒤에는 REQUIRES_NEW 권장
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void notifyUser(NotificationRequestDto dto) {
-
-        // 1) DB 저장
-        Notification saved = Notification.of(
+    public Notification saveNotification(NotificationRequestDto dto) {
+        Notification notification = Notification.of(
                 dto.userId(),
                 dto.type(),
                 dto.title(),
                 dto.message(),
-                dto.payload()
+                dto.payload(),
+                dto.scheduledAt()
         );
-        notificationRepository.save(saved);
-
-        // 2) 이벤트 발행 (트랜잭션 종료 후 SSE 전송)
-        eventPublisher.publishEvent(new NotificationCreatedEvent(saved));
+        notificationRepository.save(notification);
+        return notification;
     }
 
-    // SSE 전송 (트랜잭션 바깥)
-    @Transactional
+    // SSE 전송
     public void sendSse(Notification notification) {
 
         Long userId = notification.getUserId();

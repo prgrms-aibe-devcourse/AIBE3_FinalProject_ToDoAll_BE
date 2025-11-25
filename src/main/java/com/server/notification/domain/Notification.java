@@ -33,11 +33,24 @@ public class Notification {
     private boolean readFlag; // 읽음 여부
     private LocalDateTime createdAt;
 
+    //보내질 시간
+    private LocalDateTime scheduledAt;
+
+    //보낸 시간
+    private LocalDateTime sentAt;
+
     public void markRead() {
         this.readFlag = true;
     }
 
-    public static Notification of(Long userId,NotificationType type, String title, String message, NotificationPayload payload) {
+    public static Notification of(
+            Long userId,
+            NotificationType type,
+            String title,
+            String message,
+            NotificationPayload payload,
+            LocalDateTime scheduledAt
+    ) {
         Notification n = new Notification();
         n.userId = userId;
         n.type = type;
@@ -53,6 +66,8 @@ public class Notification {
 
         n.readFlag = false;
         n.createdAt = LocalDateTime.now();
+        n.scheduledAt = scheduledAt;
+
         return n;
     }
 }

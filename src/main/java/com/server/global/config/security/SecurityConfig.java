@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
+                                "/mcp",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/api/v1/users", // 회원가입

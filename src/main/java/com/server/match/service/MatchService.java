@@ -190,4 +190,17 @@ public class MatchService {
         match.updateStatus(newStatus);
         return new MatchResponseDto(match.getId(), match.getStatus());
     }
+
+    @Transactional
+    public MatchCancelResponseDto cancelMatch(Long matchId) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
+
+        String jdTitle = match.getJobDescription().getTitle();
+        String resumeName = match.getResume().getName();
+
+        matchRepository.delete(match);
+
+        return new MatchCancelResponseDto(match.getId(), jdTitle, resumeName);
+    }
 }

@@ -6,7 +6,6 @@ import com.server.notification.repository.EmitterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Service
@@ -18,7 +17,6 @@ public class SseService {
     private static final Long TIMEOUT = 1000L * 60 * 60; // 1시간
 
     // 클라이언트가 구독할 때 호출
-    @Transactional
     public SseEmitter subscribe(Long userId) {
 
         SseEmitter emitter = new SseEmitter(TIMEOUT);

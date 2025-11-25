@@ -1,4 +1,4 @@
-package com.server.interview.websocket.service;
+package com.server.interview.websocket.registry;
 
 import org.springframework.stereotype.Component;
 
@@ -11,14 +11,7 @@ public class SessionRegistry {
     // interviewId -> sessionId 목록
     private final Map<Long, Set<String>> interviewSessions = new ConcurrentHashMap<>();
 
-    // sessionId -> interviewId
-    private final Map<String, Long> sessionInterviewMap = new ConcurrentHashMap<>();
-
-    // sessionId -> 면접관인지 여부
-    private final Map<String, Boolean> sessionInterviewrMap = new ConcurrentHashMap<>();
-
-    // sessionId -> userId
-    private final Map<String, Long> sessionUserMap = new ConcurrentHashMap<>();
+    private final Map<String, SessionInfo> sessions = new ConcurrentHashMap<>();
 
     // interviewId -> lock 객체
     private final Map<Long, Object> interviewLocks = new ConcurrentHashMap<>();
@@ -40,26 +33,32 @@ public class SessionRegistry {
                 removeSessionInternal(existing);
             }
 
-            interviewSessions.computeIfAbsent(interviewId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
+            sessions.put(sessionId, new SessionInfo(interviewId, userId, isInterviewer));
 
-            sessionInterviewMap.put(sessionId, interviewId);
-            sessionInterviewrMap.put(sessionId, isInterviewer);
-            sessionUserMap.put(sessionId, userId);
+            interviewSessions
+                    .computeIfAbsent(interviewId, id -> ConcurrentHashMap.newKeySet())
+                    .add(sessionId);
         }
     }
 
     private String findSessionByUser(Long interviewId, Long userId) {
-        return interviewSessions.getOrDefault(interviewId, Set.of()).stream()
-                .filter(s -> userId.equals(sessionUserMap.get(s)))
+        return interviewSessions
+                .getOrDefault(interviewId, Set.of())
+                .stream()
+                .filter(sId -> {
+                    SessionInfo info = sessions.get(sId);
+                    return info != null && Objects.equals(info.getUserId(), userId);
+                })
                 .findFirst()
                 .orElse(null);
     }
 
 
     public void removeSession(String sessionId) {
-        Long interviewId = sessionInterviewMap.get(sessionId);
-        if(interviewId == null) return;
+        SessionInfo info = sessions.get(sessionId);
+        if (info == null) return;
 
+        Long interviewId = info.getInterviewId();
         Object lock = getLock(interviewId);
 
         synchronized (lock) {
@@ -72,15 +71,12 @@ public class SessionRegistry {
     }
 
     private void removeSessionInternal(String sessionId) {
-        Long mappedInterviewId = sessionInterviewMap.remove(sessionId);
-        if (mappedInterviewId == null) {
-            return;
-        }
+        SessionInfo info = sessions.remove(sessionId);
+        if (info == null) return;
 
-        sessionInterviewrMap.remove(sessionId);
-        sessionUserMap.remove(sessionId);
+        Long interviewId = info.getInterviewId();
 
-        interviewSessions.computeIfPresent(mappedInterviewId, (id, set) -> {
+        interviewSessions.computeIfPresent(interviewId, (id, set) -> {
             set.remove(sessionId);
             return set.isEmpty() ? null : set;
         });
@@ -91,15 +87,18 @@ public class SessionRegistry {
     }
 
     public Long getInterviewIdBySession(String sessionId) {
-        return sessionInterviewMap.get(sessionId);
+        SessionInfo info = sessions.get(sessionId);
+        return info != null ? info.getInterviewId() : null;
     }
 
     public boolean isInterviewer(String sessionId) {
-        return Boolean.TRUE.equals(sessionInterviewrMap.get(sessionId));
+        SessionInfo info = sessions.get(sessionId);
+        return info != null && info.isInterviewer();
     }
 
     public Long getUserIdBySession(String sessionId) {
-        return sessionUserMap.get(sessionId);
+        SessionInfo info = sessions.get(sessionId);
+        return info != null ? info.getUserId() : null;
     }
 
 }

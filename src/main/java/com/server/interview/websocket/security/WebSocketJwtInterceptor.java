@@ -3,7 +3,7 @@ package com.server.interview.websocket.security;
 import com.server.global.config.security.jwt.JwtAuthentication;
 import com.server.global.config.security.jwt.JwtTokenProvider;
 import com.server.interview.repository.InterviewParticipantRepository;
-import com.server.interview.websocket.service.SessionRegistry;
+import com.server.interview.websocket.registry.SessionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;

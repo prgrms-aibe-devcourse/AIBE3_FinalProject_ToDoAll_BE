@@ -4,6 +4,7 @@ import com.server.interview.dto.InterviewNoteMemoCreateRequestDto;
 import com.server.interview.service.InterviewNoteMemoService;
 import com.server.interview.websocket.domain.ChatMessageEntity;
 import com.server.interview.websocket.dto.*;
+import com.server.interview.websocket.registry.SessionRegistry;
 import com.server.interview.websocket.repository.ChatMessageRepository;
 import com.server.user.service.UserService;
 import lombok.RequiredArgsConstructor;

@@ -3,6 +3,7 @@ package com.server.interview.websocket.service;
 import com.server.interview.websocket.dto.NoteMessage;
 import com.server.interview.service.InterviewNoteMemoService;
 import com.server.interview.dto.InterviewNoteMemoCreateRequestDto;
+import com.server.interview.websocket.registry.SessionRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

@@ -147,7 +147,7 @@ INSERT INTO resume_skills (resume_id, skill_id, proficiency_level) VALUES
 
 
 -- 자격,어학 등 정보 
-INSERT INTO resume_certifications (resume_id, type, name, scoreOrLevel) VALUES
+INSERT INTO resume_certifications (resume_id, type, name, score_or_level) VALUES
 (3000, 'TECHNICAL', '정보처리기사', '합격'),
 (3001, 'LANGUAGE', 'TOEIC', '870'),
 (3002, 'TECHNICAL', 'SQLD', '취득'),
@@ -169,25 +169,25 @@ INSERT INTO resume_certifications (resume_id, type, name, scoreOrLevel) VALUES
 (3018, 'TECHNICAL', 'IoT 전문가 자격증', '합격'),
 (3019, 'TECHNICAL', '리눅스 마스터 1급', '합격');
 
--- 관련 활동 및 수상 정보 
-INSERT INTO resume_activities (resume_id, title, description, start_date, end_date) VALUES
-(3000, 'GitHub Open Source Contributor', 'TensorFlow 프로젝트에 코드 기여', '2023-01-01', '2023-12-31'),
-(3001, 'AI 해커톤 참가', '대학 AI 해커톤에서 최우수상 수상', '2022-07-01', '2022-08-31'),
-(3002, '자체 프로젝트 운영', '개인 블로그 서비스 직접 개발 및 배포', '2021-05-01', '2022-05-01'),
-(3003, '기술 블로그 운영', 'Java 성능 튜닝 관련 기술 블로그 운영', '2020-01-01', '2021-01-01'),
-(3004, '모각코 운영진', '지역 커뮤니티 코딩 스터디 운영', '2022-03-01', '2023-03-01'),
-(3005, '국제 컨퍼런스 발표', 'SpringWorld 2023에서 발표자로 참가', '2023-05-01', '2023-05-02'),
-(3006, 'OSS 기여자', '오픈소스 Kafka 커넥터 개선 코드 병합됨', '2021-04-01', '2022-04-01'),
-(3007, '디자인 해커톤', 'UX/UI 해커톤에서 팀 리더로 수상', '2020-09-01', '2020-12-01'),
-(3008, '사이드 프로젝트 진행', '스터디 플랫폼 팀 프로젝트 진행', '2023-02-01', '2023-10-01'),
-(3009, 'AI 스터디 리더', 'GPT 기반 프로젝트 팀장 수행', '2022-01-01', '2022-12-31'),
-(3010, 'DevOps 세미나 참가', 'AWS DevOps 실무 전략 발표 세션 참여', '2022-03-01', '2022-03-01'),
-(3011, '데이터 분석 컨퍼런스 발표', 'SQL 튜닝과 시각화에 대해 발표', '2023-05-10', '2023-05-10'),
-(3012, '앱 배포 프로젝트', '플레이스토어에 1만 다운로드 이상 앱 등록', '2021-01-01', '2021-12-31'),
-(3013, 'AI 프로젝트 팀 리더', 'GPT 활용 추천 시스템 개발', '2022-06-01', '2023-06-01'),
-(3014, 'SAP 세미나', 'SAP 사용자 대상 교육 세션 발표', '2020-09-01', '2020-09-30'),
-(3015, '데이터 사이언스 해커톤', 'EDA 기반 시각화 대회 수상', '2021-08-01', '2021-08-15'),
-(3016, '사내 기술 세미나 발표', 'Kubernetes 기반 MSA 운영 발표', '2022-11-01', '2022-11-01'),
-(3017, '게임개발 동아리 운영', '자체 RPG 게임 엔진 개발 경험 공유', '2019-01-01', '2020-01-01'),
-(3018, 'IoT 해커톤 우승', '스마트홈 시스템 프로토타입 제작', '2020-10-01', '2020-11-30'),
-(3019, '인프라 운영 스터디', '리눅스 고급 커널 내부 구조 학습', '2021-04-01', '2022-04-01');
+-- 관련 활동 및 수상 정보
+INSERT INTO resume_activities (resume_id, title, type, organization) VALUES
+                                                                         (3000, 'GitHub Contributor', 'ACTIVITY', 'TensorFlow 팀'),
+                                                                         (3001, 'AI 해커톤 수상', 'ACTIVITY', 'Korea AI Hackathon'),
+                                                                         (3002, '블로그 서비스 운영', 'PROJECT', '개인 프로젝트'),
+                                                                         (3003, '기술 블로그 운영', 'ACTIVITY', 'Tistory Blog'),
+                                                                         (3004, '모각코 운영진', 'ACTIVITY', 'Seoul Developers'),
+                                                                         (3005, 'SpringWorld 발표자', 'EDUCATION', 'SpringWorld 컨퍼런스'),
+                                                                         (3006, 'Kafka 오픈소스 기여', 'PROJECT', 'Apache Software Foundation'),
+                                                                         (3007, 'UX/UI 해커톤 수상', 'ACTIVITY', 'Design Challenge Korea'),
+                                                                         (3008, '스터디 플랫폼 개발', 'PROJECT', '팀 사이드 프로젝트'),
+                                                                         (3009, 'GPT 스터디 리더', 'ACTIVITY', 'AI Study Club'),
+                                                                         (3010, 'DevOps 세미나 참가', 'EDUCATION', 'AWS Korea'),
+                                                                         (3011, 'SQL 시각화 발표', 'EDUCATION', 'Data Summit Korea'),
+                                                                         (3012, '앱 배포 프로젝트', 'PROJECT', '개인 프로젝트'),
+                                                                         (3013, '추천 시스템 개발', 'PROJECT', 'AI TF팀'),
+                                                                         (3014, 'SAP 사용자 세션 발표', 'EDUCATION', 'SAP Korea'),
+                                                                         (3015, '데이터 해커톤 참가', 'ACTIVITY', 'DataHack 2023'),
+                                                                         (3016, 'Kubernetes 발표', 'EDUCATION', '사내 기술 세미나'),
+                                                                         (3017, 'RPG 게임엔진 개발', 'PROJECT', '게임개발 동아리'),
+                                                                         (3018, 'IoT 해커톤 우승', 'ACTIVITY', 'IoT Korea Hackathon'),
+                                                                         (3019, '리눅스 커널 스터디', 'EDUCATION', 'Infra Study Group');

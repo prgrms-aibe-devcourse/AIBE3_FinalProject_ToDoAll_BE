@@ -4,34 +4,29 @@ import com.server.jd.domain.JobDescription;
 import com.server.resume.domain.Resume;
 import com.server.search.document.ResumeDocument;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MatchScoreCalculator {
 
-    public static float calculateMatchScore(JobDescription jd, ResumeDocument doc, Resume resume) {
-        List<String> jdKeywords = extractKeywords(jd.getDescription());
+    public static float calculateMatchScoreWithKeywords(
+            JobDescription jd,
+            ResumeDocument doc,
+            Resume resume,
+            List<String> jdKeywords
+    ) {
+        float skillScore = calculateSkillScore(jd, doc); // 기존 스킬 점수
 
-        List<String> resumeSkills = doc.getSkills().stream().map(String::toLowerCase).toList();
-        List<String> requiredSkills = jd.getRequiredSkillNames();
-        List<String> preferredSkills = jd.getPreferredSkillNames();
-
-        long matchedRequired = requiredSkills.stream().filter(resumeSkills::contains).count();
-        long matchedPreferred = preferredSkills.stream().filter(resumeSkills::contains).count();
-
-        float requiredScore = requiredSkills.isEmpty() ? 0 : (float) matchedRequired / requiredSkills.size();
-        float preferredScore = preferredSkills.isEmpty() ? 0 : (float) matchedPreferred / preferredSkills.size();
-        float skillScore = (requiredScore * 0.7f) + (preferredScore * 0.3f);
-
-        // 학력 점수 (컴퓨터,정보,소프트웨어 전공 + 학점 ≥ 3.0)
+        // 학력 점수 (전공 + 학점)
         float educationScore = resume.getEducations().stream()
-                .filter(e -> e.getMajor().toLowerCase().contains("컴퓨터") || e.getMajor().toLowerCase().contains("정보") || e.getMajor().toLowerCase().contains("소프트웨어"))
+                .filter(e -> {
+                    String major = e.getMajor().toLowerCase();
+                    return major.contains("컴퓨터") || major.contains("정보") || major.contains("소프트웨어");
+                })
                 .map(e -> e.getGpa() >= 3.0 ? 1f : 0.7f)
                 .findFirst().orElse(0f);
 
-        // 경험 점수 (경력 포지션에 JD 키워드 포함)
+        // 경력 점수 (JD 키워드 포함)
         float experienceScore = resume.getExperiences().stream()
                 .anyMatch(e -> jdKeywords.stream().anyMatch(kw -> e.getPosition().toLowerCase().contains(kw))) ? 1f : 0f;
 
@@ -43,21 +38,43 @@ public class MatchScoreCalculator {
         float activityScore = resume.getActivities().stream()
                 .anyMatch(a -> jdKeywords.stream().anyMatch(kw -> a.getTitle().toLowerCase().contains(kw))) ? 1f : 0f;
 
-        return (skillScore * 0.5f) +
-                (educationScore * 0.15f) +
-                (experienceScore * 0.15f) +
-                (certificationScore * 0.10f) +
-                (activityScore * 0.10f);
+        return (skillScore * 0.5f)
+                + (educationScore * 0.15f)
+                + (experienceScore * 0.15f)
+                + (certificationScore * 0.10f)
+                + (activityScore * 0.10f);
     }
 
+    public static float calculateMatchScore(JobDescription jd, ResumeDocument doc, Resume resume) {
+        List<String> extractedKeywords = extractKeywords(jd.getDescription());
+        return calculateMatchScoreWithKeywords(jd, doc, resume, extractedKeywords);
+    }
+
+    // 스킬 점수 분리 (가중치 적용)
+    private static float calculateSkillScore(JobDescription jd, ResumeDocument doc) {
+        List<String> resumeSkills = doc.getSkills().stream().map(String::toLowerCase).toList();
+        List<String> requiredSkills = jd.getRequiredSkillNames();
+        List<String> preferredSkills = jd.getPreferredSkillNames();
+
+        long matchedRequired = requiredSkills.stream().filter(resumeSkills::contains).count();
+        long matchedPreferred = preferredSkills.stream().filter(resumeSkills::contains).count();
+
+        float requiredScore = requiredSkills.isEmpty() ? 0 : (float) matchedRequired / requiredSkills.size();
+        float preferredScore = preferredSkills.isEmpty() ? 0 : (float) matchedPreferred / preferredSkills.size();
+
+        return (requiredScore * 0.7f) + (preferredScore * 0.3f);
+    }
+
+    // 키워드 분해 (AI 미사용 시 fallback)
     private static List<String> extractKeywords(String text) {
         if (text == null) return List.of();
-        return List.of(text.toLowerCase().split("[\\s,()]+")).stream()
+        return Arrays.stream(text.toLowerCase().split("[\\s,()]+"))
                 .filter(w -> w.length() > 2)
                 .distinct()
-                .toList();
+                .collect(Collectors.toList());
     }
 
+    //JD 스킬 중 이력서에 없는 스킬 목록
     public static List<String> getMissingSkills(JobDescription jd, ResumeDocument resume) {
         List<String> requiredSkills = jd.getRequiredSkillNames().stream().map(String::toLowerCase).toList();
         List<String> preferredSkills = jd.getPreferredSkillNames().stream().map(String::toLowerCase).toList();

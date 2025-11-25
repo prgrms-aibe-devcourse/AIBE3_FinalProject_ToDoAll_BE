@@ -25,6 +25,9 @@ public class InterviewWebSocketService {
     private final InterviewNoteMemoService interviewNoteMemoService;
     private final UserService userService;
 
+    private String topic(Long interviewId, String type) {
+        return "/topic/interview/" + interviewId + "/" + type;
+    }
     public void handleUserJoin(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
         sessionRegistry.addSession(interviewId, userId, sessionId, isInterviewer);
         log.info("JOIN: sessionId={} interviewId={} interviewer={}", sessionId, interviewId, isInterviewer);
@@ -47,11 +50,14 @@ public class InterviewWebSocketService {
     }
 
     public void broadcastSystemMessage(Long interviewId, SystemEventType event, String content) {
+        SystemMessage outgoing = new SystemMessage(interviewId, event, content);
+
         messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/system",
-                new SystemMessage(interviewId, event, content)
+                topic(interviewId, "system"),
+                outgoing
         );
-        log.info("SYSTEM MESSAGE: interviewId={} event={} content={}", interviewId, event, content);
+
+        log.info("[SYSTEM] interviewId={} event={} content={}", interviewId, event, content);
     }
 
 
@@ -75,10 +81,12 @@ public class InterviewWebSocketService {
         );
 
         messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/chat",
+                topic(interviewId, "chat"),
                 outgoing
         );
-        log.info("CHAT MESSAGE: interviewId={} senderId={} sender={} content={}", interviewId, message.getSenderId(), message.getSender(), message.getContent());
+
+        log.info("[CHAT] interviewId={} senderId={} sender={} content={}",
+                interviewId, message.getSenderId(), message.getSender(), message.getContent());
     }
 
     public void broadcastNoteMessage(Long interviewId, String sessionId, NoteMessageRequestDto noteMessage) {
@@ -111,12 +119,11 @@ public class InterviewWebSocketService {
 
 
         messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/note",
+                topic(interviewId, "note"),
                 outgoing
         );
 
-
-        log.info("NOTE MESSAGE: interviewId={} senderId={} sender={} noteId={}",
+        log.info("[NOTE] interviewId={} senderId={} sender={} noteId={}",
                 interviewId, senderId, senderName, noteId);
     }
 

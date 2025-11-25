@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -45,16 +46,27 @@ class WebSocketValidationTest {
                 List.of(new WebSocketTransport(new StandardWebSocketClient()));
 
         SockJsClient sockJsClient = new SockJsClient(transports);
-        stompClient = new WebSocketStompClient(sockJsClient); // ✔ 기존 stompClient 재사용
 
+        stompClient = new WebSocketStompClient(sockJsClient);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
-        return stompClient.connectAsync(
-                "ws://localhost:" + port + "/ws/interview",
-                new StompSessionHandlerAdapter() {}
-        ).get(2, TimeUnit.SECONDS);
-    }
+        WebSocketHttpHeaders wsHeaders = new WebSocketHttpHeaders();
+        StompHeaders stompHeaders = new StompHeaders();
 
+        // ⭐⭐⭐ 반드시 넣어야 함 ⭐⭐⭐
+        stompHeaders.add("interviewId", "1");
+
+        // 인증 필요 없으면 생략 가능
+        // stompHeaders.add("Authorization", "Bearer " + someToken);
+
+        return stompClient
+                .connectAsync(
+                        "ws://localhost:" + port + "/ws/interview",
+                        wsHeaders,
+                        stompHeaders,
+                        new StompSessionHandlerAdapter() {})
+                .get(2, TimeUnit.SECONDS);
+    }
 
     @Test
     void invalidMessage_shouldNotBeBroadcast() throws Exception {

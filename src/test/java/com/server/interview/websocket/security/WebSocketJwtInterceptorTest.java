@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -22,24 +23,29 @@ import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-public class WebSocketJwtInterceptorTest {
+class WebSocketJwtInterceptorTest {
+
+    @LocalServerPort
+    private int port;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
     private WebSocketStompClient stompClient;
-    private final String URL = "http://localhost:8080/ws/interview";
+    private String URL;
 
     @BeforeEach
     void setup() {
+        URL = "http://localhost:" + port + "/ws/interview";
+
         stompClient = new WebSocketStompClient(
                 new SockJsClient(List.of(new WebSocketTransport(new StandardWebSocketClient())))
         );
+
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        stompClient.setDefaultHeartbeat(new long[]{0, 0});
     }
 
-
-   
     @Test
     void 면접관은_NOTE_구독_가능() throws Exception {
 
@@ -47,6 +53,8 @@ public class WebSocketJwtInterceptorTest {
 
         WebSocketHttpHeaders wsHeaders = new WebSocketHttpHeaders();
         StompHeaders stompHeaders = new StompHeaders();
+
+        stompHeaders.add("interviewId", "1");
         stompHeaders.add("Authorization", accessToken);
 
         StompSession session = stompClient
@@ -56,6 +64,7 @@ public class WebSocketJwtInterceptorTest {
         session.subscribe("/topic/interview/1/note", new TestHandler());
     }
 
+    // 🔽🔽🔽 여기에 추가!
     private static class TestHandler extends StompSessionHandlerAdapter {
 
         @Override
@@ -64,9 +73,19 @@ public class WebSocketJwtInterceptorTest {
         }
 
         @Override
+        public void handleFrame(StompHeaders headers, Object payload) {
+            System.out.println("Received: " + payload);
+        }
+
+        @Override
         public void handleException(StompSession session, StompCommand command,
                                     StompHeaders headers, byte[] payload, Throwable exception) {
             throw new RuntimeException(exception);
+        }
+
+        @Override
+        public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+            System.out.println("Connected!");
         }
     }
 }

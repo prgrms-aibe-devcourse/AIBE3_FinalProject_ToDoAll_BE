@@ -175,15 +175,34 @@ public class MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
 
+        Resume resume = match.getResume();
+        ResumeDocument doc = resumeSearchService.find(resume.getId())
+                .orElseGet(() -> ResumeDocument.of(resume));
+
+        JobDescription jd = match.getJobDescription();
+
+        // JD 키워드 추출
+        List<String> jdKeywords = keywordExtractorService.extractKeywords(jd.getDescription());
+
+        // 누락된 스킬
+        List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
+
+        // 전체 기술 수
+        int totalSkills = missingSkills.size() + doc.getSkills().size();
+        float percentage = totalSkills > 0
+                ? (float) (totalSkills - missingSkills.size()) / totalSkills
+                : 0f;
+
+        String skillMatchRate = Math.round(percentage * 100) + "%";
+
         return MatchDetailResponseDto.builder()
-                .jdTitle(match.getJobDescription().getTitle())
-                .resumeName(match.getResume().getName())
+                .jdTitle(jd.getTitle())
+                .resumeName(resume.getName())
                 .matchScore(match.getMatchScore() != null ? match.getMatchScore() : 0.0f)
-                .skillMatchRate("78%") // TODO: 실제 계산 도입 예정
-                .missingSkills(List.of("Redis", "Kafka")) // TODO: 추후 자동 추출
+                .skillMatchRate(skillMatchRate)
+                .missingSkills(missingSkills)
                 .recommendationReason(match.getRecommendationReason())
                 .resumeSummary(match.getResumeSummary())
-                .jdSummary(null)
                 .build();
     }
 

@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.server.ai.service.AiRecommendationService;
+import com.server.ai.service.KeywordExtractorService;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -41,6 +42,8 @@ public class MatchService {
     private final ResumeSearchService resumeSearchService;
     private final ElasticsearchClient elasticsearchClient;
     private final AiRecommendationService aiRecommendationService;
+    private final KeywordExtractorService keywordExtractorService;
+
 
     // 매칭 등록 (지원자 직접 지원)
     @Transactional
@@ -97,6 +100,9 @@ public class MatchService {
         String queryText = String.join(" ", jd.getRequiredSkillNames()) + " " +
                 String.join(" ", jd.getPreferredSkillNames());
 
+        // JD 설명 기반 키워드 추출 (AI 기반)
+        List<String> jdKeywords = keywordExtractorService.extractKeywords(jd.getDescription());
+
         // Java client 사용
         SearchRequest searchRequest = new SearchRequest.Builder()
                 .index("resume")
@@ -127,7 +133,8 @@ public class MatchService {
                     boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jdId, doc.getId());
                     if (exists) return null;
 
-                    float score = MatchScoreCalculator.calculateMatchScore(jd, doc, resume);
+                    // matchScore 계산 개선
+                    float score = MatchScoreCalculator.calculateMatchScoreWithKeywords(jd, doc, resume, jdKeywords);
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
 
                     String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());

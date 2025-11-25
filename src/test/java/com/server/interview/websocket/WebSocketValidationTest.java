@@ -1,6 +1,11 @@
 package com.server.interview.websocket;
 
+import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.interview.websocket.dto.ChatMessage;
+import com.server.interview.websocket.registry.SessionRegistry;
+import com.server.user.domain.Gender;
+import com.server.user.dto.UserProfileResponseDto;
+import com.server.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +15,7 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -18,6 +24,7 @@ import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +32,9 @@ import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class WebSocketValidationTest {
@@ -34,10 +44,38 @@ class WebSocketValidationTest {
 
     private WebSocketStompClient stompClient;
 
+    @MockitoBean
+    private SessionRegistry sessionRegistry;
+
+    @MockitoBean
+    private InterviewParticipantRepository interviewParticipantRepository;
+
+    @MockitoBean
+    private UserService userService;
+
     @BeforeEach
     void setup() {
         stompClient = new WebSocketStompClient(new StandardWebSocketClient());
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+
+        when(interviewParticipantRepository.existsByInterviewIdAndUserId(anyLong(), anyLong()))
+                .thenReturn(true);
+
+        when(sessionRegistry.isInterviewer(anyString())).thenReturn(true);
+        when(sessionRegistry.getUserIdBySession(anyString())).thenReturn(100L);
+
+        when(userService.getMyProfile(anyLong()))
+                .thenReturn(new UserProfileResponseDto(
+                        100L,
+                        "tester@example.com",
+                        "tester",
+                        "nickname",
+                        "TestCompany",
+                        "Developer",
+                        "010-0000-0000",
+                        LocalDate.of(1990, 1, 1),
+                        Gender.MALE));
+
     }
 
     private StompSession connect() throws Exception {
@@ -53,11 +91,9 @@ class WebSocketValidationTest {
         WebSocketHttpHeaders wsHeaders = new WebSocketHttpHeaders();
         StompHeaders stompHeaders = new StompHeaders();
 
-        // ⭐⭐⭐ 반드시 넣어야 함 ⭐⭐⭐
+
         stompHeaders.add("interviewId", "1");
 
-        // 인증 필요 없으면 생략 가능
-        // stompHeaders.add("Authorization", "Bearer " + someToken);
 
         return stompClient
                 .connectAsync(
@@ -66,6 +102,7 @@ class WebSocketValidationTest {
                         stompHeaders,
                         new StompSessionHandlerAdapter() {})
                 .get(2, TimeUnit.SECONDS);
+
     }
 
     @Test

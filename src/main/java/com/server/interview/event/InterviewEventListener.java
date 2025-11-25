@@ -6,6 +6,7 @@ import com.server.notification.domain.NotificationType;
 import com.server.notification.dto.InterviewPayload;
 import com.server.notification.dto.NotificationRequestDto;
 import com.server.notification.service.NotificationService;
+import com.server.notification.service.SseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ public class InterviewEventListener {
 
     private final NotificationService notificationService;
     private final InterviewParticipantRepository participantRepository;
+    private final SseService sseService;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -28,6 +30,7 @@ public class InterviewEventListener {
         List<Long> userIds = participantRepository.findUserIdsByInterviewId(event.interviewId());
 
         for (Long userId : userIds) {
+            // Notification 생성
             Notification notification = notificationService.saveNotification(
                     new NotificationRequestDto(
                             userId,
@@ -40,7 +43,8 @@ public class InterviewEventListener {
                     )
             );
 
-            notificationService.sendSse(notification);
+            // SSE 알림 전송
+            sseService.sendNotification(notification);
         }
     }
 }

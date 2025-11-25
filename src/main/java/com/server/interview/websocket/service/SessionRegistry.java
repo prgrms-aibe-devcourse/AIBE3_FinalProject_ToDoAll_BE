@@ -27,11 +27,6 @@ public class SessionRegistry {
         return interviewLocks.computeIfAbsent(interviewId, id -> new Object());
     }
 
-//    protected void validateInterviewId(Long interviewId) {
-//        // if (!interviewService.existsById(interviewId)) {
-//        //     throw new IllegalArgumentException("Invalid interviewId: " + interviewId);
-//        // }
-//    }
 
     public void addSession(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
 
@@ -103,16 +98,8 @@ public class SessionRegistry {
         return Boolean.TRUE.equals(sessionInterviewrMap.get(sessionId));
     }
 
-    public void removeSessionsByUserId(Long userId) {
-        List<String> sessions = sessionUserMap.entrySet().stream()
-                .filter(e -> e.getValue().equals(userId))
-                .map(Map.Entry::getKey)
-                .toList();
-
-        sessions.forEach(this::removeSession);
+    public Long getUserIdBySession(String sessionId) {
+        return sessionUserMap.get(sessionId);
     }
 
-    public boolean isInterviewFinished(Long interviewId) {
-        return getSessionCount(interviewId) == 0;
-    }
 }

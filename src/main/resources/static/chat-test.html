@@ -144,8 +144,9 @@
         const headers = { interviewId: interviewId };
 
         if (role === "INTERVIEWER") {
-            headers.Authorization = token;
+            headers.Authorization = "Bearer " + token;   // ✔ 서버가 인식하는 포맷
         }
+
 
         const socket = new SockJS("/ws/interview");
         stompClient = Stomp.over(socket);

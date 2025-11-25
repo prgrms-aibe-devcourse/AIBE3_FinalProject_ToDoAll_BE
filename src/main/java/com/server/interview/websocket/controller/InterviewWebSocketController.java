@@ -1,7 +1,7 @@
 package com.server.interview.websocket.controller;
 
 import com.server.interview.websocket.dto.ChatMessage;
-import com.server.interview.websocket.dto.NoteMessage;
+import com.server.interview.websocket.dto.NoteMessageRequestDto;
 import com.server.interview.websocket.dto.SystemMessage;
 import com.server.interview.websocket.service.InterviewWebSocketService;
 import jakarta.validation.Valid;
@@ -24,7 +24,7 @@ public class InterviewWebSocketController {
 
 
     @MessageMapping("/interview/{interviewId}/note")
-    public void handleNoteMessage(@DestinationVariable Long interviewId, @Valid @Payload NoteMessage message, SimpMessageHeaderAccessor headerAccessor) {
+    public void handleNoteMessage(@DestinationVariable Long interviewId, @Valid @Payload NoteMessageRequestDto message, SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
         interviewWebSocketService.broadcastNoteMessage(interviewId, sessionId, message);
     }

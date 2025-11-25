@@ -3,6 +3,7 @@ package com.server.interview.websocket.security;
 import com.server.global.config.security.jwt.JwtAuthentication;
 import com.server.global.config.security.jwt.JwtTokenProvider;
 import com.server.interview.repository.InterviewParticipantRepository;
+import com.server.interview.websocket.service.SessionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -12,8 +13,6 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 
-import java.security.Principal;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final InterviewParticipantRepository participantRepository;
-
+    private final SessionRegistry sessionRegistry;
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
@@ -63,10 +62,10 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
 
         if(StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String destination = accessor.getDestination();
-            Principal principal = accessor.getUser();
 
             if(destination != null && destination.contains("/note")) {
-                boolean isInterviewer = principal instanceof JwtAuthentication;
+                boolean isInterviewer = sessionRegistry.isInterviewer(accessor.getSessionId());
+
 
                 if(!isInterviewer) {
                     log.warn("지원자의 Note Subscribe 차단: destination: " + destination);

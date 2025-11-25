@@ -34,7 +34,9 @@ public class SessionRegistry {
 //    }
 
     public void addSession(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
-       //validateInterviewId(interviewId);
+
+        if (userId == null) userId = -1L;
+
         Object lock = getLock(interviewId);
 
         synchronized (lock) {

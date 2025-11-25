@@ -28,6 +28,8 @@ public class InterviewWebSocketEventListener {
 
         if (principal instanceof JwtAuthentication auth) {
             userId = auth.getUserId();
+        } else {
+            userId = -1L;
         }
 
         boolean isInterviewer = principal instanceof JwtAuthentication;

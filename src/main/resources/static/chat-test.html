@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Interview WebSocket 통합 테스트</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        fieldset { margin-bottom: 20px; }
+        input, button, textarea { margin: 5px; }
+
+        .panel {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 220px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            font-size: 14px;
+        }
+
+        .chat-msg { margin: 4px 0; }
+        .note-msg { margin: 4px 0; color: green; }
+        .system-msg { color: gray; margin: 4px 0; }
+        .you { color: blue; }
+        textarea { width: 97%; height: 140px; }
+    </style>
+</head>
+<body>
+
+<h2>🎯 Interview WebSocket + REST 통합 테스트</h2>
+
+<fieldset>
+    <legend>접속 정보</legend>
+
+    <label>인터뷰 ID:</label>
+    <input id="interviewId" value="1">
+
+    <label>역할:</label>
+    <select id="role" onchange="switchRole()">
+        <option value="APPLICANT">지원자 (비로그인)</option>
+        <option value="INTERVIEWER">면접관 (로그인)</option>
+    </select>
+
+    <br>
+
+    <label>Access Token (순수 JWT):</label>
+    <input id="token" placeholder="eyJhbGciOi..." disabled style="width:350px">
+
+    <br><br>
+
+    <button onclick="loadHistory()">📥 기존 메시지 불러오기</button>
+    <button onclick="connectWS()">🔌 CONNECT</button>
+    <button onclick="disconnectWS()">❌ DISCONNECT</button>
+</fieldset>
+
+
+<h3>💬 채팅</h3>
+<div id="chatPanel" class="panel"></div>
+
+<div>
+    <input id="chatContent" placeholder="채팅 메시지" style="width:300px">
+    <button onclick="sendChat()">채팅 보내기</button>
+</div>
+
+
+<h3>📝 노트 (면접관만)</h3>
+<textarea id="noteArea" disabled placeholder="면접 노트가 여기에 표시됩니다."></textarea>
+<button id="noteSendBtn" onclick="sendNote()" disabled>노트 저장</button>
+
+<h3>⚙ 시스템 메시지</h3>
+<div id="systemPanel" class="panel"></div>
+
+
+<script>
+    let stompClient = null;
+
+    // 패널에 메시지 출력
+    function append(panelId, msg, cls="") {
+        const box = document.getElementById(panelId);
+        const now = new Date().toLocaleTimeString();
+        box.innerHTML += `<div class="${cls}">[${now}] ${msg}</div>`;
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // 역할 변경 시 UI 업데이트
+    function switchRole() {
+        const role = document.getElementById("role").value;
+        const tokenInput = document.getElementById("token");
+        const noteArea = document.getElementById("noteArea");
+        const noteSend = document.getElementById("noteSendBtn");
+
+        if (role === "INTERVIEWER") {
+            tokenInput.disabled = false;
+            noteArea.disabled = false;
+            noteSend.disabled = false;
+        } else {
+            tokenInput.disabled = true;
+            noteArea.disabled = true;
+            noteSend.disabled = true;
+        }
+    }
+
+    // 기존 메시지 불러오기
+    async function loadHistory() {
+        const interviewId = document.getElementById("interviewId").value;
+
+        append("systemPanel", "기존 메시지 불러오는 중...");
+
+        // 1) 기존 채팅 호출
+        try {
+            const chatRes = await fetch(`/api/v1/interviews/${interviewId}/messages/chat`);
+            const chats = await chatRes.json();
+
+            chats.forEach(msg => {
+                append("chatPanel", `${msg.sender}: ${msg.content}`, "chat-msg");
+            });
+        } catch (e) {
+            append("systemPanel", "채팅 불러오기 실패", "system-msg");
+        }
+
+        // 2) 기존 노트 호출
+        try {
+            const noteRes = await fetch(`/api/v1/interviews/${interviewId}/messages/note`);
+            const note = await noteRes.json();
+
+            document.getElementById("noteArea").value = note.content ?? "";
+        } catch (e) {
+            append("systemPanel", "노트 불러오기 실패", "system-msg");
+        }
+
+        append("systemPanel", "기존 메시지 불러오기 완료");
+    }
+
+
+    // WebSocket CONNECT
+    function connectWS() {
+        const interviewId = document.getElementById("interviewId").value;
+        const token = document.getElementById("token").value.trim();
+        const role = document.getElementById("role").value;
+
+        const headers = { interviewId: interviewId };
+
+        if (role === "INTERVIEWER") {
+            headers.Authorization = token;
+        }
+
+        const socket = new SockJS("/ws/interview");
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+
+        stompClient.connect(headers, frame => {
+                append("systemPanel", "CONNECTED: " + JSON.stringify(frame.headers), "system-msg");
+
+                // 채팅 실시간 구독
+                stompClient.subscribe(`/topic/interview/${interviewId}/chat`, msg => {
+                    append("chatPanel", msg.body, "chat-msg");
+                });
+
+                // 노트 실시간 구독 (면접관만)
+                if (role === "INTERVIEWER") {
+                    stompClient.subscribe(`/topic/interview/${interviewId}/note`, msg => {
+                        document.getElementById("noteArea").value = msg.body;
+                    });
+                }
+
+                // 시스템 메시지 구독
+                stompClient.subscribe(`/topic/interview/${interviewId}/system`, msg => {
+                    append("systemPanel", msg.body, "system-msg");
+                });
+            },
+            err => append("systemPanel", "CONNECT ERROR: " + err, "system-msg"));
+    }
+
+
+    // WebSocket Disconnect
+    function disconnectWS() {
+        if (stompClient) {
+            stompClient.disconnect(() => {
+                append("systemPanel", "DISCONNECTED", "system-msg");
+            });
+        }
+    }
+
+    // 채팅 보내기
+    function sendChat() {
+        const interviewId = document.getElementById("interviewId").value;
+        const content = document.getElementById("chatContent").value;
+
+        stompClient.send(`/app/interview/${interviewId}/chat`, {}, JSON.stringify({
+            interviewId: Number(interviewId),
+            content: content,
+            sender: "사용자"
+        }));
+
+        append("chatPanel", "[YOU] " + content, "you");
+        document.getElementById("chatContent").value = "";
+    }
+
+    // 노트 저장 (면접관만)
+    function sendNote() {
+        const interviewId = document.getElementById("interviewId").value;
+        const content = document.getElementById("noteArea").value;
+
+        stompClient.send(`/app/interview/${interviewId}/note`, {}, JSON.stringify({
+            interviewId: Number(interviewId),
+            content: content
+        }));
+
+        append("systemPanel", "노트 저장 요청 전송", "system-msg");
+    }
+</script>
+
+</body>
+</html>

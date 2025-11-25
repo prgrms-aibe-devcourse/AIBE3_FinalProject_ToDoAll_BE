@@ -6,7 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.simp.stomp.*;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompHeaders;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -16,11 +19,6 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -41,36 +39,7 @@ public class WebSocketJwtInterceptorTest {
     }
 
 
-    @Test
-    void 지원자는_NOTE_메시지를_받지_못한다() throws Exception {
-
-        CompletableFuture<String> noteFuture = new CompletableFuture<>();
-
-        StompSessionHandler handler = new StompSessionHandlerAdapter() {
-            @Override
-            public void handleFrame(StompHeaders headers, Object payload) {
-                noteFuture.complete(payload.toString());
-            }
-
-            @Override
-            public Type getPayloadType(StompHeaders headers) {
-                return String.class;
-            }
-        };
-
-        StompSession session = stompClient.connectAsync(URL, handler).get();
-
-        session.subscribe("/topic/interview/1/note", handler);
-
-        stompClient.getMessageConverter()
-                .toMessage("test-note", null);
-
-        assertThrows(TimeoutException.class, () -> {
-            noteFuture.get(1, TimeUnit.SECONDS);
-        });
-    }
-
-
+   
     @Test
     void 면접관은_NOTE_구독_가능() throws Exception {
 

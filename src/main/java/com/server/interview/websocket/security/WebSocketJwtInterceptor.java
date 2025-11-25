@@ -27,7 +27,7 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
         if(StompCommand.CONNECT.equals(accessor.getCommand())) {
-            String token = accessor.getFirstNativeHeader("Authorization");
+            String raw = accessor.getFirstNativeHeader("Authorization");
             String interviewIdHeader = accessor.getFirstNativeHeader("interviewId");
 
             if(interviewIdHeader == null) {
@@ -36,11 +36,11 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
 
             Long interviewId = Long.parseLong(interviewIdHeader);
 
-            if(token != null && token.startsWith("Bearer ")) {
-                String rawToken = token.substring(7);
+            String token = extractToken(raw);
 
+            if(token != null) {
                 try {
-                    Long userId = jwtTokenProvider.getUserId(rawToken);
+                    Long userId = jwtTokenProvider.getUserId(token);
 
                     boolean isParticipant = participantRepository.existsByInterviewIdAndUserId(interviewId, userId);
 
@@ -76,5 +76,15 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
         }
 
         return message;
+    }
+
+    private String extractToken(String raw) {
+        if(raw == null) return null;
+
+        if(raw.startsWith("Bearer ")) {
+            return raw.substring(7);
+        }
+
+        return raw;
     }
 }

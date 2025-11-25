@@ -3,7 +3,7 @@ package com.server.interview.event;
 import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.notification.domain.Notification;
 import com.server.notification.domain.NotificationType;
-import com.server.notification.dto.InterviewPayload;
+import com.server.notification.payload.InterviewPayload;
 import com.server.notification.dto.NotificationRequestDto;
 import com.server.notification.service.NotificationService;
 import com.server.notification.service.SseService;

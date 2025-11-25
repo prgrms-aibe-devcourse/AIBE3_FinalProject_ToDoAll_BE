@@ -1,6 +1,7 @@
 package com.server.notification.dto;
 
 import com.server.notification.domain.NotificationType;
+import com.server.notification.payload.NotificationPayload;
 
 import java.time.LocalDateTime;
 

@@ -84,6 +84,17 @@ public class MatchController {
         return CommonResponse.success(detail);
     }
 
+    @DeleteMapping("/{matchId}")
+    @Operation(summary = "JD 지원 취소 (매칭 삭제)", description = "특정 JD에 지원한 이력서를 취소합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "매칭 정보를 찾을 수 없음")
+    })
+    public CommonResponse<MatchCancelResponseDto> cancelMatch(@PathVariable Long matchId) {
+        MatchCancelResponseDto result = matchService.cancelMatch(matchId);
+        return CommonResponse.success(result);
+    }
+
     @PatchMapping("/{matchId}/status")
     @Operation(summary = "매칭 상태 변경", description = "특정 매칭의 상태를 변경합니다.")
     @ApiResponses(value = {

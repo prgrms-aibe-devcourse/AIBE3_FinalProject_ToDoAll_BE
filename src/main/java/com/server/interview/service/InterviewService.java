@@ -10,6 +10,7 @@ import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.mcp.dto.InterviewCreatedAiEvent;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
@@ -38,6 +39,7 @@ public class InterviewService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final InterviewEvaluationRepository interviewEvaluationRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -100,6 +102,16 @@ public class InterviewService {
         // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
         eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId()));
 
+
+        // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
+        applicationEventPublisher.publishEvent(
+                new InterviewCreatedAiEvent(
+                        interview.getId(),
+                        resume.getId(),
+                        jobDescription.getId()
+                )
+        );
+        // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
         return new InterviewCreateResponseDto(interview.getId());
     }
 

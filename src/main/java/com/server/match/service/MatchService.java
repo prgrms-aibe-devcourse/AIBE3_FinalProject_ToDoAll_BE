@@ -18,7 +18,6 @@ import com.server.resume.domain.Resume;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.document.ResumeDocument;
 import com.server.search.dto.ResumeRecommendationDto;
-import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,7 +41,6 @@ public class MatchService {
     private final ResumeSearchService resumeSearchService;
     private final ElasticsearchClient elasticsearchClient;
     private final AiRecommendationService aiRecommendationService;
-    private final ResumeSearchRepository resumeSearchRepository;
 
     // 매칭 등록 (지원자 직접 지원)
     @Transactional
@@ -72,7 +70,7 @@ public class MatchService {
         String resumeSummary = aiRecommendationService.generateResumeSummary(doc.getFullText());
 
         // 매칭 점수
-        float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
+        float score = MatchScoreCalculator.calculateMatchScore(jd, doc, resume);
 
         Match match = Match.of(
                 jd,
@@ -103,8 +101,12 @@ public class MatchService {
         SearchRequest searchRequest = new SearchRequest.Builder()
                 .index("resume")
                 .query(q -> q.bool(b -> b
-                        .must(m1 -> m1.match(t -> t.field("fullText").query(queryText)))
-                        .must(m2 -> m2.term(t -> t.field("jdId").value(jdId)))
+                        .must(m -> m.term(t -> t.field("jdId").value(jdId))) // JD 연결
+                        .should(s -> s.match(t -> t.field("skills").query(queryText).boost(5.0f)))
+                        .should(s -> s.match(t -> t.field("experienceSummary").query(queryText).boost(2.0f)))
+                        .should(s -> s.match(t -> t.field("educationSummary").query(queryText).boost(2.0f)))
+                        .should(s -> s.match(t -> t.field("certificationSummary").query(queryText).boost(1.5f)))
+                        .should(s -> s.match(t -> t.field("activitySummary").query(queryText).boost(1.0f)))
                 ))
                 .size(10)
                 .build();
@@ -125,7 +127,7 @@ public class MatchService {
                     boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jdId, doc.getId());
                     if (exists) return null;
 
-                    float score = MatchScoreCalculator.calculateMatchScore(jd, doc);
+                    float score = MatchScoreCalculator.calculateMatchScore(jd, doc, resume);
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
 
                     String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());

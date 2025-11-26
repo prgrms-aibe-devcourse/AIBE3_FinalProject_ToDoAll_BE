@@ -61,6 +61,15 @@ public class Match extends BaseEntity {
         return match;
     }
 
+    public static Match ofForApplication(JobDescription jd, Resume resume) {
+        Match match = new Match();
+        match.jobDescription = jd;
+        match.resume = resume;
+        match.appliedAt = LocalDateTime.now();
+        match.status = MatchStatus.APPLIED;
+        return match;
+    }
+
     public void updateStatus(MatchStatus newStatus) {
         this.status = newStatus;
     }

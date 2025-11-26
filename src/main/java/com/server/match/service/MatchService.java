@@ -44,10 +44,9 @@ public class MatchService {
     private final AiRecommendationService aiRecommendationService;
     private final KeywordExtractorService keywordExtractorService;
 
-
-    // 매칭 등록 (지원자 직접 지원)
+    // JD 지원 + 매칭 등록
     @Transactional
-    public Match registerMatch(MatchRequestDto dto) {
+    public Match applyToJobDescription(MatchRequestDto dto) {
         JobDescription jd = jobDescriptionRepository.findById(dto.jdId())
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
@@ -58,35 +57,8 @@ public class MatchService {
             throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_EXISTS);
         }
 
-        // 이력서 색인 or 조회
-        ResumeDocument doc = resumeSearchService.find(resume.getId())
-                .orElseGet(() -> {
-                    resumeSearchService.index(resume);
-                    return ResumeDocument.of(resume);
-                });
-
-        // AI 추천 사유 + 요약
-        String recommendation = aiRecommendationService.generateRecommendation(
-                jd.getDescription(), doc.getFullText()
-        );
-
-        String resumeSummary = aiRecommendationService.generateResumeSummary(doc.getFullText());
-
-        // 매칭 점수
-        float score = MatchScoreCalculator.calculateMatchScore(jd, doc, resume);
-
-        Match match = Match.of(
-                jd,
-                resume,
-                LocalDateTime.now(),
-                score,
-                recommendation,
-                resumeSummary,
-                MatchStatus.APPLIED
-        );
-
+        Match match = Match.ofForApplication(jd, resume);
         matchRepository.save(match);
-        resumeSearchService.index(resume);
 
         return match;
     }
@@ -175,15 +147,34 @@ public class MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
 
+        Resume resume = match.getResume();
+        ResumeDocument doc = resumeSearchService.find(resume.getId())
+                .orElseGet(() -> ResumeDocument.of(resume));
+
+        JobDescription jd = match.getJobDescription();
+
+        // JD 키워드 추출
+        List<String> jdKeywords = keywordExtractorService.extractKeywords(jd.getDescription());
+
+        // 누락된 스킬
+        List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
+
+        // 전체 기술 수
+        int totalSkills = missingSkills.size() + doc.getSkills().size();
+        float percentage = totalSkills > 0
+                ? (float) (totalSkills - missingSkills.size()) / totalSkills
+                : 0f;
+
+        String skillMatchRate = Math.round(percentage * 100) + "%";
+
         return MatchDetailResponseDto.builder()
-                .jdTitle(match.getJobDescription().getTitle())
-                .resumeName(match.getResume().getName())
+                .jdTitle(jd.getTitle())
+                .resumeName(resume.getName())
                 .matchScore(match.getMatchScore() != null ? match.getMatchScore() : 0.0f)
-                .skillMatchRate("78%") // TODO: 실제 계산 도입 예정
-                .missingSkills(List.of("Redis", "Kafka")) // TODO: 추후 자동 추출
+                .skillMatchRate(skillMatchRate)
+                .missingSkills(missingSkills)
                 .recommendationReason(match.getRecommendationReason())
                 .resumeSummary(match.getResumeSummary())
-                .jdSummary(null)
                 .build();
     }
 
@@ -198,5 +189,18 @@ public class MatchService {
 
         match.updateStatus(newStatus);
         return new MatchResponseDto(match.getId(), match.getStatus());
+    }
+
+    @Transactional
+    public MatchCancelResponseDto cancelMatch(Long matchId) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
+
+        String jdTitle = match.getJobDescription().getTitle();
+        String resumeName = match.getResume().getName();
+
+        matchRepository.delete(match);
+
+        return new MatchCancelResponseDto(match.getId(), jdTitle, resumeName);
     }
 }

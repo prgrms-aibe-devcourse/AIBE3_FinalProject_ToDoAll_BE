@@ -15,11 +15,9 @@ public class InterviewQuestionAiService {
 
     private final RestTemplate restTemplate;
 
-    public void requestAutoQuestionGenerate(Long interviewId, Long resumeId, Long jdId) {
+    public void requestAutoQuestionGenerate(Long interviewId) {
         var request = Map.of(
-                "interviewId", interviewId,
-                "resumeId", resumeId,
-                "jdId", jdId
+                "interviewId", interviewId
         );
 
         restTemplate.postForEntity(

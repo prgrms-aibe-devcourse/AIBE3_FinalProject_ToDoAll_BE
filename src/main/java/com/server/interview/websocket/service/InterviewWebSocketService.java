@@ -3,11 +3,10 @@ package com.server.interview.websocket.service;
 import com.server.interview.dto.InterviewNoteMemoCreateRequestDto;
 import com.server.interview.service.InterviewNoteMemoService;
 import com.server.interview.websocket.domain.ChatMessageEntity;
-import com.server.interview.websocket.dto.ChatMessage;
-import com.server.interview.websocket.dto.NoteMessage;
-import com.server.interview.websocket.dto.SystemEventType;
-import com.server.interview.websocket.dto.SystemMessage;
+import com.server.interview.websocket.dto.*;
+import com.server.interview.websocket.registry.SessionRegistry;
 import com.server.interview.websocket.repository.ChatMessageRepository;
+import com.server.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -24,7 +23,11 @@ public class InterviewWebSocketService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageRepository chatMessageRepository;
     private final InterviewNoteMemoService interviewNoteMemoService;
+    private final UserService userService;
 
+    private String topic(Long interviewId, String type) {
+        return "/topic/interview/" + interviewId + "/" + type;
+    }
     public void handleUserJoin(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
         sessionRegistry.addSession(interviewId, userId, sessionId, isInterviewer);
         log.info("JOIN: sessionId={} interviewId={} interviewer={}", sessionId, interviewId, isInterviewer);
@@ -47,11 +50,14 @@ public class InterviewWebSocketService {
     }
 
     public void broadcastSystemMessage(Long interviewId, SystemEventType event, String content) {
+        SystemMessage outgoing = new SystemMessage(interviewId, event, content);
+
         messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/system",
-                new SystemMessage(interviewId, event, content)
+                topic(interviewId, "system"),
+                outgoing
         );
-        log.info("SYSTEM MESSAGE: interviewId={} event={} content={}", interviewId, event, content);
+
+        log.info("[SYSTEM] interviewId={} event={} content={}", interviewId, event, content);
     }
 
 
@@ -75,28 +81,50 @@ public class InterviewWebSocketService {
         );
 
         messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/chat",
+                topic(interviewId, "chat"),
                 outgoing
         );
-        log.info("CHAT MESSAGE: interviewId={} senderId={} sender={} content={}", interviewId, message.getSenderId(), message.getSender(), message.getContent());
+
+        log.info("[CHAT] interviewId={} senderId={} sender={} content={}",
+                interviewId, message.getSenderId(), message.getSender(), message.getContent());
     }
 
-    public void broadcastNoteMessage(Long interviewId, String sessionId, NoteMessage noteMessage) {
+    public void broadcastNoteMessage(Long interviewId, String sessionId, NoteMessageRequestDto noteMessage) {
         if (!sessionRegistry.isInterviewer(sessionId)) {
             log.warn("NOTE MESSAGE 차단됨 - sessionId={} 는 면접관이 아님", sessionId);
             return;
         }
 
-        InterviewNoteMemoCreateRequestDto requestDto =
-                new InterviewNoteMemoCreateRequestDto(noteMessage.getContent());
+        Long senderId = sessionRegistry.getUserIdBySession(sessionId);
+        if (senderId == null || senderId == -1L) {
+            log.warn("NOTE MESSAGE 차단됨 - sessionId={} 에 매핑된 userId가 없습니다.", sessionId);
+            return;
+        }
 
-        interviewNoteMemoService.create(interviewId, requestDto);
+        String senderName = userService.getMyProfile(senderId).getName();
+
+        InterviewNoteMemoCreateRequestDto requestDto =
+                new InterviewNoteMemoCreateRequestDto(noteMessage.content());
+
+        var response = interviewNoteMemoService.create(interviewId, requestDto);
+        Long noteId = response.memoId();
+
+        NoteMessage outgoing = NoteMessage.builder()
+                .interviewId(interviewId)
+                .senderId(senderId)
+                .sender(senderName)
+                .content(noteMessage.content())
+                .noteId(noteId)
+                .build();
+
 
         messagingTemplate.convertAndSend(
-                "/topic/interview/" + interviewId + "/note",
-                noteMessage
+                topic(interviewId, "note"),
+                outgoing
         );
-        log.info("NOTE MESSAGE: interviewId={} senderId={} sender={} noteId={}", interviewId, noteMessage.getSenderId(), noteMessage.getSender(), noteMessage.getNoteId());
+
+        log.info("[NOTE] interviewId={} senderId={} sender={} noteId={}",
+                interviewId, senderId, senderName, noteId);
     }
 
 }

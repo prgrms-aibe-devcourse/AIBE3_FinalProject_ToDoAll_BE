@@ -2,6 +2,7 @@ package com.server.interview.websocket.service;
 
 import com.server.interview.websocket.domain.ChatMessageEntity;
 import com.server.interview.websocket.dto.ChatMessage;
+import com.server.interview.websocket.registry.SessionRegistry;
 import com.server.interview.websocket.repository.ChatMessageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

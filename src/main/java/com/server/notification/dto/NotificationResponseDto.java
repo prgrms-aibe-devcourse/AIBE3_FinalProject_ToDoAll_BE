@@ -21,7 +21,7 @@ public record NotificationResponseDto (
                 notification.getTitle(),
                 notification.getMessage(),
                 notification.getPayload(),   // String(JSON)
-                notification.isReadFlag(),
+                notification.isRead(),
                 notification.getCreatedAt()
         );
     }

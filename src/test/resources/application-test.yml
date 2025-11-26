@@ -1,13 +1,16 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
   datasource:
     url: jdbc:mysql://localhost:3307/jobda_test_db?serverTimezone=Asia/Seoul&useSSL=false
-    username: ${DB_USER}
+    username: root
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true

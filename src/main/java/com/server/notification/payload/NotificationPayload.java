@@ -1,4 +1,4 @@
-package com.server.notification.dto;
+package com.server.notification.payload;
 
 public interface NotificationPayload {
 }

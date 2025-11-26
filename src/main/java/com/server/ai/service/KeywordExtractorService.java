@@ -3,6 +3,7 @@ package com.server.ai.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class KeywordExtractorService {
     private final ChatClient chatClient;
 
     // 채용공고에서 AI를 통해 주요 키워드(기술, 자격증 등) 추출
+    @Cacheable(value = "ai_keywords", key = "#jdDescription") // 성능 개선을 위한 Redis Cache 적용
     public List<String> extractKeywords(String jdDescription) {
         String prompt = """
             아래 채용 공고 설명에서 관련 기술 스택, 자격증, 사용 언어, 프레임워크, 도구 등을 키워드로 추출해줘.

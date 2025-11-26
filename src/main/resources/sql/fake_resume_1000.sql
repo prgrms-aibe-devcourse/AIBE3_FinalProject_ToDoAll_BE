@@ -1,3 +1,4 @@
+SET FOREIGN_KEY_CHECKS = 0;
 -- JD 생성
 INSERT INTO job_descriptions (id, title, department, work_type, experience, education, salary, description, start_date, deadline, status, welfare, location, thumbnail_url, applicant_count, author_id, created_at, updated_at) VALUES (9999, 'AI 추천 백엔드', 'AI팀', '정규직', '3년 이상', '학사 이상', '연 6,000만원 ~ 8,000만원', 'AI 기반 추천 시스템 백엔드 개발', '2025-11-20', '2025-12-31', 'OPEN', '유연근무, 재택 가능', '서울특별시 강남구', 'https://example.com/thumb.png', 0, 1, NOW(), NOW());
 
@@ -9001,3 +9002,5 @@ INSERT INTO resume_experiences (resume_id, company_name, department, position, s
 INSERT INTO resume_certifications (resume_id, type, name, score_or_level) VALUES (500999, 'LICENSE', '정보처리기사', '합격');
 INSERT INTO resume_activities (resume_id, title, type, organization) VALUES (500999, '오픈소스 기여', 'PROJECT', 'Github');
 INSERT INTO matches (jd_id, resume_id, status, created_at, updated_at) VALUES (9999, 500999, 'APPLIED', NOW(), NOW());
+
+SET FOREIGN_KEY_CHECKS = 1;

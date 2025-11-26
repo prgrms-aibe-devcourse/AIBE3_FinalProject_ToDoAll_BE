@@ -1,5 +1,6 @@
 package com.server.performance;
 
+import com.server.support.TestEnvLoader;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,7 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Sql(scripts = "classpath:sql/fake_resume_1000.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-public class ResumeRecommendationPerformanceTest {
+public class ResumeRecommendationPerformanceTest extends TestEnvLoader {
 
     @Autowired
     private MockMvc mockMvc;

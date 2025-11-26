@@ -130,7 +130,7 @@ public class EmailAuthService {
         }
     }
 
-    //이메일 인증 완료 처리
+    //이메일 인증 링크 클릭 시 이메일 인증 완료 처리
     @Transactional
     public EmailAuthCompleteResponseDto completeAuth(String tokenValue) {
 
@@ -204,7 +204,7 @@ public class EmailAuthService {
         }
     }
 
-    // 회원가입 시 토큰 검증 및 사용 처리
+    // 회원가입 시 토큰 자체를 직접 검증
     @Transactional
     public String validateAndUseToken(String tokenValue) {
         // 1) 토큰 조회
@@ -221,14 +221,8 @@ public class EmailAuthService {
             throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_REQUIRED);
         }
 
-        // 4) 이미 사용된 토큰인지 확인
-        if (token.isUsed()) {
-            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_ALREADY_VERIFIED);
-        }
+        log.info("[EmailAuth] validateAndUseToken 성공: email={}, token={}", token.getEmail(), tokenValue);
 
-        // 5) 토큰 사용 처리
-        token.markAsUsed();
-        log.info(" 이메일 인증 토큰 사용 완료: {}", token.getEmail());
 
         return token.getEmail();
     }

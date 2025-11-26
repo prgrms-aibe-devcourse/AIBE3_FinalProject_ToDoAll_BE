@@ -44,7 +44,6 @@ public class ResumeSearchService {
     }
 
     // 전체 색인 기능
-    @Transactional(readOnly = true)
     public void indexAll() {
         List<Resume> resumes = resumeRepository.findAll();
         for (Resume resume : resumes) {

@@ -72,8 +72,4 @@ public class ResumeEducation {
         edu.gpaScale = gpaScale;
         return edu;
     }
-
-
-
-
 }

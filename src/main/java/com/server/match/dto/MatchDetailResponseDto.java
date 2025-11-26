@@ -12,6 +12,5 @@ public record MatchDetailResponseDto(
         String skillMatchRate,
         List<String> missingSkills,
         String recommendationReason,
-        String resumeSummary,
-        String jdSummary
+        String resumeSummary
 ) {}

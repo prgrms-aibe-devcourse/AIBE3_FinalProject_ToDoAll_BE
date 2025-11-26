@@ -8,11 +8,10 @@ import java.util.List;
 @Builder
 public record MatchListResponseDto(
         Long resumeId,
-        String name,
+        String resumeName,
         Float matchScore,
         MatchStatus status,
         String skillMatchRate,
         List<String> missingSkills,
-        String summary
-) {
-}
+        String resumeSummary
+) {}

@@ -3,6 +3,7 @@ package com.server.notification.controller;
 import com.server.global.response.CommonResponse;
 import com.server.notification.dto.NotificationResponseDto;
 import com.server.notification.service.NotificationService;
+import com.server.notification.service.SseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -21,6 +22,7 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final SseService sseService;
 
     // SSE 구독 API
     // SSE는 produces = "text/event-stream"
@@ -31,7 +33,7 @@ public class NotificationController {
     public SseEmitter subscribe(
             @RequestParam Long userId
     ) {
-        return notificationService.subscribe(userId);
+        return sseService.subscribe(userId);
     }
 
     // 알림 조회

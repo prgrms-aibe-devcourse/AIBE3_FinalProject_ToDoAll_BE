@@ -39,6 +39,7 @@ jobs:
       MYSQL_URL: jdbc:mysql://127.0.0.1:3306/jobda_db
       MYSQL_USERNAME: root
       MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       SPRING_DATA_REDIS_HOST: 127.0.0.1
       SPRING_DATA_REDIS_PORT: 6379
       JWT_SECRET: ${{ secrets.JWT_SECRET }}

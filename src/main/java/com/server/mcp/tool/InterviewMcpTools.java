@@ -1,11 +1,14 @@
 package com.server.mcp.tool;
 
 import com.server.global.exception.ApplicationException;
+import com.server.interview.domain.Interview;
 import com.server.interview.domain.QuestionType;
 import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
 import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.repository.InterviewRepository;
 import com.server.interview.service.InterviewQuestionService;
+import com.server.interview.websocket.domain.ChatMessageEntity;
+import com.server.interview.websocket.repository.ChatMessageRepository;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -36,6 +39,7 @@ public class InterviewMcpTools {
     private final InterviewQuestionService interviewQuestionService;
     private final InterviewRepository interviewRepository;
     private final ResumeRepository resumeRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Transactional(readOnly = true)
     @McpTool(
@@ -136,5 +140,69 @@ public class InterviewMcpTools {
                 "savedCount", items.size()
         );
     }
+    //인터뷰 메시지 조회
+    @Transactional(readOnly = true)
+    @McpTool(
+            name = "get_interview_messages",
+            description = "주어진 인터뷰 ID에 대한 전체 채팅 메시지 로그를 시간 순서대로 조회"
+    )
+    public Map<String, Object> getInterviewMessages(
+            @McpToolParam(description = "면접 ID") Long interviewId
+    ) {
+        // 1) 인터뷰 존재 여부 검증
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // 2) 해당 인터뷰의 메시지를 시간 순으로 조회
+        List<ChatMessageEntity> messages =
+                chatMessageRepository.findByInterviewIdOrderByCreatedAtAsc(interview.getId());
+
+        // 3) LLM이 이해하기 좋은 형태로 변환
+        List<Map<String, Object>> messageList = messages.stream()
+                .map(m -> Map.<String, Object>of(
+                        "id", m.getId(),
+                        "senderId", m.getSenderId(),
+                        "senderName", m.getSender(),
+                        "sentAt", m.getCreatedAt().toString(),
+                        "content", m.getContent()
+                ))
+                .toList();
+
+        log.info("[MCP] getInterviewMessages interviewId={}, count={}", interviewId, messageList.size());
+
+        return Map.of(
+                "interviewId", interviewId,
+                "messages", messageList
+        );
+    }
+    // 인터뷰 요약 저장
+    @Transactional
+    @McpTool(
+            name = "save_interview_summary",
+            description = "면접 요약 텍스트를 Interview.summary 필드에 저장"
+    )
+    public Map<String, Object> saveInterviewSummary(
+            @McpToolParam(description = "면접 ID") Long interviewId,
+            @McpToolParam(description = "AI가 생성한 요약 텍스트") String summaryText
+    ) {
+        // 1) 인터뷰 조회
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // 2) 도메인 메서드를 통해 요약 업데이트
+        interview.updateSummary(summaryText);
+
+        log.info("[MCP] saveInterviewSummary interviewId={}, summaryLength={}",
+                interviewId,
+                summaryText != null ? summaryText.length() : 0
+        );
+
+        // 3) LLM에게 간단한 상태 정보 반환
+        return Map.of(
+                "status", "success"
+        );
+    }
+
+
 
 }

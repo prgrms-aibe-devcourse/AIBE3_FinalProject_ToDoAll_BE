@@ -130,7 +130,7 @@ public class EmailAuthService {
         }
     }
 
-    //이메일 인증 완료 처리
+    //이메일 인증 링크 클릭 시 이메일 인증 완료 처리
     @Transactional
     public EmailAuthCompleteResponseDto completeAuth(String tokenValue) {
 
@@ -203,6 +203,30 @@ public class EmailAuthService {
             return "아래 링크를 클릭하여 이메일 인증을 완료해주세요.\n" + verificationUrl;
         }
     }
+
+    // 회원가입 시 토큰 자체를 직접 검증
+    @Transactional
+    public String validateAndUseToken(String tokenValue) {
+        // 1) 토큰 조회
+        EmailVerificationToken token = emailVerificationTokenRepository.findByToken(tokenValue)
+                .orElseThrow(() -> ApplicationException.from(AuthErrorCase.EMAIL_AUTH_TOKEN_INVALID));
+
+        // 2) 토큰 만료 확인
+        if (token.isExpired()) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_TOKEN_EXPIRED);
+        }
+
+        // 3) 이메일 인증 완료 확인
+        if (!token.isVerified()) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_REQUIRED);
+        }
+
+        log.info("[EmailAuth] validateAndUseToken 성공: email={}, token={}", token.getEmail(), tokenValue);
+
+
+        return token.getEmail();
+    }
+
     // 이메일 정규화: 앞뒤 공백 제거 + 소문자로 변환
     private String normalizeEmail(String email) {
         if (email == null) {
@@ -210,4 +234,5 @@ public class EmailAuthService {
         }
         return email.trim().toLowerCase();
     }
+
 }

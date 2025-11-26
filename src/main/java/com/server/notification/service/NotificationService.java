@@ -26,12 +26,12 @@ public class NotificationService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Notification saveNotification(NotificationRequestDto dto) {
         Notification notification = Notification.of(
-                dto.userId(),
-                dto.type(),
-                dto.title(),
-                dto.message(),
-                dto.payload(),
-                dto.scheduledAt()
+            dto.userId(),
+            dto.type(),
+            dto.title(),
+            dto.message(),
+            dto.payload(),
+            dto.scheduledAt()
         );
         notificationRepository.save(notification);
         return notification;
@@ -46,7 +46,6 @@ public class NotificationService {
         return notifications.stream()
                 .map(NotificationResponseDto::from)
                 .toList();
-
     }
 
     @Transactional

@@ -1,7 +1,7 @@
 package com.server.notification.domain;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.server.notification.dto.NotificationPayload;
+import com.server.notification.payload.NotificationPayload;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,17 +30,25 @@ public class Notification {
     @Column(columnDefinition = "TEXT")
     private String payload;
 
-    private boolean readFlag; // 읽음 여부
+    @Column(name = "is_read")
+    private boolean read; // 읽음 여부
     private LocalDateTime createdAt;
 
-    //보내질 시간
+    //보내질 시간 (null → 즉시 알림)
     private LocalDateTime scheduledAt;
 
+    @Column(name = "is_sent")
+    private boolean sent;
     //보낸 시간
     private LocalDateTime sentAt;
 
     public void markRead() {
-        this.readFlag = true;
+        this.read = true;
+    }
+
+    public void markSent() {
+        this.sent = true;
+        this.sentAt = LocalDateTime.now();
     }
 
     public static Notification of(
@@ -64,9 +72,11 @@ public class Notification {
             throw new RuntimeException("Failed to convert payload to JSON", e);
         }
 
-        n.readFlag = false;
+        n.read = false;
         n.createdAt = LocalDateTime.now();
         n.scheduledAt = scheduledAt;
+
+        n.sent = scheduledAt == null;
 
         return n;
     }

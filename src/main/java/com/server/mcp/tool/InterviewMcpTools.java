@@ -1,6 +1,7 @@
 package com.server.mcp.tool;
 
 import com.server.global.exception.ApplicationException;
+import com.server.interview.domain.Interview;
 import com.server.interview.domain.QuestionType;
 import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
 import com.server.interview.exception.InterviewErrorCase;
@@ -102,6 +103,77 @@ public class InterviewMcpTools {
                 "education", jobDescription.getEducation(),
                 "preferredSkills", jobDescription.getPreferredSkillNames(),
                 "requiredSkills", jobDescription.getRequiredSkillNames()
+        );
+    }
+
+    @Transactional
+    @McpTool(
+            name = "get_interview_context",
+            description = "면접 생성에 필요한 이력서/직무 정보를 한 번에 조회"
+    )
+    public Map<String, Object> getInterviewContext(
+            @McpToolParam(description = "interview id") Long interviewId
+    ) {
+        Interview interview = interviewRepository.findById(interviewId).orElseThrow(
+                () -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND)
+        );
+
+        Resume resume = interview.getResume();
+        JobDescription jd = interview.getJobDescription();
+
+        // 이력서 쪽 DTO들
+        List<ResumeEducationRequestDto> educationList = resume.getEducations().stream()
+                .map(edu -> new ResumeEducationRequestDto(
+                        edu.getEducationLevel(),
+                        edu.getSchoolName(),
+                        edu.getMajor(),
+                        edu.getIsGraduated(),
+                        edu.getAdmissionDate(),
+                        edu.getGraduationDate(),
+                        edu.getAttendanceType(),
+                        edu.getGpa(),
+                        edu.getGpaScale()
+                )).toList();
+
+        List<ResumeExperienceRequestDto> experienceList = resume.getExperiences().stream()
+                .map(ex -> new ResumeExperienceRequestDto(
+                        ex.getCompanyName(),
+                        ex.getDepartment(),
+                        ex.getPosition(),
+                        ex.getStartDate(),
+                        ex.getEndDate()
+                )).toList();
+
+        List<ResumeSkillRequestDto> skillList = resume.getSkills().stream()
+                .map(skill -> new ResumeSkillRequestDto(
+                        skill.getSkill().getName(),
+                        skill.getProficiencyLevel()
+                )).toList();
+
+        List<String> skillNames = resume.getSkills().stream()
+                .map(skill -> skill.getSkill().getName())
+                .toList();
+
+        // JD 쪽
+        Map<String, Object> jdMap = Map.of(
+                "description", jd.getDescription(),
+                "experience", jd.getExperience(),
+                "workType", jd.getWorkType(),
+                "education", jd.getEducation(),
+                "preferredSkills", jd.getPreferredSkillNames(),
+                "requiredSkills", jd.getRequiredSkillNames()
+        );
+
+        log.info("getInterviewContext {}", interviewId);
+
+        return Map.of(
+                "resume", Map.of(
+                        "experience", experienceList,
+                        "education", educationList,
+                        "skill", skillList,
+                        "skillNames", skillNames
+                ),
+                "jobDescription", jdMap
         );
     }
 

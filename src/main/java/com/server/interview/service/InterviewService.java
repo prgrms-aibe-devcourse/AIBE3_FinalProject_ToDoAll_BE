@@ -100,7 +100,7 @@ public class InterviewService {
         interviewNoteRepository.save(interviewNote);
 
         // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
-        eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId()));
+        eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId(), interview.getScheduledAt()));
 
 
         // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//

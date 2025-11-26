@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -30,23 +31,41 @@ public class InterviewEventListener {
     public void handleInterviewCreated(InterviewCreatedEvent event) {
 
         List<Long> userIds = participantRepository.findUserIdsByInterviewId(event.interviewId());
+        LocalDateTime interviewAt = event.interviewAt();
 
         for (Long userId : userIds) {
             try {
-                Notification notification = notificationService.saveNotification(
-                        new NotificationRequestDto(
-                                userId,
-                                NotificationType.INTERVIEW,
-                                "면접 생성 알림",
-                                "새로운 면접이 생성되었습니다!",
-                                new InterviewPayload(event.interviewId()),
-                                true,
-                                null
-                        )
-                );
-
+                // 즉시 알림
+                Notification notification = notificationService.saveNotification(new NotificationRequestDto(
+                        userId,
+                        NotificationType.INTERVIEW,
+                        "면접 생성 알림",
+                        "새로운 면접이 생성되었습니다!",
+                        new InterviewPayload(event.interviewId()),
+                        null
+                ));
                 // 저장 성공한 경우에만 SSE 발송
                 sseService.sendNotification(notification);
+
+                // D-1 예약 알림
+                notificationService.saveNotification(new NotificationRequestDto(
+                        userId,
+                        NotificationType.INTERVIEW,
+                        "면접 하루 전 알림",
+                        "내일 면접이 예정되어 있어요!",
+                        new InterviewPayload(event.interviewId()),
+                        interviewAt.minusDays(1)
+                ));
+
+                // D-Day 1시간 전 예약 알림
+                notificationService.saveNotification(new NotificationRequestDto(
+                        userId,
+                        NotificationType.INTERVIEW,
+                        "면접 준비 알림",
+                        "면접이 곧 시작됩니다. 준비해주세요!",
+                        new InterviewPayload(event.interviewId()),
+                        interviewAt.minusHours(1)
+                ));
 
             } catch (Exception e) {
                 log.error("Notification 저장 실패 - userId: {}", userId, e);

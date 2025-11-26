@@ -1,3 +1,8 @@
 package com.server.interview.event;
 
-public record InterviewCreatedEvent(Long interviewId) {}
+import java.time.LocalDateTime;
+
+public record InterviewCreatedEvent(
+        Long interviewId,
+        LocalDateTime interviewAt
+) {}

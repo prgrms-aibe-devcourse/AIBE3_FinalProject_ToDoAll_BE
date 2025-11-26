@@ -42,7 +42,7 @@ public class InterviewWebSocketEventListener {
         if (token != null) {
             try {
                 userId = jwtTokenProvider.getUserId(token);
-
+                accessor.getSessionAttributes().put("userId", userId);
                 isInterviewer = interviewParticipantRepository.existsByInterviewIdAndUserId(interviewId, userId);
 
                 log.info("INTERVIEW CONNECT userId={}, interviewer={}", userId, isInterviewer);

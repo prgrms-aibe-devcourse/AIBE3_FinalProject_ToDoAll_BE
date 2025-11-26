@@ -16,21 +16,19 @@ public class SessionRegistry {
 
     public void addSession(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
 
-        if (userId == null) userId = -1L;
+        Objects.requireNonNull(userId, "userId는 필수입니다.");
 
+        sessions.put(sessionId, new SessionInfo(interviewId, userId, isInterviewer));
 
-        synchronized (interviewSessions.computeIfAbsent(interviewId, id -> ConcurrentHashMap.newKeySet())) {
-            String existing = findSessionByUser(interviewId, userId);
-            if(existing != null && !existing.equals(sessionId)) {
-                removeSessionInternal(existing);
-            }
+        interviewSessions.computeIfAbsent(interviewId, id -> ConcurrentHashMap.newKeySet());
 
-            sessions.put(sessionId, new SessionInfo(interviewId, userId, isInterviewer));
-
-            interviewSessions
-                    .computeIfAbsent(interviewId, id -> ConcurrentHashMap.newKeySet())
-                    .add(sessionId);
+        String existing = findSessionByUser(interviewId, userId);
+        if(existing != null && !existing.equals(sessionId)) {
+            removeSessionInternal(existing);
         }
+
+        interviewSessions.get(interviewId).add(sessionId);
+
     }
 
     private String findSessionByUser(Long interviewId, Long userId) {

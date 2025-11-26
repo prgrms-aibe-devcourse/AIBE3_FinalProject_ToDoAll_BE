@@ -21,55 +21,59 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
     private final InterviewParticipantRepository participantRepository;
     private final SessionRegistry sessionRegistry;
+
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-        if(StompCommand.CONNECT.equals(accessor.getCommand())) {
+        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String raw = accessor.getFirstNativeHeader("Authorization");
-            String interviewIdHeader = accessor.getFirstNativeHeader("interviewId");
-
-            if(interviewIdHeader == null) {
-                throw new IllegalArgumentException("interviewId 헤더가 필요합니다.");
-            }
-
-            Long interviewId = Long.parseLong(interviewIdHeader);
-
             String token = extractToken(raw);
 
-            if(token != null) {
+            if (token != null) {
                 try {
                     Long userId = jwtTokenProvider.getUserId(token);
-
-                    boolean isParticipant = participantRepository.existsByInterviewIdAndUserId(interviewId, userId);
-
-                    if(!isParticipant) {
-                        log.warn("로그인 사용자가 participant가 아니므로 차단되었습니다.");
-                        throw new IllegalArgumentException("해당 인터뷰의 참여자가 아닙니다.");
-                    }
-
                     accessor.setUser(new JwtAuthentication(userId));
-                    log.info("INTERVIEW CONNECT");
+                    log.info("WS CONNECT - userId={}", userId);
                 } catch (Exception e) {
                     log.warn("JWT 파싱 실패 → 익명 처리", e);
                     accessor.setUser(new AnonymousPrincipal());
                 }
             } else {
                 accessor.setUser(new AnonymousPrincipal());
-                log.info("INTERVIEW CONNECT: anonymous");
+                log.info("WS CONNECT - anonymous");
             }
         }
 
-        if(StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+        if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String destination = accessor.getDestination();
 
-            if(destination != null && destination.contains("/note")) {
+            Long interviewId = extractInterviewIdFromDestination(destination);
+
+            Object idObj = accessor.getSessionAttributes().get("userId");
+            Long userId = (idObj instanceof Long) ? (Long) idObj : null;
+
+            if (destination.contains("/note")) {
+                if (userId == null) {
+                    log.warn("NOTE 구독 차단 - 로그인 사용자 아님");
+                    throw new IllegalArgumentException("NOTE 구독은 면접관만 가능합니다.");
+                }
+
                 boolean isInterviewer = sessionRegistry.isInterviewer(accessor.getSessionId());
-
-
-                if(!isInterviewer) {
-                    log.warn("지원자의 Note Subscribe 차단: destination: " + destination);
+                if (!isInterviewer) {
+                    log.warn("NOTE 구독 차단 - 면접관 아님");
                     throw new IllegalArgumentException("NOTE 권한 없음");
+                }
+            }
+
+
+            if (destination.contains("/chat") || destination.contains("/system")) {
+                if (userId != null) {
+                    boolean isParticipant =
+                            participantRepository.existsByInterviewIdAndUserId(interviewId, userId);
+                    if (!isParticipant) {
+                        throw new IllegalArgumentException("인터뷰 참가자가 아닙니다.");
+                    }
                 }
             }
         }
@@ -78,12 +82,19 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
     }
 
     private String extractToken(String raw) {
-        if(raw == null) return null;
-
-        if(raw.startsWith("Bearer ")) {
+        if (raw == null) return null;
+        if (raw.startsWith("Bearer ")) {
             return raw.substring(7);
         }
-
         return raw;
+    }
+
+    private Long extractInterviewIdFromDestination(String destination) {
+        try {
+            String[] parts = destination.split("/");
+            return Long.parseLong(parts[3]);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("잘못된 destination: " + destination, e);
+        }
     }
 }

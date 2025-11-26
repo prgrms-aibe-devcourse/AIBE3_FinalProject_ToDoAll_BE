@@ -53,12 +53,12 @@ class MatchControllerTest {
     void getMatchedResumes_success() throws Exception {
         MatchListResponseDto responseDto = MatchListResponseDto.builder()
                 .resumeId(1L)
-                .name("홍길동")
+                .resumeName("홍길동")
                 .matchScore(88.5f)
                 .status(MatchStatus.APPLIED)
                 .skillMatchRate("75%")
                 .missingSkills(List.of("Kafka", "Redis"))
-                .summary("React/Node.js 기반 3년 경력 보유")
+                .resumeSummary("React/Node.js 기반 3년 경력 보유")
                 .build();
 
         PageImpl<MatchListResponseDto> page = new PageImpl<>(
@@ -72,13 +72,12 @@ class MatchControllerTest {
 
         mockMvc.perform(get("/api/v1/matches")
                         .param("jdId", "1")
-                        .param("matchSort", "LATEST")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].resumeId").value(1L))
-                .andExpect(jsonPath("$.data.content[0].name").value("홍길동"))
+                .andExpect(jsonPath("$.data.content[0].resumeName").value("홍길동"))
                 .andExpect(jsonPath("$.data.content[0].skillMatchRate").value("75%"))
-                .andExpect(jsonPath("$.data.content[0].summary").value("React/Node.js 기반 3년 경력 보유"))
+                .andExpect(jsonPath("$.data.content[0].resumeSummary").value("React/Node.js 기반 3년 경력 보유"))
                 .andExpect(jsonPath("$.data.content[0].missingSkills[0]").value("Kafka"));
     }
 

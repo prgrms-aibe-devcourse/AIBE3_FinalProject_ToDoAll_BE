@@ -71,7 +71,6 @@ jobs:
             HEAD="${{ github.event.pull_request.head.sha }}"
           fi
 
-          # act 환경에서 PR SHA가 비거나 merge-base 불가하면 develop 기준으로 강제 3-dot
           if [[ "${ACT:-}" == "true" ]]; then
             if [[ -z "${BASE:-}" || -z "${HEAD:-}" ]] || ! git merge-base "$BASE" "$HEAD" >/dev/null 2>&1; then
               git fetch --no-tags --prune origin +refs/heads/develop:refs/remotes/origin/develop
@@ -80,24 +79,31 @@ jobs:
             fi
           fi
 
-          # 값이 비었거나 merge-base 불가하면 2-dot로 폴백 
-          if [[ -n "${BASE:-}" && -n "${HEAD:-}" ]] && git merge-base "$BASE" "$HEAD" >/dev/null 2>&1; then 
-            git diff --name-only "$BASE...$HEAD" > changed.txt 
-          else 
+          if [[ -n "${BASE:-}" && -n "${HEAD:-}" ]] && git merge-base "$BASE" "$HEAD" >/dev/null 2>&1; then
+            git diff --name-only "$BASE...$HEAD" > changed.txt
+          else
             git diff --name-only "${BASE:-HEAD^}" "${HEAD:-HEAD}" > changed.txt
-            echo "BASE 혹은 HEAD가 비어있거나 공통 조상이 없어 2-dot 비교로 대체하였습니다."
+            echo "BASE 혹은 HEAD 계산 실패 → 2-dot 비교로 대체"
           fi
 
+          # Output for later steps
           echo "count=$(wc -l < changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "head=$HEAD" >> "$GITHUB_OUTPUT"
 
       - name: Check .gitignore - Show result
         run: |
           echo "Changed count: ${{ steps.diff.outputs.count }}"
           cat changed.txt || true
 
-          # --no-index: 트래킹된 파일이라도 .gitignore 규칙에 매치되면 감지
-          if git check-ignore --no-index -v --stdin < changed.txt; then
-            echo "::error .gitignore violation:: PR에 .gitignore의 파일이 포함되어 있습니다."
+          git diff --name-status "${{ steps.diff.outputs.base }}...${{ steps.diff.outputs.head }}" \
+            | grep "^A" | cut -f2 > added_only.txt || true
+
+          echo "===== Added Files Only ====="
+          cat added_only.txt || true
+
+          if git check-ignore --no-index -v --stdin < added_only.txt; then
+            echo "::error file=.gitignore:: PR에 .gitignore 규칙에 포함된 파일이 추가되었습니다."
             exit 1
           fi
 

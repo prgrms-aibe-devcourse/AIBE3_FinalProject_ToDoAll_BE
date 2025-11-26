@@ -1,46 +1,76 @@
 package com.server.interview.websocket.listener;
 
 import com.server.global.config.security.jwt.JwtAuthentication;
+import com.server.global.config.security.jwt.JwtTokenProvider;
+import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.interview.websocket.service.InterviewWebSocketService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import java.security.Principal;
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class InterviewWebSocketEventListener {
 
     private final InterviewWebSocketService interviewWebSocketService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final InterviewParticipantRepository interviewParticipantRepository;
 
     @EventListener
     public void handleWebSocketConnect(SessionConnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = accessor.getSessionId();
-        String value = accessor.getFirstNativeHeader("interviewId");
+        String interviewIdHeader = accessor.getFirstNativeHeader("interviewId");
+        String raw = accessor.getFirstNativeHeader("Authorization");
 
-        Principal principal = accessor.getUser();
-        Long userId = null;
+        Long userId = -1L;
+        boolean isInterviewer = false;
 
-        if (principal instanceof JwtAuthentication auth) {
-            userId = auth.getUserId();
+        if (interviewIdHeader == null) {
+            log.warn("interviewId 헤더 없음 - 연결 차단");
+            return;
         }
 
-        boolean isInterviewer = (principal != null);
+        Long interviewId = Long.parseLong(interviewIdHeader);
+        String token = extractToken(raw);
 
-        if(value != null) {
-            Long interviewId = Long.parseLong(value);
-            interviewWebSocketService.handleUserJoin(interviewId, userId, sessionId, isInterviewer);
+        if (token != null) {
+            try {
+                userId = jwtTokenProvider.getUserId(token);
+                accessor.getSessionAttributes().put("userId", userId);
+                isInterviewer = interviewParticipantRepository.existsByInterviewIdAndUserId(interviewId, userId);
+
+                log.info("INTERVIEW CONNECT userId={}, interviewer={}", userId, isInterviewer);
+
+                accessor.setUser(new JwtAuthentication(userId));
+            } catch (Exception e) {
+                log.warn("JWT 파싱 실패 → 익명 처리", e);
+            }
+        } else {
+            log.info("INTERVIEW CONNECT: Anonymous 접속");
         }
+
+        interviewWebSocketService.handleUserJoin(interviewId, userId, sessionId, isInterviewer);
+    }
+
+    private String extractToken(String raw) {
+        if (raw == null) return null;
+
+        if (raw.startsWith("Bearer ")) {
+            return raw.substring(7);
+        }
+
+        return raw;
     }
 
     @EventListener
-    public void handleWebSocketDisconnect(SessionDisconnectEvent evnet) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(evnet.getMessage());
+    public void handleWebSocketDisconnect(SessionDisconnectEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = accessor.getSessionId();
 
         interviewWebSocketService.handleUserLeave(sessionId);

@@ -17,4 +17,16 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
 """)
     Optional<Resume> findByIdWithDetails(@Param("resumeId") Long resumeId);
 
+    @Query("""
+    SELECT r FROM Resume r
+    LEFT JOIN FETCH r.jobDescription
+    LEFT JOIN FETCH r.educations
+    LEFT JOIN FETCH r.experiences
+    LEFT JOIN FETCH r.skills
+    LEFT JOIN FETCH r.certifications
+    LEFT JOIN FETCH r.activities
+    WHERE r.id = :resumeId
+""")
+    Optional<Resume> findWithDetailsById(@Param("resumeId") Long resumeId);
+
 }

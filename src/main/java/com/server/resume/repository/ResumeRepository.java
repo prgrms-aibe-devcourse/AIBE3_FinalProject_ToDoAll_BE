@@ -19,8 +19,7 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
     @Query("""
     SELECT DISTINCT r FROM Resume r
     LEFT JOIN FETCH r.jobDescription
-    LEFT JOIN FETCH r.educations
-    LEFT JOIN FETCH r.experiences
+    LEFT JOIN FETCH r.educations 
     WHERE r.id = :resumeId
 """)
     Optional<Resume> findWithEssentialDetailsById(@Param("resumeId") Long resumeId);

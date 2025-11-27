@@ -58,26 +58,22 @@ public class Resume extends BaseEntity {
     private ResumeStatus status;
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
     private List<ResumeEducation> educations = new ArrayList<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 50)
     private List<ResumeExperience> experiences = new ArrayList<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
-    @BatchSize(size = 40)
+    @BatchSize(size = 50)
     private List<ResumeSkill> skills = new ArrayList<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
-    @BatchSize(size = 40)
+    @BatchSize(size = 50)
     private List<ResumeActivity> activities = new ArrayList<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
-    @BatchSize(size = 40)
+    @BatchSize(size = 50)
     private List<ResumeCertification> certifications = new ArrayList<>();
 
     @Lob

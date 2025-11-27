@@ -102,7 +102,10 @@ public class MatchService {
                     ResumeDocument doc = hit.source();
                     if (doc == null) return null;
 
-                    Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
+                    // N+1 문제 발생하지 않도록 Fetch Join 적용
+                    Resume resume = resumeRepository.findWithDetailsById(doc.getId())
+                            .orElseThrow(() -> new ApplicationException(MatchErrorCase.RESUME_NOT_FOUND));
+
                     if (resume == null) return null;
 
                     Optional<Match> existingMatch = matchRepository.findByJobDescription_IdAndResume_Id(jdId, doc.getId());

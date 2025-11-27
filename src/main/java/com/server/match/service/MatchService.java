@@ -23,6 +23,7 @@ import com.server.search.document.ResumeDocument;
 import com.server.search.dto.ResumeRecommendationDto;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MatchService {
@@ -70,6 +72,13 @@ public class MatchService {
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
     public List<ResumeRecommendationDto> recommendResumes(Long jdId) throws IOException {
+
+        // 캐시 있으면 바로 반환
+        if (redisRecommendationCacheService.existsRecommendationFor(jdId)) {
+            log.info("[추천 캐시 HIT] JD {} — Redis에서 즉시 반환", jdId);
+            return redisRecommendationCacheService.getRecommendations(jdId);
+        }
+
         JobDescription jd = jobDescriptionRepository.findById(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
@@ -83,7 +92,7 @@ public class MatchService {
         SearchRequest searchRequest = new SearchRequest.Builder()
                 .index("resume")
                 .query(q -> q.bool(b -> b
-                        .must(m -> m.term(t -> t.field("jdId").value(jdId))) // JD 연결
+                        .must(m -> m.term(t -> t.field("jdId").value(jdId)))
                         .should(s -> s.match(t -> t.field("skills").query(queryText).boost(5.0f)))
                         .should(s -> s.match(t -> t.field("experienceSummary").query(queryText).boost(2.0f)))
                         .should(s -> s.match(t -> t.field("educationSummary").query(queryText).boost(2.0f)))
@@ -98,7 +107,7 @@ public class MatchService {
                 ResumeDocument.class
         );
 
-        return response.hits().hits().stream()
+        List<ResumeRecommendationDto> result = response.hits().hits().stream()
                 .map(hit -> {
                     ResumeDocument doc = hit.source();
                     if (doc == null) return null;
@@ -107,14 +116,9 @@ public class MatchService {
                     Resume resume = resumeRepository.findWithEssentialDetailsById(doc.getId())
                             .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
 
-
-                    if (resume == null) return null;
-
                     Optional<Match> existingMatch = matchRepository.findByJobDescription_IdAndResume_Id(jdId, doc.getId());
-
                     if (existingMatch.isPresent()) {
                         MatchStatus status = existingMatch.get().getStatus();
-
                         // APPLIED, BOOKMARK, RECOMMENDED 등은 포함 (나머지 상태는 필터)
                         if (status == MatchStatus.CONFIRMED || status == MatchStatus.REJECTED || status == MatchStatus.HOLD) {
                             return null;
@@ -131,7 +135,6 @@ public class MatchService {
                     float normalizedEsScore = response.hits().maxScore() != null && response.hits().maxScore() > 0
                             ? (float) (esScore / response.hits().maxScore())
                             : 0.0f;
-
                     float finalScore = (matchScore * 0.7f) + (normalizedEsScore * 0.3f);
 
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
@@ -151,6 +154,11 @@ public class MatchService {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())
                 .toList();
+
+        // 캐시 저장
+        redisRecommendationCacheService.saveRecommendations(jdId, result);
+
+        return result;
     }
 
     @Transactional(readOnly = true)

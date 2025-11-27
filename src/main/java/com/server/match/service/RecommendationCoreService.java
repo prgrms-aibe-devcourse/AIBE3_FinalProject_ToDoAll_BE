@@ -40,7 +40,7 @@ public class RecommendationCoreService {
     private final AiRecommendationService aiRecommendationService;
 
     public List<ResumeRecommendationDto> calculateRecommendations(Long jdId) throws IOException {
-        JobDescription jd = jobDescriptionRepository.findById(jdId)
+        JobDescription jd = jobDescriptionRepository.findByIdFetchSkills(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
         String queryText = String.join(" ", jd.getRequiredSkillNames()) + " " +

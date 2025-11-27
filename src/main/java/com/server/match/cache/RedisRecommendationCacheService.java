@@ -87,4 +87,10 @@ public class RedisRecommendationCacheService {
         String key = "summary:" + resumeId;
         redisTemplate.delete(key);
     }
+
+    // JD 키워드 캐시 삭제용 메서드
+    public void evictKeywords(Long jdId) {
+        String key = "keywords:jd_" + jdId;
+        redisTemplate.delete(key);
+    }
 }

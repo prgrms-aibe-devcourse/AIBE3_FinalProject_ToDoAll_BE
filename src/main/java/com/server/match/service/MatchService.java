@@ -205,4 +205,26 @@ public class MatchService {
 
         return new MatchCancelResponseDto(match.getId(), jdTitle, resumeName);
     }
+
+    @Transactional
+    public Match confirmMatch(MatchRequestDto dto) {
+        JobDescription jd = jobDescriptionRepository.findById(dto.jdId())
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
+
+        Resume resume = resumeRepository.findById(dto.resumeId())
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.RESUME_NOT_FOUND));
+
+        if (matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), resume.getId())) {
+            throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_EXISTS);
+        }
+        ResumeDocument doc = ResumeDocument.of(resume);
+        String summary = redisRecommendationCacheService.getOrGenerateSummary(
+                resume.getId(), doc.getFullText(), aiRecommendationService);
+
+        String reason = redisRecommendationCacheService.getOrGenerateReason(
+                jd.getId(), resume.getId(), jd.getDescription(), doc, aiRecommendationService);
+
+        Match match = Match.of(jd, resume, LocalDateTime.now(), null, reason, summary, MatchStatus.RECOMMENDED);
+        return matchRepository.save(match);
+    }
 }

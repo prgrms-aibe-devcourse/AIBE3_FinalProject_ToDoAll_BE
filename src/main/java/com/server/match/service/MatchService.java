@@ -50,6 +50,7 @@ public class MatchService {
     private final RedisRecommendationCacheService redisRecommendationCacheService;
     private final RecommendationAsyncService recommendationAsyncService;
 
+
     // JD 지원 + 매칭 등록
     @Transactional
     public Match applyToJobDescription(MatchRequestDto dto) {
@@ -97,8 +98,8 @@ public class MatchService {
         String queryText = String.join(" ", jd.getRequiredSkillNames()) + " " +
                 String.join(" ", jd.getPreferredSkillNames());
 
-        // JD 설명 기반 키워드 추출 (AI 기반)
-        List<String> jdKeywords = keywordExtractorService.extractKeywords(jd.getDescription());
+        // JD 설명 기반 키워드 추출 (비동기 캐싱 사용)
+        List<String> jdKeywords = redisRecommendationCacheService.getOrGenerateKeywords(jdId, jd.getDescription());
 
         // Java client 사용
         SearchRequest searchRequest = new SearchRequest.Builder()

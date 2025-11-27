@@ -224,7 +224,7 @@ public class MatchService {
         String reason = redisRecommendationCacheService.getOrGenerateReason(
                 jd.getId(), resume.getId(), jd.getDescription(), doc, aiRecommendationService);
 
-        Match match = Match.of(jd, resume, LocalDateTime.now(), null, reason, summary, MatchStatus.RECOMMENDED);
+        Match match = Match.of(jd, resume, LocalDateTime.now(), null, reason, summary, MatchStatus.CONFIRMED);
         return matchRepository.save(match);
     }
 }

@@ -63,4 +63,18 @@ public class NotificationController {
         notificationService.markRead(notificationId, userId);
         return CommonResponse.success("읽음 처리 성공");
     }
+
+    @DeleteMapping("/{notificationId}")
+    @Operation(summary = "알림 삭제 api", description = "알림 수동 삭제")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "알림 삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 알림")
+    })
+    public  CommonResponse<String> deleteNotification(
+            @PathVariable Long notificationId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        notificationService.deleteNotification(notificationId, userId);
+        return CommonResponse.success("알림 삭제 성공");
+    }
 }

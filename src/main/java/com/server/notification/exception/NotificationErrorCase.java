@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
 public enum NotificationErrorCase implements ErrorCase {
-    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, 10001, "해당 인터뷰를 찾을 수 없습니다."),
-    FORBIDDEN(HttpStatus.FORBIDDEN, 10002, "해당 인터뷰 접근 권한이 없습니다.");
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, 10001, "해당 알림을 찾을 수 없습니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, 10002, "해당 알림 접근 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;

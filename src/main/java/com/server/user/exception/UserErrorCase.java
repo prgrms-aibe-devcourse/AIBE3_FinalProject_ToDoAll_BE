@@ -28,12 +28,9 @@ public enum UserErrorCase implements ErrorCase {
     PASSWORD_EQUALS_EMAIL_ID(HttpStatus.BAD_REQUEST, 3003, "비밀번호에 이메일 아이디를 그대로 사용할 수 없습니다."),
 
 
+    // 400 - 허용되지 않은 성별
+    INVALID_GENDER(HttpStatus.BAD_REQUEST, 4003, "허용되지 않는 성별 값입니다.");
 
-    // 401 - 인증 필요
-    USER_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 2001, "인증이 필요합니다."),
-
-    // 400 - 허용되지 않은 성별, 생일 등
-    INVALID_USER_FIELD(HttpStatus.BAD_REQUEST, 3002, "허용되지 않은 사용자 정보입니다.");
 
 
     private final HttpStatus httpStatus;

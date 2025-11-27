@@ -1,7 +1,11 @@
 package com.server.user.service;
 
+import com.server.auth.exception.AuthErrorCase;
+import com.server.auth.service.EmailAuthService;
 import com.server.global.exception.ApplicationException;
 import com.server.user.domain.User;
+import com.server.user.dto.UserProfileResponseDto;
+import com.server.user.dto.UserProfileUpdateRequestDto;
 import com.server.user.dto.UserSignupRequestDto;
 import com.server.user.dto.UserSignupResponseDto;
 import com.server.user.exception.UserErrorCase;
@@ -12,41 +16,44 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
+    private final EmailAuthService emailAuthService;    // 이메일 인증 검증
 
+
+    //회원가입
     @Transactional
     public UserSignupResponseDto signup(UserSignupRequestDto request) {
+
+        // 0) 이메일 인증 토큰 검증 및 사용 처리
+        String verifiedEmail = emailAuthService.validateAndUseToken(request.getToken());
+
+        // 0-1) 토큰에서 나온 이메일과 요청 이메일 일치 확인
+        if (!verifiedEmail.equalsIgnoreCase(request.getEmail())) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_TOKEN_INVALID);
+        }
 
         // 1) 이메일 중복 검사
         if (userRepository.existsByEmail(request.getEmail())) {
             throw ApplicationException.from(UserErrorCase.USER_ALREADY_EXISTS);
         }
 
-        // 2) 비밀번호 & 비밀번호 확인 불일치
-        if (!request.getPassword().equals(request.getPasswordConfirm())) {
-            throw ApplicationException.from(UserErrorCase.PASSWORD_CONFIRM_MISMATCH);
-        }
-
-        // 3) 비밀번호 정책 검사
+        // 2) 비밀번호 정책 검사
         passwordValidator.validateForSignup(
                 request.getPassword(),
                 request.getEmail()
         );
 
-        // 4) 비밀번호 암호화
+        // 3) 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // 5) 엔티티 생성
+        // 4) 유저 생성
         User newUser = User.createForSignup(
                 request.getEmail(),
                 encodedPassword,
@@ -56,11 +63,48 @@ public class UserService {
                 request.getPosition()
         );
 
-        // 6) 저장
+        // 5) 저장
         User saved = userRepository.save(newUser);
 
-        // 7) 응답 DTO
+        // 6) 응답 DTO
         return UserSignupResponseDto.from(saved);
+    }
+
+    // 마이페이지 - 내 정보 조회
+
+    public UserProfileResponseDto getMyProfile(Long userId) {
+        validateAuthenticated(userId); // 인증 여부 검증을 서비스에서 처리
+        // 1) userId 로 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+        // 2) 엔티티 -> DTO 변환
+        return UserProfileResponseDto.from(user);
+    }
+
+    // 마이페이지 - 내 정보 수정
+
+    @Transactional
+    public UserProfileResponseDto updateMyProfile(Long userId, UserProfileUpdateRequestDto request) {
+        validateAuthenticated(userId); // 인증 여부 검증
+
+        // 1) userId 로 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+
+        // 3) 엔티티의 프로필 업데이트 메서드 호출
+        user.updateProfile(
+                request.getName(),
+                request.getNickname(),
+                request.getPosition(),
+                request.getPhoneNumber(),
+                request.getBirthDate(),
+                request.getGender()
+        );
+
+        // 4) 변경된 user 엔티티를 응답 DTO로 변환해서 반환
+        return UserProfileResponseDto.from(user);
     }
 
 
@@ -68,6 +112,8 @@ public class UserService {
 
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword) {
+        validateAuthenticated(userId); // 인증 여부 검증 (컨트롤러에서 제거됨)
+
 
         // 1) user 조회
         User user = userRepository.findById(userId)
@@ -91,6 +137,14 @@ public class UserService {
 
         // 6) 엔티티에서 변경
         user.changePassword(encodedNewPassword);
+    }
+
+    // 인증 여부를 공통으로 검증하는 private 메서드
+    private void validateAuthenticated(Long userId) {
+        if (userId == null) {
+            // 로그인 정보가 없으면 UNAUTHORIZED 에러 반환
+            throw ApplicationException.from(UserErrorCase.UNAUTHORIZED);
+        }
     }
 
 }

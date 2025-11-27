@@ -11,7 +11,7 @@ import java.util.List;
 public interface InterviewQuestionRepository extends JpaRepository<InterviewQuestion, Long> {
     @Modifying
     @Query("DELETE FROM InterviewQuestion q WHERE q.interview.id = :interviewId")
-    void deleteByInterviewId(Long interviewId);
+    void deleteByInterviewId(@Param("interviewId") Long interviewId);
 
     @Modifying
     @Query("DELETE FROM InterviewQuestion q WHERE q.id IN :ids AND q.interview.id = :interviewId")

@@ -1,0 +1,141 @@
+package com.server.mcp.tool;
+
+import com.server.global.exception.ApplicationException;
+import com.server.interview.domain.Interview;
+import com.server.interview.domain.QuestionType;
+import com.server.interview.dto.InterviewQuestionUpdateRequestDto;
+import com.server.interview.exception.InterviewErrorCase;
+import com.server.interview.repository.InterviewRepository;
+import com.server.interview.service.InterviewQuestionService;
+import com.server.jd.domain.JobDescription;
+import com.server.jd.exception.JobErrorCase;
+import com.server.jd.repository.JobDescriptionRepository;
+import com.server.mcp.dto.InterviewQuestionAiDto;
+import com.server.resume.domain.Resume;
+import com.server.resume.dto.ResumeEducationRequestDto;
+import com.server.resume.dto.ResumeExperienceRequestDto;
+import com.server.resume.dto.ResumeSkillRequestDto;
+import com.server.resume.exception.ResumeErrorCase;
+import com.server.resume.repository.ResumeRepository;
+import com.server.resume.service.ResumeService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpToolParam;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class InterviewMcpTools {
+    private final InterviewQuestionService interviewQuestionService;
+    private final InterviewRepository interviewRepository;
+
+    @Transactional
+    @McpTool(
+            name = "get_interview_context",
+            description = "면접 생성에 필요한 이력서/직무 정보를 한 번에 조회"
+    )
+    public Map<String, Object> getInterviewContext(
+            @McpToolParam(description = "interview id") Long interviewId
+    ) {
+        Interview interview = interviewRepository.findById(interviewId).orElseThrow(
+                () -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND)
+        );
+
+        Resume resume = interview.getResume();
+        JobDescription jd = interview.getJobDescription();
+
+        // 이력서 쪽 DTO들
+        List<ResumeEducationRequestDto> educationList = resume.getEducations().stream()
+                .map(edu -> new ResumeEducationRequestDto(
+                        edu.getEducationLevel(),
+                        edu.getSchoolName(),
+                        edu.getMajor(),
+                        edu.getIsGraduated(),
+                        edu.getAdmissionDate(),
+                        edu.getGraduationDate(),
+                        edu.getAttendanceType(),
+                        edu.getGpa(),
+                        edu.getGpaScale()
+                )).toList();
+
+        List<ResumeExperienceRequestDto> experienceList = resume.getExperiences().stream()
+                .map(ex -> new ResumeExperienceRequestDto(
+                        ex.getCompanyName(),
+                        ex.getDepartment(),
+                        ex.getPosition(),
+                        ex.getStartDate(),
+                        ex.getEndDate()
+                )).toList();
+
+        List<ResumeSkillRequestDto> skillList = resume.getSkills().stream()
+                .map(skill -> new ResumeSkillRequestDto(
+                        skill.getSkill().getName(),
+                        skill.getProficiencyLevel()
+                )).toList();
+
+        List<String> skillNames = resume.getSkills().stream()
+                .map(skill -> skill.getSkill().getName())
+                .toList();
+
+        // JD 쪽
+        Map<String, Object> jdMap = Map.of(
+                "description", jd.getDescription(),
+                "experience", jd.getExperience(),
+                "workType", jd.getWorkType(),
+                "education", jd.getEducation(),
+                "preferredSkills", jd.getPreferredSkillNames(),
+                "requiredSkills", jd.getRequiredSkillNames()
+        );
+
+        log.info("getInterviewContext {}", interviewId);
+
+        return Map.of(
+                "resume", Map.of(
+                        "experience", experienceList,
+                        "education", educationList,
+                        "skill", skillList,
+                        "skillNames", skillNames
+                ),
+                "jobDescription", jdMap
+        );
+    }
+
+    @Transactional
+    @McpTool(
+            name = "save_interview_questions",
+            description = "면접 질문을 생성하고 이를 DB에 저장"
+    )
+    public Map<String, Object> saveInterviewQuestions(
+            @McpToolParam(description = "면접 id") Long interviewId,
+            @McpToolParam(description = "저장할 질문 리스트") List<InterviewQuestionAiDto> questionList
+    ) {
+        interviewRepository.findById(interviewId).orElseThrow(
+                () -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND)
+        );
+
+        var items = questionList.stream()
+                .map(q -> new InterviewQuestionUpdateRequestDto.QuestionUpdateItem(
+                        null,
+                        QuestionType.valueOf(q.questionType().toUpperCase()),
+                        q.content()
+                )).toList();
+        var requestDto = new InterviewQuestionUpdateRequestDto(
+                items,
+                List.of()
+        );
+
+        interviewQuestionService.updateQuestions(interviewId, requestDto);
+        log.info("saveInterviewQuestions {}", interviewId);
+        return Map.of(
+                "status", "success",
+                "savedCount", items.size()
+        );
+    }
+
+}

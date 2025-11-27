@@ -12,6 +12,7 @@ import com.server.jd.repository.JobDescriptionRepository;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
+import com.server.user.domain.Gender;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.context.ApplicationEventPublisher;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,6 +43,8 @@ class InterviewServiceTest {
     private ResumeRepository resumeRepo;
     private UserRepository userRepo;
     private InterviewEvaluationRepository  interviewEvaluationRepository;
+    private ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher applicationEventPublisher;
 
     private InterviewService interviewService;
 
@@ -53,6 +58,8 @@ class InterviewServiceTest {
         resumeRepo = Mockito.mock(ResumeRepository.class);
         userRepo = Mockito.mock(UserRepository.class);
         interviewEvaluationRepository =  Mockito.mock(InterviewEvaluationRepository.class);
+        eventPublisher =  Mockito.mock(ApplicationEventPublisher.class);
+        applicationEventPublisher = Mockito.mock(ApplicationEventPublisher.class);
 
         interviewService = new InterviewService(
                 interviewRepository,
@@ -62,21 +69,20 @@ class InterviewServiceTest {
                 jobRepo,
                 resumeRepo,
                 userRepo,
-                interviewEvaluationRepository
+                interviewEvaluationRepository,
+                eventPublisher,
+                applicationEventPublisher
         );
     }
 
     // ======================= 공통 User 생성 메서드 =========================
 
     private User createUser(Long id, String email, String name) {
-        User user = User.of(
+        User user = User.createForSignup(
                 email,
                 "pw",
                 name,
                 "nickname",
-                "010-1111-2222",
-                LocalDate.now(),
-                "M",
                 "Company",
                 "Dev"
         );

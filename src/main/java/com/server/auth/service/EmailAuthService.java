@@ -107,6 +107,7 @@ public class EmailAuthService {
         // 6) 인증 링크 생성
         String verificationLink = UriComponentsBuilder
                 .fromHttpUrl(authBaseUrl)
+                .queryParam("email", email)
                 .queryParam("token", token.getToken())
                 .toUriString();
 
@@ -129,9 +130,7 @@ public class EmailAuthService {
         }
     }
 
-
-    //이메일 인증 완료 처리
-
+    //이메일 인증 링크 클릭 시 이메일 인증 완료 처리
     @Transactional
     public EmailAuthCompleteResponseDto completeAuth(String tokenValue) {
 
@@ -141,7 +140,10 @@ public class EmailAuthService {
 
         // 2) 이미 사용된 토큰인지 확인
         if (token.isVerified()) {
-            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_ALREADY_VERIFIED);
+            userRepository.findByEmail(token.getEmail())
+                    .ifPresent(user -> user.markEmailVerified());
+
+            return EmailAuthCompleteResponseDto.from(token);
         }
 
         // 3) 만료 여부 확인
@@ -152,15 +154,33 @@ public class EmailAuthService {
         // 4) 인증 완료 처리
         token.markAsVerified();
 
-        // 5) 해당 이메일 User 찾아서 상태 변경
+        // 5) 해당 이메일 User 찾아서 이메일 인증 완료로 변경
         userRepository.findByEmail(token.getEmail())
                 .ifPresent(user -> user.markEmailVerified());
 
-        // 6) 응답 DTO로 변환
         return EmailAuthCompleteResponseDto.from(token);
     }
 
-     //회원가입 이메일 인증 HTML 템플릿 로드
+    // 회원가입에서 사용할 이메일 인증 여부 확인 메서드
+    public boolean isVerifiedEmail(String email) {
+        // 1) 앞뒤 공백 제거 + 소문자 통일
+        String normalizedEmail = normalizeEmail(email);
+
+        if (normalizedEmail == null || normalizedEmail.isEmpty()) {
+            return false; // 이메일이 이상하면 false
+        }
+
+        // 2) 해당 이메일로 인증 완료된 토큰 기록 있는지 확인
+        boolean exists = emailVerificationTokenRepository.existsByEmailAndVerifiedAtIsNotNull(normalizedEmail);
+
+        log.info("[EmailAuth] isVerifiedEmail: email={}, result={}", normalizedEmail, exists);
+
+        return exists;
+    }
+
+
+
+    //회원가입 이메일 인증 HTML 템플릿 로드
 
     private String loadSignupVerificationTemplate(String verificationUrl) {
         try {
@@ -183,4 +203,36 @@ public class EmailAuthService {
             return "아래 링크를 클릭하여 이메일 인증을 완료해주세요.\n" + verificationUrl;
         }
     }
+
+    // 회원가입 시 토큰 자체를 직접 검증
+    @Transactional
+    public String validateAndUseToken(String tokenValue) {
+        // 1) 토큰 조회
+        EmailVerificationToken token = emailVerificationTokenRepository.findByToken(tokenValue)
+                .orElseThrow(() -> ApplicationException.from(AuthErrorCase.EMAIL_AUTH_TOKEN_INVALID));
+
+        // 2) 토큰 만료 확인
+        if (token.isExpired()) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_TOKEN_EXPIRED);
+        }
+
+        // 3) 이메일 인증 완료 확인
+        if (!token.isVerified()) {
+            throw ApplicationException.from(AuthErrorCase.EMAIL_AUTH_REQUIRED);
+        }
+
+        log.info("[EmailAuth] validateAndUseToken 성공: email={}, token={}", token.getEmail(), tokenValue);
+
+
+        return token.getEmail();
+    }
+
+    // 이메일 정규화: 앞뒤 공백 제거 + 소문자로 변환
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        return email.trim().toLowerCase();
+    }
+
 }

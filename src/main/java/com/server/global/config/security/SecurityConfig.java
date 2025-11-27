@@ -41,21 +41,26 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/chat-test.html").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // WebSocket 엔드포인트 허용 (나중에 삭제)
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
+                                "/mcp",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/api/v1/users", // 회원가입
                                 "/api/v1/email-verifications/**", // 이메일 인증
-                                "/auth/login", // 로그인
-                                "/auth/password/**", // 비번 재설정
+                                "/api/v1/auth/token", // 로그인
+                                "/api/auth/password/**", // 비번 재설정
                                 "/api/v1/auth/**", // 비로그인 비번 재설정
                                 "/api/v1/resumes/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/jd/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/search/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/matches/**", // ES 테스트용 임시 허용 (나중에 삭제)
-                                "/api/v1/dev/redis/**" // Redis 캐시 삭제용 임시 허용
+                                "/api/v1/dev/redis/**", // Redis 캐시 삭제용 임시 허용
+                                "/api/v1/interviews/**", // AI 테스트용 임시 허용 (나중에 삭제)
+                                "/api/v1/notifications/**" // SSE 관련 api 임시 허용 (나중에 삭제)
                         ).permitAll()
                         // preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -63,7 +68,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-                UsernamePasswordAuthenticationFilter.class);
+                                UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -71,7 +76,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true); // 인증정보 포함 허용 (쿠키 등)

@@ -53,7 +53,7 @@ public class NotificationService {
 
         //알림 단건 조회
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOT_FOUND));
+                .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOTIFICATION_NOT_FOUND));
 
         if (!notification.getUserId().equals(currentUserId)) {
             throw new ApplicationException(NotificationErrorCase.FORBIDDEN);
@@ -64,9 +64,9 @@ public class NotificationService {
 
     @Transactional
     public void deleteNotification(Long notificationId, Long currentUserId) {
-        
+
         Notification notification  = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOT_FOUND));
+                .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOTIFICATION_NOT_FOUND));
 
         if (!notification.getUserId().equals(currentUserId)) {
             throw new ApplicationException(NotificationErrorCase.FORBIDDEN);

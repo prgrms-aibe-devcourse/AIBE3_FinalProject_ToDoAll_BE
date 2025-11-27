@@ -42,4 +42,10 @@ public class RedisRecommendationCacheService {
         redisTemplate.opsForValue().set(key, result, TTL);
         return result;
     }
+
+    // 테스트에서 사용하기 위한 Redis 캐시 삭제 메서드
+    public void evictSummary(Long resumeId) {
+        String key = "summary:" + resumeId;
+        redisTemplate.delete(key);
+    }
 }

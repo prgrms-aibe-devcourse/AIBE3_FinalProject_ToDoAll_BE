@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -104,8 +105,16 @@ public class MatchService {
                     Resume resume = resumeRepository.findById(doc.getId()).orElse(null);
                     if (resume == null) return null;
 
-                    boolean exists = matchRepository.existsByJobDescription_IdAndResume_Id(jdId, doc.getId());
-                    if (exists) return null;
+                    Optional<Match> existingMatch = matchRepository.findByJobDescription_IdAndResume_Id(jdId, doc.getId());
+
+                    if (existingMatch.isPresent()) {
+                        MatchStatus status = existingMatch.get().getStatus();
+
+                        // APPLIED, BOOKMARK, RECOMMENDED 등은 포함 (나머지 상태는 필터)
+                        if (status == MatchStatus.CONFIRMED || status == MatchStatus.REJECTED || status == MatchStatus.HOLD) {
+                            return null;
+                        }
+                    }
 
                     // MatchScore 계산 (스킬 + 학력 + 자격증 + 활동)
                     float matchScore = MatchScoreCalculator.calculateMatchScoreWithKeywords(jd, doc, resume, jdKeywords);

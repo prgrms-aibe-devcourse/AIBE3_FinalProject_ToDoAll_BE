@@ -132,9 +132,6 @@ public class MatchService {
                         reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
                     }
 
-                    Match match = Match.of(jd, resume, LocalDateTime.now(), finalScore, reason, summary, MatchStatus.RECOMMENDED);;
-                    matchRepository.save(match);
-
                     return ResumeRecommendationDto.from(resume, doc, finalScore, missingSkills, summary, reason);
                 })
                 .filter(Objects::nonNull)

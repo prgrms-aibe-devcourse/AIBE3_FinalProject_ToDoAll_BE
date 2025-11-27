@@ -22,6 +22,12 @@ public class RedisRecommendationCacheService {
     public String getOrGenerateSummary(Long resumeId, String fullText, AiRecommendationService aiService) {
         String key = "summary:" + resumeId;
         Object cached = redisTemplate.opsForValue().get(key);
+        if (cached != null) {
+            log.info("캐시 HIT for key {}", key);
+            return cached.toString();
+        }
+        log.info("캐시 MISS for key {}, calling AI", key);
+
         if (cached instanceof String str) {
             return str;
         }

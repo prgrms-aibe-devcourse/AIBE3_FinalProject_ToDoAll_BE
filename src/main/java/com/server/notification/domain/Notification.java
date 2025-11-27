@@ -1,6 +1,7 @@
 package com.server.notification.domain;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.server.global.entity.BaseEntity;
 import com.server.notification.payload.NotificationPayload;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Notification {
+public class Notification extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +33,6 @@ public class Notification {
 
     @Column(name = "is_read")
     private boolean read; // 읽음 여부
-    private LocalDateTime createdAt;
 
     //보내질 시간 (null → 즉시 알림)
     private LocalDateTime scheduledAt;
@@ -73,7 +73,6 @@ public class Notification {
         }
 
         n.read = false;
-        n.createdAt = LocalDateTime.now();
         n.scheduledAt = scheduledAt;
 
         n.sent = scheduledAt == null;

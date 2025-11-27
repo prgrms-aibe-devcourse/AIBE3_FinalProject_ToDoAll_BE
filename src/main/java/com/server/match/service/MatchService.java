@@ -17,6 +17,7 @@ import com.server.match.repository.MatchRepository;
 import com.server.match.util.MatchScoreCalculator;
 import com.server.match.util.RecommendationReasonBuilder;
 import com.server.resume.domain.Resume;
+import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.document.ResumeDocument;
 import com.server.search.dto.ResumeRecommendationDto;
@@ -103,8 +104,9 @@ public class MatchService {
                     if (doc == null) return null;
 
                     // N+1 문제 발생하지 않도록 Fetch Join 적용
-                    Resume resume = resumeRepository.findWithDetailsById(doc.getId())
-                            .orElseThrow(() -> new ApplicationException(MatchErrorCase.RESUME_NOT_FOUND));
+                    Resume resume = resumeRepository.findWithEssentialDetailsById(doc.getId())
+                            .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
 
                     if (resume == null) return null;
 

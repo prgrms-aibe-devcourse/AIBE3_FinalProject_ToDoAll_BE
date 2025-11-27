@@ -41,10 +41,6 @@ public class RedisRecommendationCacheService {
         }
         log.info("캐시 MISS for key {}, calling AI", key);
 
-        if (cached instanceof String str) {
-            return str;
-        }
-
         String result = aiService.generateResumeSummary(fullText);
         redisTemplate.opsForValue().set(key, result, TTL);
         return result;

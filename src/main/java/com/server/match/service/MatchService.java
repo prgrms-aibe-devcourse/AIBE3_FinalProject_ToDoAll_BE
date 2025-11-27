@@ -8,6 +8,7 @@ import com.server.ai.service.KeywordExtractorService;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.match.async.RecommendationAsyncService;
 import com.server.match.cache.RedisRecommendationCacheService;
 import com.server.match.domain.Match;
 import com.server.match.domain.MatchStatus;
@@ -15,7 +16,6 @@ import com.server.match.dto.*;
 import com.server.match.exception.MatchErrorCase;
 import com.server.match.repository.MatchRepository;
 import com.server.match.util.MatchScoreCalculator;
-import com.server.match.util.RecommendationReasonBuilder;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +48,7 @@ public class MatchService {
     private final AiRecommendationService aiRecommendationService;
     private final KeywordExtractorService keywordExtractorService;
     private final RedisRecommendationCacheService redisRecommendationCacheService;
+    private final RecommendationAsyncService recommendationAsyncService;
 
     // JD 지원 + 매칭 등록
     @Transactional
@@ -72,13 +72,25 @@ public class MatchService {
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
     public List<ResumeRecommendationDto> recommendResumes(Long jdId) throws IOException {
-
         // 캐시 있으면 바로 반환
         if (redisRecommendationCacheService.existsRecommendationFor(jdId)) {
             log.info("[추천 캐시 HIT] JD {} — Redis에서 즉시 반환", jdId);
             return redisRecommendationCacheService.getRecommendations(jdId);
         }
 
+        // 캐시 없으면 바로 추천 계산 (동기)
+        List<ResumeRecommendationDto> result = calculateRecommendations(jdId);
+
+        // 캐시 저장
+        redisRecommendationCacheService.saveRecommendations(jdId, result);
+
+        // 비동기로 다시 캐싱 예약
+        recommendationAsyncService.warmUpRecommendation(jdId);
+
+        return result;
+    }
+
+    public List<ResumeRecommendationDto> calculateRecommendations(Long jdId) throws IOException {
         JobDescription jd = jobDescriptionRepository.findById(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
@@ -102,12 +114,9 @@ public class MatchService {
                 .size(10)
                 .build();
 
-        SearchResponse<ResumeDocument> response = elasticsearchClient.search(
-                searchRequest,
-                ResumeDocument.class
-        );
+        SearchResponse<ResumeDocument> response = elasticsearchClient.search(searchRequest, ResumeDocument.class);
 
-        List<ResumeRecommendationDto> result = response.hits().hits().stream()
+        return response.hits().hits().stream()
                 .map(hit -> {
                     ResumeDocument doc = hit.source();
                     if (doc == null) return null;
@@ -133,8 +142,8 @@ public class MatchService {
 
                     // 최종 점수 결과 = MatchScore * 0.7 + ES Score 정규화 * 0.3
                     float normalizedEsScore = response.hits().maxScore() != null && response.hits().maxScore() > 0
-                            ? (float) (esScore / response.hits().maxScore())
-                            : 0.0f;
+                            ? (float) (esScore / response.hits().maxScore()) : 0.0f;
+
                     float finalScore = (matchScore * 0.7f) + (normalizedEsScore * 0.3f);
 
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
@@ -154,11 +163,6 @@ public class MatchService {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())
                 .toList();
-
-        // 캐시 저장
-        redisRecommendationCacheService.saveRecommendations(jdId, result);
-
-        return result;
     }
 
     @Transactional(readOnly = true)

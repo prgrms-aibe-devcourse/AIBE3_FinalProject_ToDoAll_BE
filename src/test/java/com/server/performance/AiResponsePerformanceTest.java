@@ -2,13 +2,14 @@ package com.server.performance;
 
 import com.server.ai.service.AiRecommendationService;
 import com.server.match.cache.RedisRecommendationCacheService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-
+@Slf4j
 @SpringBootTest
 @ActiveProfiles("test")
 public class AiResponsePerformanceTest {
@@ -39,9 +40,9 @@ public class AiResponsePerformanceTest {
         long latency1 = (end1 - start1) / 1_000_000;
         long latency2 = (end2 - start2) / 1_000_000;
 
-        System.out.println("1차 호출 (AI 호출): " + latency1 + "ms");
-        System.out.println("2차 호출 (Redis 캐시): " + latency2 + "ms");
-        System.out.printf("캐시 적용으로 %dms (%d%%) 개선됨\n", (latency1 - latency2), (100 * (latency1 - latency2) / latency1));
+        log.info("1차 호출 (AI 호출): " + latency1 + "ms");
+        log.info("2차 호출 (Redis 캐시): " + latency2 + "ms");
+        log.info("캐시 적용으로 {}ms ({}%) 개선됨", latency1 - latency2, (100 * (latency1 - latency2) / latency1));
 
         Assertions.assertEquals(result1, result2);
     }

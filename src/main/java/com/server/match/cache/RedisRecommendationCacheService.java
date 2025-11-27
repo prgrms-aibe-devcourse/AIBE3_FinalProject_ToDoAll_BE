@@ -42,6 +42,8 @@ public class RedisRecommendationCacheService {
         if (cached instanceof List) {
             log.info("[캐시 HIT] JD 키워드 캐시 — JD {}", jdId);
             return (List<String>) cached;
+        } else if (cached != null) {
+            log.warn("[캐시 경고] JD 키워드 캐시 형식 불일치 — JD {}, 타입: {}", jdId, cached.getClass().getName());
         }
 
         log.info("[캐시 MISS] JD 키워드 캐시 — JD {} → AI 호출", jdId);

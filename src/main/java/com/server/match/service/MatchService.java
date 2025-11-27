@@ -8,6 +8,7 @@ import com.server.ai.service.KeywordExtractorService;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.match.cache.RedisRecommendationCacheService;
 import com.server.match.domain.Match;
 import com.server.match.domain.MatchStatus;
 import com.server.match.dto.*;
@@ -43,6 +44,7 @@ public class MatchService {
     private final ElasticsearchClient elasticsearchClient;
     private final AiRecommendationService aiRecommendationService;
     private final KeywordExtractorService keywordExtractorService;
+    private final RedisRecommendationCacheService redisRecommendationCacheService;
 
     // JD 지원 + 매칭 등록
     @Transactional
@@ -120,9 +122,12 @@ public class MatchService {
 
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
 
-                    String summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
+                    // Redis 캐시 적용 => 이력서 요약이 캐시에 없을 때만 AI 호출
+                    String summary = redisRecommendationCacheService.getOrGenerateSummary(doc.getId(), doc.getFullText(), aiRecommendationService);
 
-                    String reason = RecommendationReasonBuilder.buildReason(jd.getDescription(), doc);
+                    // Redis 캐시 적용 => JD+이력서 조합에 따른 추천 사유가 캐시에 없을 때만 AI 호출
+                    String reason = redisRecommendationCacheService.getOrGenerateReason(jdId, doc.getId(), jd.getDescription(), doc, aiRecommendationService);
+
                     if (reason == null || reason.isBlank()) {
                         reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
                     }

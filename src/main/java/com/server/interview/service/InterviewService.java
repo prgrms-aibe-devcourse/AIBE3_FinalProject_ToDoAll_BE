@@ -106,9 +106,7 @@ public class InterviewService {
         // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
         applicationEventPublisher.publishEvent(
                 new InterviewCreatedAiEvent(
-                        interview.getId(),
-                        resume.getId(),
-                        jobDescription.getId()
+                        interview.getId()
                 )
         );
         // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//

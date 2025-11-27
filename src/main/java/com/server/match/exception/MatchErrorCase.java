@@ -12,7 +12,9 @@ public enum MatchErrorCase implements ErrorCase {
     MATCH_INVALID_STATUS(HttpStatus.BAD_REQUEST, 8003, "유효하지 않은 매칭 상태입니다."),
     JD_NOT_FOUND(HttpStatus.NOT_FOUND, 8004, "채용공고를 찾을 수 없습니다."),
     RESUME_NOT_FOUND(HttpStatus.NOT_FOUND, 8005, "이력서를 찾을 수 없습니다."),
-    JD_INVALID_ID(HttpStatus.BAD_REQUEST, 8006, "유효하지 않은 JD ID입니다.");
+    JD_INVALID_ID(HttpStatus.BAD_REQUEST, 8006, "유효하지 않은 JD ID입니다."),
+    MATCH_ALREADY_CONFIRMED(HttpStatus.CONFLICT, 8007, "이미 확정된 매칭입니다."),
+    MATCH_CANNOT_BE_CONFIRMED(HttpStatus.BAD_REQUEST, 8008, "현재 상태에서는 확정할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;

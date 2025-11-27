@@ -223,17 +223,20 @@ public class MatchService {
         Resume resume = resumeRepository.findById(dto.resumeId())
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.RESUME_NOT_FOUND));
 
-        if (matchRepository.existsByJobDescription_IdAndResume_Id(jd.getId(), resume.getId())) {
-            throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_EXISTS);
+        Match match = matchRepository.findByJobDescription_IdAndResume_Id(jd.getId(), resume.getId())
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
+
+        // 이미 확정된 지원자면 중복 확정 불가
+        if (match.getStatus() == MatchStatus.CONFIRMED) {
+            throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_CONFIRMED);
         }
-        ResumeDocument doc = ResumeDocument.of(resume);
-        String summary = redisRecommendationCacheService.getOrGenerateSummary(
-                resume.getId(), doc.getFullText(), aiRecommendationService);
 
-        String reason = redisRecommendationCacheService.getOrGenerateReason(
-                jd.getId(), resume.getId(), jd.getDescription(), doc, aiRecommendationService);
+        // 거절,보류된 경우 확정 불가
+        if (match.getStatus() == MatchStatus.REJECTED || match.getStatus() == MatchStatus.HOLD) {
+            throw new ApplicationException(MatchErrorCase.MATCH_CANNOT_BE_CONFIRMED);
+        }
 
-        Match match = Match.of(jd, resume, LocalDateTime.now(), null, reason, summary, MatchStatus.CONFIRMED);
-        return matchRepository.save(match);
+        match.updateStatus(MatchStatus.CONFIRMED);
+        return match;
     }
 }

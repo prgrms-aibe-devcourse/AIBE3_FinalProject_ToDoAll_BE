@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dev/redis")
+@RequestMapping("api/v1/dev/redis")
 public class RedisDevController {
 
     private final RedisRecommendationCacheService redisRecommendationCacheService;

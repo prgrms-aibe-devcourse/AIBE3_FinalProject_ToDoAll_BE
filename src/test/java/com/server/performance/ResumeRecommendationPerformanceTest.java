@@ -1,6 +1,7 @@
 package com.server.performance;
 
 import com.server.support.TestEnvLoader;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+@Slf4j
 @EnabledIfEnvironmentVariable(named = "CI", matches = "false")
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -40,6 +42,6 @@ public class ResumeRecommendationPerformanceTest extends TestEnvLoader {
         }
 
         double averageTime = totalExecutionTime / (double) totalRequests;
-        System.out.println("평균 추천 API 응답 시간: " + averageTime + "ms");
+        log.info("평균 추천 API 응답 시간: " + averageTime + "ms");
     }
 }

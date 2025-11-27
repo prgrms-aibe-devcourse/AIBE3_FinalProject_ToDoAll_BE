@@ -1,7 +1,6 @@
 package com.server.resume.repository;
 
 import com.server.resume.domain.Resume;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,5 +15,13 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
     WHERE r.id = :resumeId
 """)
     Optional<Resume> findByIdWithDetails(@Param("resumeId") Long resumeId);
+
+    @Query("""
+    SELECT DISTINCT r FROM Resume r
+    LEFT JOIN FETCH r.jobDescription
+    LEFT JOIN FETCH r.educations 
+    WHERE r.id = :resumeId
+""")
+    Optional<Resume> findWithEssentialDetailsById(@Param("resumeId") Long resumeId);
 
 }

@@ -61,4 +61,17 @@ public class NotificationService {
         // 읽음 표시
         notification.markRead();
     }
+
+    @Transactional
+    public void deleteNotification(Long notificationId, Long currentUserId) {
+
+        Notification notification  = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOTIFICATION_NOT_FOUND));
+
+        if (!notification.getUserId().equals(currentUserId)) {
+            throw new ApplicationException(NotificationErrorCase.FORBIDDEN);
+        }
+
+        notificationRepository.delete(notification);
+    }
 }

@@ -58,6 +58,7 @@ public class SecurityConfig {
                                 "/api/v1/jd/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/search/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/matches/**", // ES 테스트용 임시 허용 (나중에 삭제)
+                                "/api/v1/dev/redis/**", // Redis 캐시 삭제용 임시 허용
                                 "/api/v1/interviews/**", // AI 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/notifications/**" // SSE 관련 api 임시 허용 (나중에 삭제)
                         ).permitAll()

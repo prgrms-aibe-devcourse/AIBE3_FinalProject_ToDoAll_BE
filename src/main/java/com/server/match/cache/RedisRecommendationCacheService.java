@@ -19,6 +19,19 @@ public class RedisRecommendationCacheService {
 
     private static final Duration TTL = Duration.ofDays(30);
 
+    public boolean existsRecommendationFor(Long jdId) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey("recommend:jd_" + jdId));
+    }
+
+    public void saveRecommendations(Long jdId, Object data) {
+        redisTemplate.opsForValue().set("recommend:jd_" + jdId, data, TTL);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getRecommendations(Long jdId) {
+        return (T) redisTemplate.opsForValue().get("recommend:jd_" + jdId);
+    }
+
     public String getOrGenerateSummary(Long resumeId, String fullText, AiRecommendationService aiService) {
         String key = "summary:" + resumeId;
         Object cached = redisTemplate.opsForValue().get(key);

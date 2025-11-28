@@ -46,17 +46,20 @@ public class Interview extends BaseEntity {
     @Column(nullable = false)
     private InterviewStatus status;
 
-    @Lob
-    private String summary; // 면접 요약
+    //AI가 생성한 면접 요약 결과 저장 필드
+    @Column(name = "summary", columnDefinition = "TEXT")
+    private String summary;
 
     @OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InterviewParticipant> interviewParticipant = new ArrayList<>();
 
-    public static Interview of(JobDescription jobDescription,
-                               Resume resume,
-                               User organizer,
-                               LocalDateTime scheduledAt,
-                               InterviewStatus status) {
+    public static Interview of(
+            JobDescription jobDescription,
+           Resume resume,
+           User organizer,
+           LocalDateTime scheduledAt,
+           InterviewStatus status
+    ) {
         Interview interview = new Interview();
         interview.jobDescription = jobDescription;
         interview.resume = resume;
@@ -64,5 +67,15 @@ public class Interview extends BaseEntity {
         interview.scheduledAt = scheduledAt;
         interview.status = status;
         return interview;
+    }
+
+    //인터뷰 요약 저장 메서드
+    public void updateSummary(String summary) {
+        this.summary = summary;
+    }
+
+    // 인터뷰 상태 변경 메서드
+    public void updateStatus(InterviewStatus status) {
+        this.status = status;
     }
 }

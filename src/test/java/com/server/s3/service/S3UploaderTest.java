@@ -35,7 +35,7 @@ class S3UploaderTest {
 
     @Test
     @DisplayName("uploadFile Mock 테스트")
-    void uploadFile_정상적으로_key_생성하고_S3에_putObject_한다() throws Exception {
+    void uploadFile_putObject() throws Exception {
         MultipartFile file = mock(MultipartFile.class);
 
         when(file.getOriginalFilename()).thenReturn("test-image.png");
@@ -66,36 +66,8 @@ class S3UploaderTest {
     }
 
     @Test
-    @DisplayName("update Mock 예외 테스트 - Null")
-    void upload_파일명이_null이면_FILENAME_NOT_FOUND_예외() {
-        MultipartFile file = mock(MultipartFile.class);
-        when(file.getOriginalFilename()).thenReturn(null);
-
-        ApplicationException ex = assertThrows(
-                ApplicationException.class,
-                () -> s3Uploader.upload(file, "user", "12", "any")
-        );
-
-        assertThat(ex.getErrorCase()).isEqualTo(S3ErrorCase.FILENAME_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("update Mock 예외 테스트 - Blank")
-    void upload_파일명이_공백이면_FILENAME_NOT_FOUND_예외() {
-        MultipartFile file = mock(MultipartFile.class);
-        when(file.getOriginalFilename()).thenReturn("   ");
-
-        ApplicationException ex = assertThrows(
-                ApplicationException.class,
-                () -> s3Uploader.upload(file, "user", "12", "any")
-        );
-
-        assertThat(ex.getErrorCase()).isEqualTo(S3ErrorCase.FILENAME_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("updateFile Mock 테스트")
-    void uploadFile_입력스트림에서_IOException_나면_FILE_UPLOAD_FAIL_예외() throws Exception {
+    @DisplayName("updateFile Mock 테스트 - 파일 업로드 실패")
+    void uploadFile_IOException_FILE_UPLOAD_FAIL() throws Exception {
         MultipartFile file = mock(MultipartFile.class);
 
         when(file.getOriginalFilename()).thenReturn("test.png");
@@ -110,8 +82,36 @@ class S3UploaderTest {
     }
 
     @Test
+    @DisplayName("upload Mock 예외 테스트 - Null")
+    void upload_null_FILENAME_NOT_FOUND() {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getOriginalFilename()).thenReturn(null);
+
+        ApplicationException ex = assertThrows(
+                ApplicationException.class,
+                () -> s3Uploader.upload(file, "user", "12", "any")
+        );
+
+        assertThat(ex.getErrorCase()).isEqualTo(S3ErrorCase.FILENAME_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("upload Mock 예외 테스트 - Blank")
+    void upload_FILENAME_NOT_FOUND() {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getOriginalFilename()).thenReturn("   ");
+
+        ApplicationException ex = assertThrows(
+                ApplicationException.class,
+                () -> s3Uploader.upload(file, "user", "12", "any")
+        );
+
+        assertThat(ex.getErrorCase()).isEqualTo(S3ErrorCase.FILENAME_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("updateFile Mock 테스트")
-    void updateFile_newFile_넣었을_때_newFileKey_생성() throws Exception {
+    void updateFile_newFile_newFileKey() throws Exception {
         MultipartFile file = mock(MultipartFile.class);
 
         when(file.getOriginalFilename()).thenReturn("test-image.jpg");
@@ -131,7 +131,7 @@ class S3UploaderTest {
 
     @Test
     @DisplayName("validateFileKey Mock 예외 테스트")
-    void validateFileKey_틀렸을때_INVALID_FILE_KEY_예외() throws Exception {
+    void validateFileKey_INVALID_FILE_KEY() throws Exception {
         String fileKey_name = "user123/12/oldFileName_tag.png";
         ApplicationException ex_name = assertThrows(
                 ApplicationException.class,
@@ -157,7 +157,7 @@ class S3UploaderTest {
 
     @Test
     @DisplayName("deleteFile Mock 테스트")
-    void  deleteFile_파일삭제요청() {
+    void  deleteFile() {
         String fileKey = "user123/12/test_tag.png";
 
         s3Uploader.deleteFile(fileKey);

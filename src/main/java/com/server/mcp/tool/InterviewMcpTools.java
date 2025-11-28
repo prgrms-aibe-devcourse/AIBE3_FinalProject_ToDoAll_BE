@@ -175,6 +175,7 @@ public class InterviewMcpTools {
                 "messages", messageList
         );
     }
+
     // 인터뷰 요약 저장
     @Transactional
     @McpTool(
@@ -202,7 +203,4 @@ public class InterviewMcpTools {
                 "status", "success"
         );
     }
-
-
-
 }

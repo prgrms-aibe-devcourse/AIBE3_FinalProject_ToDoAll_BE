@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.server.mcp.dto.InterviewFinishedAiEvent;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -185,6 +186,22 @@ public class InterviewService {
         interviewEvaluationRepository.deleteByInterviewId(interviewId);
 
         interviewRepository.delete(interview);
+    }
+
+    // 면접을 종료(DONE) 상태로 변경하고, 면접 종료 이벤트를 발행해서 AI 요약을 비동기로 실행한다.
+    @Transactional
+    public void finishInterview(Long interviewId) {
+        // 1) 인터뷰 조회
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // 2) 상태를 DONE 으로 변경
+        interview.updateStatus(InterviewStatus.DONE);
+
+        // 3) 면접 종료 → AI 요약 이벤트 발행
+        applicationEventPublisher.publishEvent(
+                new InterviewFinishedAiEvent(interview.getId())
+        );
     }
 
     private void validateStatus(String status) {

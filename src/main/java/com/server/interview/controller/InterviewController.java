@@ -59,4 +59,12 @@ public class InterviewController {
         interviewService.deleteInterview(interviewId);
         return CommonResponse.success("면접 삭제 완료");
     }
+
+    @PatchMapping("/{interviewId}/end")
+    @Operation(summary = "면접 종료", description = "면접을 DONE 상태로 변경하고 AI 요약 생성을 비동기로 시작합니다.")
+    public CommonResponse<Void> finishInterview(@PathVariable Long interviewId) {
+        interviewService.finishInterview(interviewId);
+        return CommonResponse.success(null);
+    }
+
 }

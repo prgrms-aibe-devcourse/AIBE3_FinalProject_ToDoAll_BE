@@ -70,8 +70,12 @@ public class Interview extends BaseEntity {
     }
 
     //인터뷰 요약 저장 메서드
-
     public void updateSummary(String summary) {
         this.summary = summary;
+    }
+
+    // 인터뷰 상태 변경 메서드
+    public void updateStatus(InterviewStatus status) {
+        this.status = status;
     }
 }

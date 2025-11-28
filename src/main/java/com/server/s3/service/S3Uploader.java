@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,7 +48,7 @@ public class S3Uploader {
     private final String bucket;
 
     private final Pattern FILE_KEY_PATTERN = Pattern.compile(
-            "^(?<partition>user|job|resume)/(?<relativeId>[^/]+)/[^/_]+_(?<tag>[^\\.]+)\\.[^\\.]+$"
+            "^(?<partition>[^/]+)/(?<relativeId>[^/]+)/[^/_]+_(?<tag>[^\\.]+)\\.[^\\.]+$"
     );
 
     public S3Uploader(S3Client s3Client, S3Presigner presigner, @Value("${cloud.aws.s3.bucket}") String bucket) {
@@ -87,6 +88,7 @@ public class S3Uploader {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(fileKey)
+                .contentType(multipartFile.getContentType())
                 .build();
 
         try {
@@ -95,7 +97,8 @@ public class S3Uploader {
                     RequestBody.fromInputStream(multipartFile.getInputStream(), multipartFile.getSize())
             );
             return fileKey;
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.error("S3 파일 업로드 실패. FileKey={}", fileKey, e);
             throw new ApplicationException(S3ErrorCase.FILE_UPLOAD_FAIL);
         }
     }
@@ -122,17 +125,23 @@ public class S3Uploader {
     /**
      * S3에 저장돼있는 파일의 파일키를 넘겨주면 presigned url을 반환합니다.
      * 해당 url로 s3 비인가 사용자도 해당 파일에 접근할 수 있지만, 만료 시간이 있는 url입니다.
-     * <p>현재 만료 시간 : 10분
+     * <p>현재 만료 시간 : 24시간
      * @param fileKey presigned url을 발급 받을 파일의 파일키
      * @return presigned url 을 반환합니다.
      */
     public String createPresignedGetUrl(String fileKey) {
-        return createPresignedGetUrl(fileKey, Duration.ofMinutes(10));
+        return createPresignedGetUrl(fileKey, Duration.ofHours(24));
     }
 
     Matcher validateFileKey(String fileKey) {
         Matcher matcher = FILE_KEY_PATTERN.matcher(fileKey);
         if (!matcher.matches()) {
+            throw new ApplicationException(S3ErrorCase.INVALID_FILE_KEY);
+        }
+
+        boolean exists = Arrays.stream(Partition.values())
+                .anyMatch(p -> p.getValue().equals(matcher.group("partition")));
+        if (!exists) {
             throw new ApplicationException(S3ErrorCase.INVALID_FILE_KEY);
         }
 
@@ -149,9 +158,9 @@ public class S3Uploader {
     public String updateFile(MultipartFile newFile, String oldFileKey) {
         Matcher matcher = validateFileKey(oldFileKey);
 
-        String partition = matcher.group(1);
-        String relativeId  = matcher.group(2);
-        String tag         = matcher.group(3);
+        String partition = matcher.group("partition");
+        String relativeId = matcher.group("relativeId");
+        String tag = matcher.group("tag");
         String newFileKey = upload(newFile, partition, relativeId, tag);
 
         deleteFile(oldFileKey);
@@ -164,11 +173,15 @@ public class S3Uploader {
      * @param fileKey 삭제할 파일의 파일키
      */
     void deleteFile(String fileKey) {
-        DeleteObjectRequest request = DeleteObjectRequest.builder()
-                .bucket(bucket)
-                .key(fileKey)
-                .build();
+        try {
+            DeleteObjectRequest request = DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(fileKey)
+                    .build();
 
-        s3Client.deleteObject(request);
+            s3Client.deleteObject(request);
+        } catch (Exception e) {
+            log.error("S3 파일 삭제 실패. FileKey={}", fileKey, e);
+        }
     }
 }

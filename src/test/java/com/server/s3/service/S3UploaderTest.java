@@ -3,17 +3,19 @@ package com.server.s3.service;
 import com.server.global.exception.ApplicationException;
 import com.server.s3.domain.Partition;
 import com.server.s3.exception.S3ErrorCase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,14 +26,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class S3UploaderTest {
 
-    @MockitoBean
-    private S3Client s3Client;
+    @Mock
+    S3Client s3Client;
 
-    @Autowired
-    private S3Uploader s3Uploader;
+    @Mock
+    S3Presigner s3Presigner;
+
+    S3Uploader s3Uploader;
+
+    @BeforeEach
+    void setUp() {
+        s3Uploader = new S3Uploader(s3Client, s3Presigner, "team2-jobda-s3");
+    }
 
     @Test
     @DisplayName("uploadFile Mock 테스트")

@@ -125,4 +125,18 @@ public class MatchController {
             throw new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND, e);
         }
     }
+
+    @PatchMapping("/confirm")
+    @Operation(summary = "추천된 지원자 매칭 확정", description = "추천 목록에 뜬 지원자 중 하나를 선택하여 실제 매칭 확정 처리합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매칭 확정 성공"),
+            @ApiResponse(responseCode = "404", description = "이력서 또는 채용공고를 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "이미 매칭된 지원자입니다.")
+    })
+    public CommonResponse<MatchResponseDto> confirmMatch(
+            @RequestBody @Valid MatchRequestDto dto
+    ) {
+        Match match = matchService.confirmMatch(dto);
+        return CommonResponse.success(new MatchResponseDto(match.getId(), match.getStatus()));
+    }
 }

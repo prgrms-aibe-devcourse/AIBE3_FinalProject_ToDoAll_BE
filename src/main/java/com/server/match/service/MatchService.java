@@ -64,23 +64,32 @@ public class MatchService {
 
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
-    public List<ResumeRecommendationDto> recommendResumes(Long jdId) throws IOException {
+    public List<ResumeRecommendationDto> recommendResumes(Long jdId, Integer limit) throws IOException {
+        // 유효한 limit 값만 허용 (3, 5, 10, 20, 30) → 잘못 들어오면 기본값 10
+        List<Integer> allowedLimits = List.of(3, 5, 10, 20, 30);
+        if (!allowedLimits.contains(limit)) {
+            limit = 10;
+        }
+
+        List<ResumeRecommendationDto> fullList;
+
         // 캐시 있으면 바로 반환
         if (redisRecommendationCacheService.existsRecommendationFor(jdId)) {
             log.info("[추천 캐시 HIT] JD {} — Redis에서 즉시 반환", jdId);
-            return redisRecommendationCacheService.getRecommendations(jdId);
+            fullList = redisRecommendationCacheService.getRecommendations(jdId);
+        } else {
+            // 캐시 없으면 바로 추천 계산 (동기)
+            fullList = recommendationCoreService.calculateRecommendations(jdId);
+            // 캐시 저장
+            redisRecommendationCacheService.saveRecommendations(jdId, fullList);
+            // 비동기로 다시 캐싱 예약
+            recommendationAsyncService.warmUpRecommendation(jdId);
         }
 
-        // 캐시 없으면 바로 추천 계산 (동기)
-        List<ResumeRecommendationDto> result = recommendationCoreService.calculateRecommendations(jdId);
-
-        // 캐시 저장
-        redisRecommendationCacheService.saveRecommendations(jdId, result);
-
-        // 비동기로 다시 캐싱 예약
-        recommendationAsyncService.warmUpRecommendation(jdId);
-
-        return result;
+        // 상위 N개만 잘라서 리턴 (필터링 로직 추가)
+        return fullList.stream()
+                .limit(limit)
+                .toList();
     }
 
     @Transactional(readOnly = true)

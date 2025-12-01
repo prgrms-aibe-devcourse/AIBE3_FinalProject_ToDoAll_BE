@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 public enum S3ErrorCase implements ErrorCase {
     FILENAME_NOT_FOUND(HttpStatus.BAD_REQUEST, 11001, "업로드한 파일에 파일명이 없습니다."),
     FILE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, 11002, "S3에 파일을 업로드 하는 중 문제가 발생했습니다."),
-    INVALID_FILE_KEY(HttpStatus.BAD_REQUEST, 11003, "잘못된 파일키입니다.");
+    INVALID_FILE_KEY(HttpStatus.BAD_REQUEST, 11003, "잘못된 파일키입니다."),
+    FILE_DELETE_FAIL(HttpStatus.BAD_REQUEST, 11004, "S3에서 파일을 삭제하지 못했습니다.");
+
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;

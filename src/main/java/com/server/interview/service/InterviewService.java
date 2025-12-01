@@ -43,7 +43,7 @@ public class InterviewService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
+    public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto, Long userId) {
 
         // 인터뷰 생성 로직
         JobDescription jobDescription = jobDescriptionRepository.findById(interviewCreateRequestDto.jdId()).orElseThrow(
@@ -53,8 +53,8 @@ public class InterviewService {
                 ()->new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND)
         );
 
-        Long UserId = 1L;
-        User organizer = userRepository.findById(UserId).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+        userId = 1L;
+        User organizer = userRepository.findById(userId).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
 
         LocalDateTime scheduledAt =  interviewCreateRequestDto.scheduledAt();
         InterviewStatus status = InterviewStatus.WAITING;
@@ -103,18 +103,18 @@ public class InterviewService {
         eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId(), interview.getScheduledAt()));
 
 
-        // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
+        //MCP 면접 질문 자동 생성 및 저장 로직
         applicationEventPublisher.publishEvent(
                 new InterviewCreatedAiEvent(
                         interview.getId()
                 )
         );
-        // ********************* MCP 면접 질문 자동 생성 및 저장 로직 ***********************//
         return new InterviewCreateResponseDto(interview.getId());
     }
 
-    public InterviewListResponseDto getInterviews(InterviewSearchConditionDto condition) {
+    public InterviewListResponseDto getInterviews(InterviewSearchConditionDto condition, Long userId) {
 
+        userId = 1L;
         Long jdId = condition.jdId();
         String status = condition.status();
 
@@ -151,13 +151,15 @@ public class InterviewService {
 
 
     @Transactional
-    public void deleteInterview(Long interviewId) {
+    public void deleteInterview(Long interviewId, Long userId) {
+
+        userId = 1L;
 
         Interview interview = interviewRepository.findById(interviewId)
                 .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
 
         // 주최자(organizer)만 삭제 가능
-        User organizer = userRepository.findById(1L).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+        User organizer = userRepository.findById(userId).orElse(null);
 
         if (!interview.getOrganizer().getId().equals(organizer.getId())) {
             throw new ApplicationException(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN);

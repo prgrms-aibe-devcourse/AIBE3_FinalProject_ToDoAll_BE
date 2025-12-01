@@ -1,11 +1,8 @@
 package com.server.user.controller;
 
 
-import com.server.global.config.security.jwt.JwtAuthentication;
-import com.server.global.exception.ApplicationException;
 import com.server.global.response.CommonResponse;
 import com.server.user.dto.*;
-import com.server.user.exception.UserErrorCase;
 import com.server.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -15,6 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.net.URI;
 
 import static com.server.user.domain.QUser.user;
 @Slf4j
@@ -60,7 +60,7 @@ public class UserController {
     public CommonResponse<UserProfileResponseDto> getMyProfile(
             @AuthenticationPrincipal Long userId
     ) {
-        log.info("getMe principal: {}", user);
+        log.info("getMe principal: {}", userId);
 
         // 1) 서비스 호출해서 프로필 조회
         UserProfileResponseDto profile = userService.getMyProfile(userId);
@@ -82,6 +82,32 @@ public class UserController {
 
         // 2) 수정된 결과를 응답
         return CommonResponse.success(updated);
+    }
+
+    //  마이페이지 - 프로필 이미지 업로드 (S3에 저장 후, 변경된 프로필 응답)
+    @Operation(summary = "내 프로필 이미지 변경", description = "현재 로그인한 사용자의 프로필 이미지를 업로드/변경합니다.")
+    @PatchMapping(value = "/me/profile-image", consumes = "multipart/form-data")
+    public CommonResponse<UserProfileResponseDto> updateMyProfileImage(
+            @AuthenticationPrincipal Long userId,
+            @RequestPart("file") MultipartFile file
+    ) {
+        log.info("updateMyProfileImage userId: {}, fileName: {}", userId, file.getOriginalFilename());
+
+        UserProfileResponseDto updated = userService.updateProfileImage(userId, file);
+        return CommonResponse.success(updated);
+    }
+
+    //  마이페이지 - 프로필 이미지 조회 (S3 URL로 302 리다이렉트)
+    @Operation(summary = "내 프로필 이미지 조회", description = "현재 로그인한 사용자의 프로필 이미지 URL로 리다이렉트합니다.")
+    @GetMapping("/me/profile-image")
+    public ResponseEntity<Void> getMyProfileImage(
+            @AuthenticationPrincipal Long userId
+    ) {
+        String imageUrl = userService.getProfileImageUrl(userId); // S3 또는 기본 이미지 URL
+
+        return ResponseEntity.status(HttpStatus.FOUND)   // 302 redirect
+                .location(URI.create(imageUrl))
+                .build();
     }
 
 

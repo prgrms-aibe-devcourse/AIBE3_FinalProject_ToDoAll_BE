@@ -3,6 +3,10 @@ package com.server.user.service;
 import com.server.auth.exception.AuthErrorCase;
 import com.server.auth.service.EmailAuthService;
 import com.server.global.exception.ApplicationException;
+import com.server.s3.domain.Partition;
+import com.server.s3.service.PresignedUrlProvider;
+import com.server.s3.service.S3Uploader;
+import com.server.user.config.UserProperties;
 import com.server.user.domain.User;
 import com.server.user.dto.UserProfileResponseDto;
 import com.server.user.dto.UserProfileUpdateRequestDto;
@@ -15,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Service
@@ -25,6 +30,12 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
     private final EmailAuthService emailAuthService;    // 이메일 인증 검증
+    private final UserProperties userProperties;        // 기본 프로필 이미지 설정값
+    private final S3Uploader s3Uploader;                  // S3 업로드
+    private final PresignedUrlProvider presignedUrlProvider; // S3 파일 URL 생성
+
+
+
 
 
     //회원가입
@@ -71,15 +82,16 @@ public class UserService {
     }
 
     // 마이페이지 - 내 정보 조회
-
     public UserProfileResponseDto getMyProfile(Long userId) {
-        validateAuthenticated(userId); // 인증 여부 검증을 서비스에서 처리
+        validateAuthenticated(userId);
         // 1) userId 로 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
 
-        // 2) 엔티티 -> DTO 변환
-        return UserProfileResponseDto.from(user);
+        // 2) 엔티티 -> DTO 변환 (기본 프로필 URL 적용)
+        String profileImageUrl = resolveProfileImageUrl(user);
+        return UserProfileResponseDto.from(user, profileImageUrl
+        );
     }
 
     // 마이페이지 - 내 정보 수정
@@ -103,10 +115,12 @@ public class UserService {
                 request.getGender()
         );
 
-        // 4) 변경된 user 엔티티를 응답 DTO로 변환해서 반환
-        return UserProfileResponseDto.from(user);
+        String profileImageUrl = resolveProfileImageUrl(user);
+        return UserProfileResponseDto.from(
+                user,
+                profileImageUrl
+        );
     }
-
 
     //비밀번호 변경
 
@@ -138,6 +152,71 @@ public class UserService {
         // 6) 엔티티에서 변경
         user.changePassword(encodedNewPassword);
     }
+
+    //  마이페이지 - 프로필 이미지 변경(S3)
+    @Transactional
+    public UserProfileResponseDto updateProfileImage(Long userId, MultipartFile file) {
+        validateAuthenticated(userId); // 로그인 여부 체크
+
+        if (file == null || file.isEmpty()) {
+            // 파일이 없거나 비어 있으면 예외
+            throw ApplicationException.from(UserErrorCase.INVALID_PROFILE_IMAGE);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+        String fileKey;
+
+        // 기존에 프로필이 있었으면 → updateFile로 교체 (기존 파일 삭제 포함)
+        if (user.getProfileUrl() != null && !user.getProfileUrl().isBlank()) {
+            fileKey = s3Uploader.updateFile(file, user.getProfileUrl());
+        } else {
+            // 첫 업로드면 → uploadFile
+            fileKey = s3Uploader.uploadFile(
+                    file,
+                    Partition.USER,
+                    String.valueOf(userId),
+                    "profile"
+            );
+        }
+
+        // 엔티티에 새로운 파일키 저장
+        user.changeProfileImage(fileKey);
+
+        String profileImageUrl = resolveProfileImageUrl(user);
+
+        // 변경된 정보로 응답 DTO 생성 (기본 이미지 URL 포함)
+        return UserProfileResponseDto.from(
+                user, profileImageUrl
+        );
+    }
+
+
+    // ================== 프로필 이미지 URL 조회 (302 redirect용) ==================
+    public String getProfileImageUrl(Long userId) {
+        validateAuthenticated(userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+        return resolveProfileImageUrl(user);
+    }
+
+    // 공통 유틸 메서드
+
+    private String resolveProfileImageUrl(User user) {
+        String profileKey = user.getProfileUrl();
+
+        if (profileKey == null || profileKey.isBlank()) {
+            // S3에 업로드된 이미지가 없으면 기본 프로필 jpg 사용
+            return userProperties.getDefaultProfileImageUrl(); // ex) "/images/default-profile.jpg" 또는 절대 URL
+        }
+
+        // S3 fileKey 기준으로 presigned URL 생성
+        return presignedUrlProvider.createPresignedGetUrl(profileKey);
+    }
+
 
     // 인증 여부를 공통으로 검증하는 private 메서드
     private void validateAuthenticated(Long userId) {

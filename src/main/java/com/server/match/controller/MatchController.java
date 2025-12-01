@@ -12,6 +12,7 @@ import com.server.search.dto.ResumeRecommendationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -110,16 +111,25 @@ public class MatchController {
     }
 
     @GetMapping("/recommendations")
-    @Operation(summary = "JD 기반 추천 이력서 목록 조회", description = "JD 설명에 기반하여 Elasticsearch에서 자동으로 이력서를 추천합니다.")
+    @Operation(
+            summary = "JD 기반 추천 이력서 목록 조회",
+            description = "JD 설명에 기반하여 Elasticsearch에서 자동으로 이력서를 추천합니다.\n" +
+                    "프론트에서 원하는 추천 인원 수만큼 조회하려면 limit 값을 설정하세요 (3, 5, 10, 20, 30 중 선택)."
+    )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "추천 목록 조회 성공"),
             @ApiResponse(responseCode = "404", description = "채용공고를 찾을 수 없음")
     })
     public CommonResponse<List<ResumeRecommendationDto>> recommendResumes(
-            @RequestParam @NotNull Long jdId
+            @RequestParam @NotNull Long jdId,
+            @Parameter(
+                    description = "추천 인원 수 (기본값: 10). 허용 값: 3, 5, 10, 20, 30",
+                    example = "5"
+            )
+            @RequestParam(defaultValue = "10") Integer limit
     ) {
         try {
-            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId);
+            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId, limit);
             return CommonResponse.success(recommendations);
         } catch (IOException e) {
             throw new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND, e);

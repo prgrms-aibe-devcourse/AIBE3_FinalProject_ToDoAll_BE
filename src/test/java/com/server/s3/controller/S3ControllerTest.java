@@ -25,7 +25,7 @@ class S3ControllerTest {
     PresignedUrlProvider presignedUrlProvider;
 
     @Test
-    @WithMockUser(username = "testUser", roles = "USER") // ✅ 이 줄 추가
+    @WithMockUser(username = "testUser", roles = "USER")
     void getDownloadUrl() throws Exception {
         String testKey = "user/0/9fba8dc6-d030-4690-bdc1-542c58a7fb59_test.pdf";
         String presignedUrl =

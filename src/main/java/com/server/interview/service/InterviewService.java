@@ -130,6 +130,7 @@ public class InterviewService {
 
         // 검색
         List<InterviewSummaryDto> summaries = interviewRepository.searchInterviews(
+                userId,
                 jdId,
                 status,
                 cursor,

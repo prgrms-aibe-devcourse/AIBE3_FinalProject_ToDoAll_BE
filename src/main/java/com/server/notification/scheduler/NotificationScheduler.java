@@ -20,7 +20,7 @@ public class NotificationScheduler {
     private final NotificationRepository notificationRepository;
     private final SseService sseService;
 
-    @Scheduled(fixedRate = 60000, initialDelay = 10000) // 10초 간격
+    @Scheduled(fixedRate = 60000, initialDelay = 60000) // 60초 간격
     @Transactional
     public void sendScheduledNotifications() {
 

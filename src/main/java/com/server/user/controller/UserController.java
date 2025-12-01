@@ -10,11 +10,14 @@ import com.server.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import static com.server.user.domain.QUser.user;
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -57,6 +60,7 @@ public class UserController {
     public CommonResponse<UserProfileResponseDto> getMyProfile(
             @AuthenticationPrincipal Long userId
     ) {
+        log.info("getMe principal: {}", user);
 
         // 1) 서비스 호출해서 프로필 조회
         UserProfileResponseDto profile = userService.getMyProfile(userId);

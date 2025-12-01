@@ -50,19 +50,22 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/api/v1/users", // 회원가입
-                                "/api/v1/email-verifications/**", // 이메일 인증
+                                "/api/v1/auth/email-verifications/**", // 이메일 인증
                                 "/api/v1/auth/token", // 로그인
-                                "/api/auth/password/**", // 비번 재설정
+                                "/api/v1/auth/password/**", // 비번 재설정
                                 "/api/v1/auth/**", // 비로그인 비번 재설정
                                 "/api/v1/resumes/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/jd/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/search/**", // ES 테스트용 임시 허용 (나중에 삭제)
                                 "/api/v1/matches/**", // ES 테스트용 임시 허용 (나중에 삭제)
+                                "/api/v1/dev/redis/**", // Redis 캐시 삭제용 임시 허용
                                 "/api/v1/interviews/**", // AI 테스트용 임시 허용 (나중에 삭제)
-                                "/api/v1/notifications/**" // SSE 관련 api 임시 허용 (나중에 삭제)
+                                "/api/v1/notifications/**", // SSE 관련 api 임시 허용 (나중에 삭제)
+                                "/api/v1/files/**" // S3 관련 API 임시 허용 (나중에 삭제)
                         ).permitAll()
                         // preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/v1/users/me").authenticated()
 
                         .anyRequest().authenticated()
                 )

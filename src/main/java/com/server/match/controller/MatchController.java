@@ -12,6 +12,7 @@ import com.server.search.dto.ResumeRecommendationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -110,19 +111,42 @@ public class MatchController {
     }
 
     @GetMapping("/recommendations")
-    @Operation(summary = "JD 기반 추천 이력서 목록 조회", description = "JD 설명에 기반하여 Elasticsearch에서 자동으로 이력서를 추천합니다.")
+    @Operation(
+            summary = "JD 기반 추천 이력서 목록 조회",
+            description = "JD 설명에 기반하여 Elasticsearch에서 자동으로 이력서를 추천합니다.\n" +
+                    "프론트에서 원하는 추천 인원 수만큼 조회하려면 limit 값을 설정하세요 (3, 5, 10, 20, 30 중 선택)."
+    )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "추천 목록 조회 성공"),
             @ApiResponse(responseCode = "404", description = "채용공고를 찾을 수 없음")
     })
     public CommonResponse<List<ResumeRecommendationDto>> recommendResumes(
-            @RequestParam @NotNull Long jdId
+            @RequestParam @NotNull Long jdId,
+            @Parameter(
+                    description = "추천 인원 수 (기본값: 10). 허용 값: 3, 5, 10, 20, 30",
+                    example = "5"
+            )
+            @RequestParam(defaultValue = "10") Integer limit
     ) {
         try {
-            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId);
+            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId, limit);
             return CommonResponse.success(recommendations);
         } catch (IOException e) {
             throw new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND, e);
         }
+    }
+
+    @PatchMapping("/confirm")
+    @Operation(summary = "추천된 지원자 매칭 확정", description = "추천 목록에 뜬 지원자 중 하나를 선택하여 실제 매칭 확정 처리합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "매칭 확정 성공"),
+            @ApiResponse(responseCode = "404", description = "이력서 또는 채용공고를 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "이미 매칭된 지원자입니다.")
+    })
+    public CommonResponse<MatchResponseDto> confirmMatch(
+            @RequestBody @Valid MatchRequestDto dto
+    ) {
+        Match match = matchService.confirmMatch(dto);
+        return CommonResponse.success(new MatchResponseDto(match.getId(), match.getStatus()));
     }
 }

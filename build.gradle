@@ -29,6 +29,8 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -74,7 +76,6 @@ dependencies {
     testAnnotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
 
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
-    testImplementation 'io.github.cdimascio:dotenv-java:3.0.0'
 
     // Spring Boot Test Autoconfigure
     testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
@@ -94,6 +95,8 @@ dependencies {
     implementation("org.springframework.ai:spring-ai-starter-model-openai")
     implementation "org.springframework.ai:spring-ai-starter-mcp-server-webmvc"
 
+    // aws
+    implementation 'software.amazon.awssdk:s3:2.39.2'
 }
 
 tasks.named('test') {
@@ -120,4 +123,10 @@ tasks.register("act", Exec) {
     description = "Run GitHub Actions locally with act (pull_request)"
 
     commandLine "act", "pull_request", "--secret-file", ".env", "-j", "build-and-test"
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'S3-Test'
+    }
 }

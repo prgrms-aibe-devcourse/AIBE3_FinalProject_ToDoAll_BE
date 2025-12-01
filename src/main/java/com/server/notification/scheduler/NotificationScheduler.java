@@ -20,7 +20,7 @@ public class NotificationScheduler {
     private final NotificationRepository notificationRepository;
     private final SseService sseService;
 
-    @Scheduled(fixedRate = 10000, initialDelay = 10000) // 10초 간격
+    @Scheduled(fixedRate = 60000, initialDelay = 60000) // 60초 간격
     @Transactional
     public void sendScheduledNotifications() {
 
@@ -47,7 +47,7 @@ public class NotificationScheduler {
     }
 
     //생성된지 30일 지난 알림 삭제
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 60000)
     @Transactional
     public void autoSoftDeleteOldNotifications() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(30);

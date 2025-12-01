@@ -37,6 +37,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                         i.id,                      // interviewId
                         jd.id,                     // jdId
                         jd.title,                  // jdTitle
+                        r.id,                      // resumeId
                         r.name,                    // candidateName
                         i.status.stringValue(),    // InterviewStatus → String
                         i.scheduledAt,

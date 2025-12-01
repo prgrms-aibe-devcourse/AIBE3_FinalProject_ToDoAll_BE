@@ -1,11 +1,12 @@
 package com.server.jd.controller;
 
 
-import com.amazonaws.Response;
 import com.server.global.response.CommonResponse;
 import com.server.jd.dto.*;
 import com.server.jd.service.JobDescriptionService;
 import com.server.jd.service.SkillQueryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -21,6 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/jd")
+@Tag(name = "JobDescriptionController", description = "API JD 컨트롤러")
 public class JobDescriptionController {
     private final JobDescriptionService jobService;
     private final SkillQueryService skillQueryService;
@@ -72,5 +75,13 @@ public class JobDescriptionController {
     ) {
         JobDescriptionDetailResponseDto result = jobService.update(id, request);
         return ResponseEntity.ok(CommonResponse.success(result));
+    }
+
+    @GetMapping("/my/jds")
+    @Operation(summary = "사용자가 참여한 인터뷰의 JD 목록 조회")
+    public CommonResponse<List<JobDescriptionInterviewOptionDto>> getMyInterviewJdList(
+            @AuthenticationPrincipal Long userId
+    ) {
+        return CommonResponse.success(jobService.getMyInterviewOptionJdList(userId));
     }
 }

@@ -1,12 +1,7 @@
 package com.server.jd.service;
 
-import com.server.global.response.CommonResponse;
-import com.server.jd.domain.Skill;
 import com.server.global.exception.ApplicationException;
-import com.server.jd.domain.JobDescription;
-import com.server.jd.domain.JobPreferredSkill;
-import com.server.jd.domain.JobRequiredSkill;
-import com.server.jd.domain.JobStatus;
+import com.server.jd.domain.*;
 import com.server.jd.dto.*;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -23,7 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -223,4 +220,9 @@ public class JobDescriptionService {
                 .department(jd.getDepartment())
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public List<JobDescriptionInterviewOptionDto> getMyInterviewOptionJdList(Long userId) {
+        userId = 1L;
+        return jobRepository.findJdListByInterviewParticipant(userId);}
 }

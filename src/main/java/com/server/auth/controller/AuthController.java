@@ -8,6 +8,8 @@ import com.server.auth.dto.PasswordResetConfirmRequestDto;
 import com.server.user.dto.UserLoginRequestDto;
 import com.server.user.dto.UserLoginResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 
@@ -101,12 +103,49 @@ public class AuthController {
     //로그아웃
     @PostMapping("/logout")
     public CommonResponse<String> logout(
-            @Valid @RequestBody TokenRefreshRequestDto request
+            HttpServletRequest request,
+            HttpServletResponse response
     ) {
+        // 요청 쿠키에서 refreshToken 꺼내기
+        String refreshToken = extractCookie(request, "refreshToken");
+
         // 실제 쿠키 삭제 등의 로그아웃 처리 로직은 서비스에 위임
-        authService.logout(request.refreshToken());
+        authService.logout(refreshToken);
+
+        // 쿠키 삭제 (accessToken / refreshToken 둘 다 만료시킴)
+        ResponseCookie clearAccess = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)          // 즉시 만료
+                .build();
+
+        ResponseCookie clearRefresh = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        response.addHeader("Set-Cookie", clearAccess.toString());
+        response.addHeader("Set-Cookie", clearRefresh.toString());
+
 
         // 로그아웃은 별도의 데이터가 필요 없으므로 data = null로 응답
         return CommonResponse.success("로그아웃 되었습니다.");
+    }
+
+    // 요청 쿠키에서 name 에 해당하는 쿠키 값을 꺼내는 헬퍼 메서드
+
+    private String extractCookie(HttpServletRequest request, String name) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (name.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }

@@ -20,7 +20,7 @@ public class S3Controller {
     private final PresignedUrlProvider presignedUrlProvider;
 
     @GetMapping("/download")
-    @Operation(summary = "presigned URL 발급", description = "이번 주 예정된 면접 일정")
+    @Operation(summary = "presigned URL 발급", description = "FileKey에 해당하는 S3 객체의 presigned url을 응답.")
     public CommonResponse<String> getDownloadUrl (
         @RequestParam @NotBlank String fileKey
     ) {

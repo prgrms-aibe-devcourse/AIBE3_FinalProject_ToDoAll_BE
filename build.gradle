@@ -124,3 +124,9 @@ tasks.register("act", Exec) {
 
     commandLine "act", "pull_request", "--secret-file", ".env", "-j", "build-and-test"
 }
+
+test {
+    useJUnitPlatform {
+        excludeTags 'S3-Test'
+    }
+}

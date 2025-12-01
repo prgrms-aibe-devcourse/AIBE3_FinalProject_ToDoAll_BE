@@ -77,7 +77,7 @@ public class JobDescriptionController {
         return ResponseEntity.ok(CommonResponse.success(result));
     }
 
-    @GetMapping("/my/jds")
+    @GetMapping("/interview/options")
     @Operation(summary = "사용자가 참여한 인터뷰의 JD 목록 조회")
     public CommonResponse<List<JobDescriptionInterviewOptionDto>> getMyInterviewJdList(
             @AuthenticationPrincipal Long userId

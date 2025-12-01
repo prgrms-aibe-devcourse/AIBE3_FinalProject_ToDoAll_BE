@@ -1,185 +1,71 @@
 package com.server.s3.service;
 
-import com.server.global.exception.ApplicationException;
 import com.server.s3.domain.Partition;
-import com.server.s3.exception.S3ErrorCase;
-import org.junit.jupiter.api.BeforeEach;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.sync.RequestBody;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-@ExtendWith(MockitoExtension.class)
-class S3UploaderTest {
-
-    @Mock
-    S3Client s3Client;
-
-    @Mock
-    S3Presigner s3Presigner;
-
+@SpringBootTest
+@Slf4j
+public class S3UploaderTest {
+    @Autowired
     S3Uploader s3Uploader;
 
-    @BeforeEach
-    void setUp() {
-        s3Uploader = new S3Uploader(s3Client, s3Presigner, "team2-jobda-s3");
-    }
+    @Autowired
+    S3Client s3Client;
+
+    @Value("${cloud.aws.s3.bucket}")
+    String bucket;
 
     @Test
-    @DisplayName("uploadFile Mock 테스트")
-    void uploadFile_putObject() throws Exception {
-        MultipartFile file = mock(MultipartFile.class);
-
-        when(file.getOriginalFilename()).thenReturn("test-image.png");
-        when(file.getInputStream())
-                .thenReturn(new ByteArrayInputStream("dummy".getBytes(StandardCharsets.UTF_8)));
-
-        Partition partition = Partition.USER;
-        String relativeId = "12";
-        String tag = "profile";
-
-        String fileKey = s3Uploader.uploadFile(file, partition, relativeId, tag);
-
-        ArgumentCaptor<PutObjectRequest> reqCaptor =
-                ArgumentCaptor.forClass(PutObjectRequest.class);
-
-        verify(s3Client, times(1))
-                .putObject(reqCaptor.capture(), any(RequestBody.class));
-
-        PutObjectRequest request = reqCaptor.getValue();
-
-        assertThat(request.bucket()).isEqualTo("team2-jobda-s3");
-        assertThat(request.key()).isEqualTo(fileKey);
-
-        assertThat(fileKey)
-                .startsWith("user/12/")
-                .contains("_profile.")
-                .endsWith(".png");
-    }
-
-    @Test
-    @DisplayName("updateFile Mock 테스트 - 파일 업로드 실패")
-    void uploadFile_IOException_FILE_UPLOAD_FAIL() throws Exception {
-        MultipartFile file = mock(MultipartFile.class);
-
-        when(file.getOriginalFilename()).thenReturn("test.png");
-        when(file.getInputStream()).thenThrow(new IOException("boom"));
-
-        ApplicationException ex = assertThrows(
-                ApplicationException.class,
-                () -> s3Uploader.uploadFile(file, Partition.USER, "12", "profile")
+    @DisplayName("S3Uploader 실제 S3 업로드 E2E 테스트")
+    public void s3UploaderE2E() {
+        MockMultipartFile dummyFile = new MockMultipartFile(
+                "file",
+                "test-image.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "dummy-image-content".getBytes()
         );
 
-        assertThat(ex.getErrorCase()).isEqualTo(S3ErrorCase.FILE_UPLOAD_FAIL);
-    }
+        String fileKey = s3Uploader.uploadFile(dummyFile, Partition.USER, "0");
+        log.info("uploaded fileKey = {}", fileKey);
 
-    @Test
-    @DisplayName("upload Mock 예외 테스트 - Null")
-    void upload_null_FILENAME_NOT_FOUND() {
-        MultipartFile file = mock(MultipartFile.class);
-        when(file.getOriginalFilename()).thenReturn(null);
+        HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                .bucket(bucket)
+                .key(fileKey)
+                .build();
 
-        ApplicationException ex = assertThrows(
-                ApplicationException.class,
-                () -> s3Uploader.upload(file, "user", "12", "any")
-        );
+        HeadObjectResponse headResponse = s3Client.headObject(headRequest);
 
-        assertThat(ex.getErrorCase()).isEqualTo(S3ErrorCase.FILENAME_NOT_FOUND);
-    }
+        assertThat(headResponse).isNotNull();
+        assertThat(headResponse.contentLength()).isEqualTo(dummyFile.getSize());
+        assertThat(headResponse.contentType()).isEqualTo(dummyFile.getContentType());
 
-    @Test
-    @DisplayName("upload Mock 예외 테스트 - Blank")
-    void upload_FILENAME_NOT_FOUND() {
-        MultipartFile file = mock(MultipartFile.class);
-        when(file.getOriginalFilename()).thenReturn("   ");
+        log.info("S3 File size={}, contentType={}",
+                headResponse.contentLength(),
+                headResponse.contentType());
 
-        ApplicationException ex = assertThrows(
-                ApplicationException.class,
-                () -> s3Uploader.upload(file, "user", "12", "any")
-        );
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(fileKey)
+                .build();
+        s3Client.deleteObject(deleteRequest);
 
-        assertThat(ex.getErrorCase()).isEqualTo(S3ErrorCase.FILENAME_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("updateFile Mock 테스트")
-    void updateFile_newFile_newFileKey() throws Exception {
-        MultipartFile file = mock(MultipartFile.class);
-
-        when(file.getOriginalFilename()).thenReturn("test-image.jpg");
-        when(file.getInputStream())
-                .thenReturn(new ByteArrayInputStream("dummy".getBytes(StandardCharsets.UTF_8)));
-
-        String oldFileKey = "user/12/oldFileName_tag.png";
-
-        String newFileKey = s3Uploader.updateFile(file, oldFileKey);
-
-        assertThat(newFileKey)
-                .startsWith("user/12/")
-                .contains("_tag.")
-                .endsWith(".jpg")
-                .doesNotContain(oldFileKey);
-    }
-
-    @Test
-    @DisplayName("validateFileKey Mock 예외 테스트")
-    void validateFileKey_INVALID_FILE_KEY() throws Exception {
-        String fileKey_name = "user123/12/oldFileName_tag.png";
-        ApplicationException ex_name = assertThrows(
-                ApplicationException.class,
-                () -> s3Uploader.validateFileKey(fileKey_name)
-        );
-
-        String fileKey_id = "user123//oldFileName_tag.png";
-        ApplicationException ex_id = assertThrows(
-                ApplicationException.class,
-                () -> s3Uploader.validateFileKey(fileKey_id)
-        );
-
-        String fileKey_tag = "user123/12/oldFileName_.png";
-        ApplicationException ex_tag = assertThrows(
-                ApplicationException.class,
-                () -> s3Uploader.validateFileKey(fileKey_tag)
-        );
-
-        assertThat(ex_name.getErrorCase()).isEqualTo(S3ErrorCase.INVALID_FILE_KEY);
-        assertThat(ex_id.getErrorCase()).isEqualTo(S3ErrorCase.INVALID_FILE_KEY);
-        assertThat(ex_tag.getErrorCase()).isEqualTo(S3ErrorCase.INVALID_FILE_KEY);
-    }
-
-    @Test
-    @DisplayName("deleteFile Mock 테스트")
-    void  deleteFile() {
-        String fileKey = "user123/12/test_tag.png";
-
-        s3Uploader.deleteFile(fileKey);
-
-        ArgumentCaptor<DeleteObjectRequest> reqCaptor =
-                ArgumentCaptor.forClass(DeleteObjectRequest.class);
-
-        verify(s3Client, times(1))
-                .deleteObject(reqCaptor.capture());
-
-        DeleteObjectRequest request = reqCaptor.getValue();
-
-        assertThat(request.key()).isEqualTo(fileKey);
-        assertThat(request.bucket()).isEqualTo("team2-jobda-s3");
+        assertThatThrownBy(() ->
+                s3Client.headObject(headRequest)
+        ).isInstanceOf(NoSuchKeyException.class);
     }
 }

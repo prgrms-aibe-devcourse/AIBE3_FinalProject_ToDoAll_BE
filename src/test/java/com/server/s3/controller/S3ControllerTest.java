@@ -1,6 +1,6 @@
 package com.server.s3.controller;
 
-import com.server.s3.service.S3Uploader;
+import com.server.s3.service.PresignedUrlProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,7 +22,7 @@ class S3ControllerTest {
     MockMvc mockMvc;
 
     @MockitoBean
-    S3Uploader s3Uploader;
+    PresignedUrlProvider presignedUrlProvider;
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER") // ✅ 이 줄 추가
@@ -31,7 +31,7 @@ class S3ControllerTest {
         String presignedUrl =
                 "https://team2-jobda-s3.s3.ap-northeast-2.amazonaws.com/" + testKey;
 
-        given(s3Uploader.createPresignedGetUrl(testKey))
+        given(presignedUrlProvider.createPresignedGetUrl(testKey))
                 .willReturn(presignedUrl);
 
         mockMvc.perform(

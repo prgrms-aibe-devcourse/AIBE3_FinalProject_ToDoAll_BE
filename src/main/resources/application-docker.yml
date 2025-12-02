@@ -5,14 +5,6 @@ spring:
     password: ${MYSQL_ROOT_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  data:
-    redis:
-      host: redis
-      port: 6379
-
-    elasticsearch:
-      uris: http://elasticsearch:9200
-
   jpa:
     open-in-view: false
     hibernate:
@@ -22,9 +14,15 @@ spring:
         format_sql: true
         show_sql: true
 
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+  data:
+    redis:
+      host: redis
+      port: 6379
+      database: 1
+      password:
+
+    elasticsearch:
+      uris: http://elasticsearch:9200
 
   mail:
     host: smtp.gmail.com
@@ -38,19 +36,60 @@ spring:
           starttls:
             enable: true
 
-jwt:
-  secret: ${JWT_SECRET}
-  access-exp: 3600000
-  refresh-exp: 604800000
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY_AI}
+      chat:
+        model: gpt-4o-mini
+    mcp:
+      server:
+        protocol: STREAMABLE
+        name: jobda-interview-mcp
+        annotation-scanner:
+          enabled: true
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+
+mcp:
+  base-url: http://localhost:8090
+  summary-path: /api/ai/interviews/generate-summary
 
 logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
 
+app:
+  email:
+    auth-expiry-minutes: 30
+    auth-base-url: http://localhost:5173/signup/form
+  password-reset:
+    expiry-minutes: 30
+    frontend-url: https://jobda.vercel.app/reset-password
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-exp: 3600000
+  refresh-exp: 604800000
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_ACCESS_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    s3:
+      bucket: ${AWS_S3_BUCKET_NAME}
+
 management:
   server:
     port: 8081
+  health:
+    elasticsearch:
+      enabled: false
   endpoints:
     web:
       base-path: /actuator
@@ -59,7 +98,3 @@ management:
   endpoint:
     health:
       show-details: always
-app:
-  email:
-    auth-expiry-minutes: 30
-    auth-base-url: http://localhost:5173/signup/form

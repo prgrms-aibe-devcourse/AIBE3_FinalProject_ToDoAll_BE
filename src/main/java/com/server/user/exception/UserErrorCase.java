@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum UserErrorCase implements ErrorCase {
 
+
+
     // 404
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, 1003, "사용자를 찾을 수 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 4011, "로그인이 필요합니다."),
@@ -29,7 +31,10 @@ public enum UserErrorCase implements ErrorCase {
 
 
     // 400 - 허용되지 않은 성별
-    INVALID_GENDER(HttpStatus.BAD_REQUEST, 4003, "허용되지 않는 성별 값입니다.");
+    INVALID_GENDER(HttpStatus.BAD_REQUEST, 4003, "허용되지 않는 성별 값입니다."),
+
+    INVALID_PROFILE_IMAGE(HttpStatus.BAD_REQUEST, 3005, "유효하지 않은 프로필 이미지 파일입니다.");
+
 
 
 

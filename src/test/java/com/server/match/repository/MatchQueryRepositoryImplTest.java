@@ -159,8 +159,8 @@ class MatchQueryRepositoryImplTest {
                 matchRepository.searchMatches(condition, pageable).getContent();
 
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).matchScore()).isEqualTo(80f);
-        assertThat(result.get(1).matchScore()).isEqualTo(60f);
+        assertThat(result.get(0).matchScore()).isEqualTo(8000.0f);
+        assertThat(result.get(1).matchScore()).isEqualTo(6000.0f);
     }
 
     @Test

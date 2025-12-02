@@ -84,6 +84,7 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
                     m.getStatus(),
                     matchRate,
                     missingSkills,
+                    doc.getSkills(),
                     summary
             );
         }).toList();

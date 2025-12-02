@@ -44,7 +44,11 @@ public class RecommendationCoreService {
     private final AiRecommendationService aiRecommendationService;
     private final RecommendationResultRepository recommendationResultRepository;
 
+    @Transactional
     public List<ResumeRecommendationDto> calculateRecommendations(Long jdId) throws IOException {
+        recommendationMissingSkillRepository.deleteByJdId(jdId);
+        recommendationResultRepository.deleteByJdId(jdId);
+
         JobDescription jd = jobDescriptionRepository.findByIdFetchSkills(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 

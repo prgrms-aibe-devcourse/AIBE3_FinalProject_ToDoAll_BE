@@ -85,19 +85,9 @@ public class RedisRecommendationCacheService {
             return str;
         }
 
-        // DB 조회
-        Optional<ResumeSummary> fromDb = resumeSummaryRepository.findById(resumeId);
-        if (fromDb.isPresent()) {
-            String summary = fromDb.get().getSummary();
-            redisTemplate.opsForValue().set(key, summary, TTL);
-            return summary;
-        }
-
         // AI 호출
         log.info("[캐시 MISS] 이력서 요약 — Resume {} → AI 호출", resumeId);
         String result = aiRecommendationService.generateResumeSummary(fullText);
-
-        resumeSummaryRepository.save(ResumeSummary.of(resumeId, result));
         redisTemplate.opsForValue().set(key, result, TTL);
         return result;
     }
@@ -112,19 +102,9 @@ public class RedisRecommendationCacheService {
             return str;
         }
 
-        // DB 조회
-        Optional<RecommendationReason> fromDb = recommendationReasonRepository.findByJdIdAndResumeId(jdId, resumeId);
-        if (fromDb.isPresent()) {
-            String reason = fromDb.get().getReason();
-            redisTemplate.opsForValue().set(key, reason, TTL);
-            return reason;
-        }
-
         // AI 호출
         log.info("[캐시 MISS] 추천 사유 — JD {}, Resume {} → AI 호출", jdId, resumeId);
         String result = RecommendationReasonBuilder.buildReason(jdDescription, doc);
-
-        recommendationReasonRepository.save(RecommendationReason.of(jdId, resumeId, result));
         redisTemplate.opsForValue().set(key, result, TTL);
         return result;
     }

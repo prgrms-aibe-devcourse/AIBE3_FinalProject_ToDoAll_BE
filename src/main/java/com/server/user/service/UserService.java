@@ -192,16 +192,31 @@ public class UserService {
         );
     }
 
+    //  마이페이지 - 프로필 이미지 삭제 (기본 이미지로 되돌리기)
 
-    // ================== 프로필 이미지 URL 조회 (302 redirect용) ==================
-    public String getProfileImageUrl(Long userId) {
+    @Transactional
+    public UserProfileResponseDto removeProfileImage(Long userId) {
         validateAuthenticated(userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
 
-        return resolveProfileImageUrl(user);
+        String currentProfileKey = user.getProfileUrl();
+
+        // S3에 올라가 있던 파일 삭제
+        if (currentProfileKey != null && !currentProfileKey.isBlank()) {
+            // S3Uploader.deleteFile을 public 으로 바꾸고 사용
+            s3Uploader.deleteFile(currentProfileKey);
+        }
+
+        // DB에서 프로필 이미지 경로 제거 → null => 기본 이미지 사용
+        user.changeProfileImage(null);
+
+        String profileImageUrl = resolveProfileImageUrl(user);
+
+        return UserProfileResponseDto.from(user, profileImageUrl);
     }
+
 
     // 공통 유틸 메서드
 

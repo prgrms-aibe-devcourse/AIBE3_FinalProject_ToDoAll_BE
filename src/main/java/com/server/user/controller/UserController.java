@@ -85,7 +85,7 @@ public class UserController {
     }
 
     //  마이페이지 - 프로필 이미지 업로드 (S3에 저장 후, 변경된 프로필 응답)
-    @Operation(summary = "내 프로필 이미지 변경", description = "현재 로그인한 사용자의 프로필 이미지를 업로드/변경합니다.")
+    @Operation(summary = "내 프로필 이미지 변경")
     @PatchMapping(value = "/me/profile-image", consumes = "multipart/form-data")
     public CommonResponse<UserProfileResponseDto> updateMyProfileImage(
             @AuthenticationPrincipal Long userId,
@@ -96,19 +96,16 @@ public class UserController {
         UserProfileResponseDto updated = userService.updateProfileImage(userId, file);
         return CommonResponse.success(updated);
     }
+    //  프로필 이미지 삭제 (기본 이미지로 되돌리기)
 
-    //  마이페이지 - 프로필 이미지 조회 (S3 URL로 302 리다이렉트)
-    @Operation(summary = "내 프로필 이미지 조회", description = "현재 로그인한 사용자의 프로필 이미지 URL로 리다이렉트합니다.")
-    @GetMapping("/me/profile-image")
-    public ResponseEntity<Void> getMyProfileImage(
+    @Operation(summary = "프로필 이미지 삭제",
+            description = "프로필 이미지 삭제 ->기본 이미지")
+    @DeleteMapping("/me/profile-image")
+    public CommonResponse<UserProfileResponseDto> deleteMyProfileImage(
             @AuthenticationPrincipal Long userId
     ) {
-        String imageUrl = userService.getProfileImageUrl(userId); // S3 또는 기본 이미지 URL
-
-        return ResponseEntity.status(HttpStatus.FOUND)   // 302 redirect
-                .location(URI.create(imageUrl))
-                .build();
+        UserProfileResponseDto updated = userService.removeProfileImage(userId);
+        return CommonResponse.success(updated);
     }
-
 
 }

@@ -9,12 +9,17 @@ import java.util.List;
 @Table(name = "jd_keywords")
 public class JdKeyword extends BaseEntity {
     @Id
-    private Long jdId; // JD ID 기준으로 1:1
+    private Long jdId;
 
     @ElementCollection
     @CollectionTable(name = "jd_keywords_list", joinColumns = @JoinColumn(name = "jd_id"))
     @Column(name = "keyword")
     private List<String> keywords;
 
-
+    public static JdKeyword of(Long jdId, List<String> keywords) {
+        JdKeyword entity = new JdKeyword();
+        entity.jdId = jdId;
+        entity.keywords = keywords;
+        return entity;
+    }
 }

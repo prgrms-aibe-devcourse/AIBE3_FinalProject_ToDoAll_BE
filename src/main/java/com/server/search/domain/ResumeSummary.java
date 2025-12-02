@@ -14,4 +14,11 @@ public class ResumeSummary extends BaseEntity {
 
     @Lob
     private String summary;
+
+    public static ResumeSummary of(Long resumeId, String summary) {
+        ResumeSummary entity = new ResumeSummary();
+        entity.resumeId = resumeId;
+        entity.summary = summary;
+        return entity;
+    }
 }

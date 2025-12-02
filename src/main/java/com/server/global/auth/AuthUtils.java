@@ -1,5 +1,7 @@
 package com.server.global.auth;
 
+import com.server.auth.exception.AuthErrorCase;
+import com.server.global.exception.ApplicationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -9,7 +11,7 @@ public class AuthUtils {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("인증되지 않은 사용자입니다.");
+            throw new ApplicationException(AuthErrorCase.AUTH_INVALID_TOKEN);
         }
 
         Object principal = authentication.getPrincipal();
@@ -18,7 +20,7 @@ public class AuthUtils {
         try {
             return Long.parseLong(principal.toString());
         } catch (NumberFormatException e) {
-            throw new RuntimeException("userId 파싱 실패");
+            throw new ApplicationException(AuthErrorCase.AUTH_INVALID_TOKEN);
         }
     }
 }

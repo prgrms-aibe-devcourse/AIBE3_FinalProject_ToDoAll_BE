@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface InterviewRepositoryCustom {
     List<InterviewSummaryDto> searchInterviews(
+            Long userId,
             Long jdId,
             String status,
             Long cursor,

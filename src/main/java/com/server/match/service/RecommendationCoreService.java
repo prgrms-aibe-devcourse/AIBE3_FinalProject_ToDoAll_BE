@@ -49,6 +49,9 @@ public class RecommendationCoreService {
         recommendationResultRepository.deleteMissingSkillsByJdId(jdId);
         recommendationResultRepository.deleteByJdId(jdId);
 
+        redisRecommendationCacheService.evictRecommendations(jdId);
+        redisRecommendationCacheService.evictKeywords(jdId);
+
         JobDescription jd = jobDescriptionRepository.findByIdFetchSkills(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 

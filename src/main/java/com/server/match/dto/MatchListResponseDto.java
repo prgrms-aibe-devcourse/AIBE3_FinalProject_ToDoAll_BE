@@ -13,6 +13,7 @@ public record MatchListResponseDto(
         MatchStatus status,
         String skillMatchRate,
         List<String> missingSkills,
+        List<String> skills,
         String resumeSummary
 ) {
     public MatchListResponseDto {

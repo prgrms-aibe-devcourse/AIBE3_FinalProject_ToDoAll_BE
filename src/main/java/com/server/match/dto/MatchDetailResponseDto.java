@@ -11,6 +11,7 @@ public record MatchDetailResponseDto(
         Float matchScore,
         String skillMatchRate,
         List<String> missingSkills,
+        List<String> skills,
         String recommendationReason,
         String resumeSummary
 ) {

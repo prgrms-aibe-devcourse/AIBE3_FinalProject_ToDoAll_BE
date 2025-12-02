@@ -5,6 +5,8 @@ import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.Skill;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.jd.repository.SkillRepository;
+import com.server.match.domain.Match;
+import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.Resume;
 import com.server.resume.domain.ResumeStatus;
 import com.server.resume.dto.*;
@@ -43,6 +45,9 @@ class ResumeServiceTest {
     @InjectMocks
     private ResumeService resumeService;
 
+    @Mock
+    private MatchRepository matchRepository;
+
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
@@ -73,7 +78,6 @@ class ResumeServiceTest {
                 .isEqualTo(ResumeErrorCase.RESUME_NOT_FOUND);
     }
 
-
     @Test
     @DisplayName("createResume - 성공")
     void createResume_success() {
@@ -84,7 +88,13 @@ class ResumeServiceTest {
                 .thenReturn(Optional.of(jd));
 
         Resume savedResume = mock(Resume.class);
+        when(savedResume.getId()).thenReturn(100L);
+
         when(resumeRepository.save(any())).thenReturn(savedResume);
+
+        when(matchRepository.existsByJobDescription_IdAndResume_Id(10L, 100L)).thenReturn(false);
+
+        when(matchRepository.save(any())).thenReturn(null);
 
         when(resumeSearchRepository.count()).thenReturn(0L);
 
@@ -110,6 +120,8 @@ class ResumeServiceTest {
 
         verify(jobDescriptionRepository).findById(10L);
         verify(resumeRepository).save(any(Resume.class));
+        verify(matchRepository).existsByJobDescription_IdAndResume_Id(10L, 100L);
+        verify(matchRepository).save(any(Match.class));
     }
 
     @Test

@@ -31,12 +31,12 @@ public class AiResponsePerformanceTest {
 
         // 1차 호출 (실제 AI 호출)
         long start1 = System.nanoTime();
-        String result1 = redisCache.getOrGenerateSummary(resumeId, resumeText, aiService);
+        String result1 = redisCache.getOrGenerateSummary(resumeId, resumeText);
         long end1 = System.nanoTime();
 
         // 2차 호출 (캐시 HIT)
         long start2 = System.nanoTime();
-        String result2 = redisCache.getOrGenerateSummary(resumeId, resumeText, aiService);
+        String result2 = redisCache.getOrGenerateSummary(resumeId, resumeText);
         long end2 = System.nanoTime();
 
         long latency1 = (end1 - start1) / 1_000_000;

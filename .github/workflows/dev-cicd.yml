@@ -213,6 +213,7 @@ jobs:
           source: docker-compose-cd.yml
           target: /home/ubuntu/jobda/
           overwrite: true
+          debug: true
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1

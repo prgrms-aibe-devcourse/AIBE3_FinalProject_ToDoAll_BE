@@ -51,10 +51,6 @@ spring:
         annotation-scanner:
           enabled: true
 
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
-
 mcp:
   base-url: http://localhost:8090
   summary-path: /api/ai/interviews/generate-summary

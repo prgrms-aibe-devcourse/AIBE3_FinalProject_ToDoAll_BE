@@ -1,5 +1,7 @@
 package com.server.search.domain;
 
+import com.server.global.exception.ApplicationException;
+import com.server.search.exception.SearchErrorCase;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -57,16 +59,16 @@ public class RecommendationResult {
             List<String> missingSkills
     ) {
         if (jdId == null || resumeId == null) {
-            throw new IllegalArgumentException("jdId와 resumeId는 필수입니다.");
+            throw new ApplicationException(SearchErrorCase.INVALID_RECOMMENDATION_ID);
         }
         if (matchScore == null || matchScore < 0 || matchScore > 100) {
-            throw new IllegalArgumentException("matchScore는 0 ~ 100 사이여야 합니다.");
+            throw new ApplicationException(SearchErrorCase.INVALID_MATCH_SCORE);
         }
         if (summary == null || summary.isBlank()) {
-            throw new IllegalArgumentException("요약(summary)은 비어 있을 수 없습니다.");
+            throw new ApplicationException(SearchErrorCase.SUMMARY_REQUIRED);
         }
         if (recommendationReason == null || recommendationReason.isBlank()) {
-            throw new IllegalArgumentException("추천 사유는 비어 있을 수 없습니다.");
+            throw new ApplicationException(SearchErrorCase.RECOMMENDATION_REASON_REQUIRED);
         }
 
         RecommendationResult result = new RecommendationResult();

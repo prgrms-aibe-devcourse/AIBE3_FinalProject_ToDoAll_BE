@@ -140,4 +140,13 @@ public class RedisRecommendationCacheService {
         String key = "keywords:jd_" + jdId;
         redisTemplate.delete(key);
     }
+
+    public void evictRecommendationResultList(Long jdId) {
+        redisTemplate.delete("recommend:jd_" + jdId);
+    }
+
+    public void evictRecommendationReason(Long jdId, Long resumeId) {
+        redisTemplate.delete("reason:jd_" + jdId + ":resume_" + resumeId);
+    }
+
 }

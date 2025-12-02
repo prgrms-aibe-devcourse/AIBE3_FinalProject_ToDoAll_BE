@@ -204,19 +204,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug SSH user & path
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.AWS_SSH_HOST }}
-          username: ${{ secrets.AWS_SSH_USERNAME }}
-          key: ${{ secrets.AWS_SSH_KEY }}
-          port: ${{ secrets.AWS_SSH_PORT }}
-          script: |
-            echo "whoami -> $(whoami)"
-            ls -ld /home
-            ls -ld /home/ubuntu || echo "NO /home/ubuntu"
-            ls -ld /home/ubuntu/jobda || echo "NO /home/ubuntu/jobda"
-
       - name: Copy docker-compose-cd.yml to EC2
         uses: appleboy/scp-action@v1
         with:

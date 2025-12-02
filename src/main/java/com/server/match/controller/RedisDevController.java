@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,6 +53,7 @@ public class RedisDevController {
     public String bulkDeleteByJd(@PathVariable Long jdId) {
         // 이 JD에 매칭된 resumeId 리스트 조회
         List<Long> resumeIds = recommendationResultRepository.findResumeIdsByJdId(jdId);
+        Set<Long> uniqueResumeIds = new HashSet<>(resumeIds);
 
         for (Long resumeId : resumeIds) {
             redisRecommendationCacheService.evictRecommendationReason(jdId, resumeId);

@@ -12,12 +12,14 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
+      WAIT_FOR_DB : true
       SPRING_PROFILES_ACTIVE: docker
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MAIL_USERNAME: ${MAIL_USERNAME}    #  메일 계정
       MAIL_PASSWORD: ${MAIL_PASSWORD}    #  메일 앱 비밀번호
       JWT_SECRET: ${JWT_SECRET}
+      OPENAI_API_KEY_AI: ${OPENAI_API_KEY_AI}
       TZ: Asia/Seoul
     restart: on-failure
     volumes:

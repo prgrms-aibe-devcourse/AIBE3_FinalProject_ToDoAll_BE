@@ -17,7 +17,9 @@ import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.document.ResumeDocument;
+import com.server.search.domain.RecommendationResult;
 import com.server.search.dto.ResumeRecommendationDto;
+import com.server.search.repository.RecommendationResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ public class RecommendationCoreService {
     private final RedisRecommendationCacheService redisRecommendationCacheService;
     private final ElasticsearchClient elasticsearchClient;
     private final AiRecommendationService aiRecommendationService;
+    private final RecommendationResultRepository recommendationResultRepository;
 
     public List<ResumeRecommendationDto> calculateRecommendations(Long jdId) throws IOException {
         JobDescription jd = jobDescriptionRepository.findByIdFetchSkills(jdId)
@@ -110,7 +113,24 @@ public class RecommendationCoreService {
                         reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
                     }
 
-                    return ResumeRecommendationDto.from(resume, doc, finalScore, missingSkills, summary, reason);
+                    ResumeRecommendationDto dto = ResumeRecommendationDto.from(
+                            resume, doc, finalScore, missingSkills, summary, reason
+                    );
+
+                    recommendationResultRepository.save(
+                            RecommendationResult.of(
+                                    jdId,
+                                    dto.resumeId(),
+                                    dto.matchScore(),
+                                    dto.skillMatchRate(),
+                                    dto.summary(),
+                                    dto.recommendationReason(),
+                                    dto.missingSkills()
+                            )
+                    );
+
+                    return dto;
+
                 })
                 .filter(dto -> dto != null)
                 .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())

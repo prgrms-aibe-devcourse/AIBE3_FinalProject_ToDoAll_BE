@@ -1,20 +1,23 @@
 package com.server.user.controller;
 
 
-import com.server.global.config.security.jwt.JwtAuthentication;
-import com.server.global.exception.ApplicationException;
 import com.server.global.response.CommonResponse;
 import com.server.user.dto.*;
-import com.server.user.exception.UserErrorCase;
 import com.server.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URI;
+
+import static com.server.user.domain.QUser.user;
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -57,6 +60,7 @@ public class UserController {
     public CommonResponse<UserProfileResponseDto> getMyProfile(
             @AuthenticationPrincipal Long userId
     ) {
+        log.info("getMe principal: {}", userId);
 
         // 1) 서비스 호출해서 프로필 조회
         UserProfileResponseDto profile = userService.getMyProfile(userId);
@@ -80,5 +84,28 @@ public class UserController {
         return CommonResponse.success(updated);
     }
 
+    //  마이페이지 - 프로필 이미지 업로드 (S3에 저장 후, 변경된 프로필 응답)
+    @Operation(summary = "내 프로필 이미지 변경")
+    @PatchMapping(value = "/me/profile-image", consumes = "multipart/form-data")
+    public CommonResponse<UserProfileResponseDto> updateMyProfileImage(
+            @AuthenticationPrincipal Long userId,
+            @RequestPart("file") MultipartFile file
+    ) {
+        log.info("updateMyProfileImage userId: {}, fileName: {}", userId, file.getOriginalFilename());
+
+        UserProfileResponseDto updated = userService.updateProfileImage(userId, file);
+        return CommonResponse.success(updated);
+    }
+    //  프로필 이미지 삭제 (기본 이미지로 되돌리기)
+
+    @Operation(summary = "프로필 이미지 삭제",
+            description = "프로필 이미지 삭제 ->기본 이미지")
+    @DeleteMapping("/me/profile-image")
+    public CommonResponse<UserProfileResponseDto> deleteMyProfileImage(
+            @AuthenticationPrincipal Long userId
+    ) {
+        UserProfileResponseDto updated = userService.removeProfileImage(userId);
+        return CommonResponse.success(updated);
+    }
 
 }

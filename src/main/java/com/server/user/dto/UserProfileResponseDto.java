@@ -22,10 +22,11 @@ public class UserProfileResponseDto {
     private String phoneNumber;    // 전화번호
     private LocalDate birthDate;   // 생년월일
     private Gender gender;         //성별
+    private String profileUrl;     // 프로필 이미지 URL (기본 이미지 포함)
 
-    // User 엔티티에서 마이페이지 응답 DTO로 변환해주는 메서드
 
-    public static UserProfileResponseDto from(User user) {
+    public static UserProfileResponseDto from(User user, String resolvedProfileUrl) {
+
         return new UserProfileResponseDto(
                 user.getId(),
                 user.getEmail(),
@@ -35,7 +36,8 @@ public class UserProfileResponseDto {
                 user.getPosition(),
                 user.getPhoneNumber(),
                 user.getBirthDate(),
-                user.getGender()
+                user.getGender(),
+                resolvedProfileUrl
         );
     }
 }

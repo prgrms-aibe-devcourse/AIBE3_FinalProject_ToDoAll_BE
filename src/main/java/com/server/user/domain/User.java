@@ -51,6 +51,10 @@ public class User extends BaseEntity {
     @Column(name = "email_token", unique = true)
     private String emailToken;
 
+    // 프로필 이미지 URL
+    @Column(name = "profile_url")
+    private String profileUrl;
+
     // 마이페이지 정보 수정
 
     public void updateProfile(
@@ -95,5 +99,19 @@ public class User extends BaseEntity {
     //이메일 인증 완료
     public void markEmailVerified() {
         this.status = EmailStatus.VERIFIED;
+    }
+
+    // 프로필 이미지 변경 (S3 업로드 후 URL 저장)
+    public void changeProfileImage(String profileUrl) {
+        this.profileUrl = profileUrl;
+    }
+
+    //프로필 이미지 URL 조회
+
+    public String getProfileImageOrDefault(String defaultUrl) {
+        if (this.profileUrl == null || this.profileUrl.isBlank()) {
+            return defaultUrl;
+        }
+        return this.profileUrl;
     }
 }

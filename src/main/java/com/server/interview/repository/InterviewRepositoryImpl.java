@@ -1,11 +1,12 @@
 package com.server.interview.repository;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.server.interview.domain.QInterview;
+import com.server.interview.dto.InterviewSummaryDto;
 import com.server.jd.domain.QJobDescription;
 import com.server.resume.domain.QResume;
-import com.server.interview.dto.InterviewSummaryDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +23,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
 
     @Override
     public List<InterviewSummaryDto> searchInterviews(
+            Long userId,
             Long jdId,
             String status,
             Long cursor,
@@ -35,6 +37,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                         i.id,                      // interviewId
                         jd.id,                     // jdId
                         jd.title,                  // jdTitle
+                        r.id,                      // resumeId
                         r.name,                    // candidateName
                         i.status.stringValue(),    // InterviewStatus → String
                         i.scheduledAt,
@@ -44,6 +47,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                 .leftJoin(i.jobDescription, jd)
                 .leftJoin(i.resume, r)
                 .where(
+                        belongsToUser(userId),
                         jdId == null ? null : jd.id.eq(jdId),
                         status == null ? null : i.status.stringValue().eq(status),
                         cursor == null ? null : i.id.lt(cursor)
@@ -60,5 +64,12 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
 
         // limit + 1로 다음 페이지 판단용
         return query.limit(limit).fetch();
+    }
+
+    private BooleanExpression belongsToUser(Long userId) {
+        if (userId == null) return null;
+
+        return i.organizer.id.eq(userId)   // 주최자
+                .or(i.interviewParticipant.any().user.id.eq(userId)); // 참여자
     }
 }

@@ -97,10 +97,14 @@ public class RecommendationCoreService {
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
 
                     // Redis 캐시 적용 => 이력서 요약이 캐시에 없을 때만 AI 호출
-                    String summary = redisRecommendationCacheService.getOrGenerateSummary(doc.getId(), doc.getFullText(), aiRecommendationService);
+                    String summary = redisRecommendationCacheService.getOrGenerateSummary(
+                            doc.getId(), doc.getFullText()
+                    );
 
                     // Redis 캐시 적용 => JD+이력서 조합에 따른 추천 사유가 캐시에 없을 때만 AI 호출
-                    String reason = redisRecommendationCacheService.getOrGenerateReason(jdId, doc.getId(), jd.getDescription(), doc, aiRecommendationService);
+                    String reason = redisRecommendationCacheService.getOrGenerateReason(
+                            jdId, doc.getId(), jd.getDescription(), doc
+                    );
 
                     if (reason == null || reason.isBlank()) {
                         reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";

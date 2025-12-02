@@ -46,7 +46,7 @@ public class AiCacheBehaviorTest {
     void testCacheMissTriggersAiAndStoresInRedis() {
         Assertions.assertNull(redisTemplate.opsForValue().get(redisKey), "처음엔 캐시에 없는 상태로 진행");
 
-        String summary = redisCache.getOrGenerateSummary(resumeId, resumeText, aiService);
+        String summary = redisCache.getOrGenerateSummary(resumeId, resumeText);
 
         Object cached = redisTemplate.opsForValue().get(redisKey);
         Assertions.assertNotNull(cached, "AI 호출 후 캐시에 저장되어야 함");
@@ -60,7 +60,7 @@ public class AiCacheBehaviorTest {
     void testCacheHitSkipsAiCall() {
         redisTemplate.opsForValue().set(redisKey, "사전 저장된 요약 결과");
 
-        String result = redisCache.getOrGenerateSummary(resumeId, resumeText, aiService);
+        String result = redisCache.getOrGenerateSummary(resumeId, resumeText);
 
         Assertions.assertEquals("사전 저장된 요약 결과", result, "캐시에서 바로 불러와야 함");
 

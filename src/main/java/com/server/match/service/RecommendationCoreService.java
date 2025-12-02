@@ -17,10 +17,13 @@ import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.document.ResumeDocument;
+import com.server.search.domain.RecommendationResult;
 import com.server.search.dto.ResumeRecommendationDto;
+import com.server.search.repository.RecommendationResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -30,6 +33,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class RecommendationCoreService {
 
     private final JobDescriptionRepository jobDescriptionRepository;
@@ -38,8 +42,16 @@ public class RecommendationCoreService {
     private final RedisRecommendationCacheService redisRecommendationCacheService;
     private final ElasticsearchClient elasticsearchClient;
     private final AiRecommendationService aiRecommendationService;
+    private final RecommendationResultRepository recommendationResultRepository;
 
+    @Transactional
     public List<ResumeRecommendationDto> calculateRecommendations(Long jdId) throws IOException {
+        recommendationResultRepository.deleteMissingSkillsByJdId(jdId);
+        recommendationResultRepository.deleteByJdId(jdId);
+
+        redisRecommendationCacheService.evictRecommendations(jdId);
+        redisRecommendationCacheService.evictKeywords(jdId);
+
         JobDescription jd = jobDescriptionRepository.findByIdFetchSkills(jdId)
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
@@ -97,16 +109,37 @@ public class RecommendationCoreService {
                     List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
 
                     // Redis 캐시 적용 => 이력서 요약이 캐시에 없을 때만 AI 호출
-                    String summary = redisRecommendationCacheService.getOrGenerateSummary(doc.getId(), doc.getFullText(), aiRecommendationService);
+                    String summary = redisRecommendationCacheService.getOrGenerateSummary(
+                            doc.getId(), doc.getFullText()
+                    );
 
                     // Redis 캐시 적용 => JD+이력서 조합에 따른 추천 사유가 캐시에 없을 때만 AI 호출
-                    String reason = redisRecommendationCacheService.getOrGenerateReason(jdId, doc.getId(), jd.getDescription(), doc, aiRecommendationService);
+                    String reason = redisRecommendationCacheService.getOrGenerateReason(
+                            jdId, doc.getId(), jd.getDescription(), doc
+                    );
 
                     if (reason == null || reason.isBlank()) {
                         reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
                     }
 
-                    return ResumeRecommendationDto.from(resume, doc, finalScore, missingSkills, summary, reason);
+                    ResumeRecommendationDto dto = ResumeRecommendationDto.from(
+                            resume, doc, finalScore, missingSkills, summary, reason
+                    );
+
+                    recommendationResultRepository.save(
+                            RecommendationResult.of(
+                                    jdId,
+                                    dto.resumeId(),
+                                    dto.matchScore(),
+                                    dto.skillMatchRate(),
+                                    dto.summary(),
+                                    dto.recommendationReason(),
+                                    dto.missingSkills()
+                            )
+                    );
+
+                    return dto;
+
                 })
                 .filter(dto -> dto != null)
                 .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())

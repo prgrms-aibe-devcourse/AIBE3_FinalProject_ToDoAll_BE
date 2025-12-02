@@ -5,13 +5,14 @@ import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.Skill;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.jd.repository.SkillRepository;
+import com.server.match.domain.Match;
+import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.*;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class ResumeService {
     private final JobDescriptionRepository jobDescriptionRepository;
     private final ResumeSearchService resumeSearchService;
     private final ResumeSearchRepository resumeSearchRepository;
+    private final MatchRepository matchRepository;
 
     @Transactional(readOnly = true)
     public ResumeResponseDto getResumeById(Long resumeId) {
@@ -40,7 +42,6 @@ public class ResumeService {
 
     @Transactional
     public ResumeResponseDto createResume(ResumeCreateRequestDto request) {
-        System.out.println(">> 색인된 이력서 개수: " + resumeSearchRepository.count());
         if (request.jobDescriptionId() == null) {
             throw new ApplicationException(ResumeErrorCase.JD_NOT_FOUND);
         }
@@ -63,6 +64,11 @@ public class ResumeService {
                 ResumeStatus.NEW
         );
         Resume savedResume = resumeRepository.save(resume);
+
+        if (!matchRepository.existsByJobDescription_IdAndResume_Id(jdEntity.getId(), savedResume.getId())) {
+            Match match = Match.ofForApplication(jdEntity, savedResume); // APPLIED 형태로 matches 테이블에 저장
+            matchRepository.save(match);
+        }
 
         addEducations(savedResume, request.education());
         addExperiences(savedResume, request.experience());

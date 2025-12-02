@@ -5,11 +5,7 @@ import com.server.ai.service.KeywordExtractorService;
 import com.server.match.util.RecommendationReasonBuilder;
 import com.server.search.document.ResumeDocument;
 import com.server.search.domain.JdKeyword;
-import com.server.search.domain.RecommendationReason;
-import com.server.search.domain.ResumeSummary;
 import com.server.search.repository.JdKeywordRepository;
-import com.server.search.repository.RecommendationReasonRepository;
-import com.server.search.repository.ResumeSummaryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,11 +23,7 @@ public class RedisRecommendationCacheService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final KeywordExtractorService keywordExtractorService;
     private final AiRecommendationService aiRecommendationService;
-
     private final JdKeywordRepository jdKeywordRepository;
-    private final ResumeSummaryRepository resumeSummaryRepository;
-    private final RecommendationReasonRepository recommendationReasonRepository;
-
     private static final Duration TTL = Duration.ofDays(30);
 
     public boolean existsRecommendationFor(Long jdId) {

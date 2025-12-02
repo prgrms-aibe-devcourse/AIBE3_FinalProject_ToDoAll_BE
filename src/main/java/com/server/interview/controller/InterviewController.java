@@ -1,10 +1,7 @@
 package com.server.interview.controller;
 
 import com.server.global.response.CommonResponse;
-import com.server.interview.dto.InterviewCreateRequestDto;
-import com.server.interview.dto.InterviewCreateResponseDto;
-import com.server.interview.dto.InterviewListResponseDto;
-import com.server.interview.dto.InterviewSearchConditionDto;
+import com.server.interview.dto.*;
 import com.server.interview.service.InterviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -71,4 +68,13 @@ public class InterviewController {
         return CommonResponse.success(null);
     }
 
+
+    @GetMapping("/{interviewId}/interview-profile")
+    @Operation(summary = "인터뷰 프로필 조회", description = "면접에 연결된 이력서/공고 정보를 기반으로 프로필 정보를 반환합니다.")
+    public CommonResponse<InterviewProfileResponseDto> getInterviewProfile(
+            @PathVariable Long interviewId
+    ) {
+        InterviewProfileResponseDto dto = interviewService.getInterviewProfile(interviewId);
+        return CommonResponse.success(dto);
+    }
 }

@@ -6,9 +6,14 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "recommendation_reasons")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(RecommendationKey.class)
 public class RecommendationReason extends BaseEntity {
     @Id

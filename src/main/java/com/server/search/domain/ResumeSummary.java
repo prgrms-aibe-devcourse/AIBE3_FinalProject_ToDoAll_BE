@@ -5,9 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "resume_summaries")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ResumeSummary extends BaseEntity {
     @Id
     private Long resumeId;

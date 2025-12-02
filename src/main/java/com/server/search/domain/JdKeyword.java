@@ -2,11 +2,16 @@ package com.server.search.domain;
 
 import com.server.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Entity
 @Table(name = "jd_keywords")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class JdKeyword extends BaseEntity {
     @Id
     private Long jdId;

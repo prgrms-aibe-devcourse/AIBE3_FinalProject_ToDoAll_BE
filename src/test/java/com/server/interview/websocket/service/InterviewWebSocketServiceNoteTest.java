@@ -60,7 +60,7 @@ class InterviewWebSocketServiceNoteTest {
         UserProfileResponseDto profile = new UserProfileResponseDto(
                 10L, "mail@test.com", "면접관A", "nick",
                 "company", "position",
-                "010-1234-5678", LocalDate.now(), null
+                "010-1234-5678", LocalDate.now(), null,null
         );
         when(userService.getMyProfile(10L)).thenReturn(profile);
 

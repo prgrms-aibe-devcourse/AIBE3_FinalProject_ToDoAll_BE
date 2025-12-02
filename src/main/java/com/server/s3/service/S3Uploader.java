@@ -124,7 +124,7 @@ public class S3Uploader {
      *
      * @param fileKey 삭제할 파일의 파일키
      */
-    void deleteFile(String fileKey) {
+    public void deleteFile(String fileKey) {
         try {
             DeleteObjectRequest request = DeleteObjectRequest.builder()
                     .bucket(bucket)

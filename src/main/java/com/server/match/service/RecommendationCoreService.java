@@ -46,7 +46,7 @@ public class RecommendationCoreService {
 
     @Transactional
     public List<ResumeRecommendationDto> calculateRecommendations(Long jdId) throws IOException {
-        recommendationMissingSkillRepository.deleteByJdId(jdId);
+        recommendationResultRepository.deleteMissingSkillsByJdId(jdId);
         recommendationResultRepository.deleteByJdId(jdId);
 
         JobDescription jd = jobDescriptionRepository.findByIdFetchSkills(jdId)

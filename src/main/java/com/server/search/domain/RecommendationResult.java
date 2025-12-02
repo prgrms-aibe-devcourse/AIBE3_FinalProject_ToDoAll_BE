@@ -31,11 +31,11 @@ public class RecommendationResult {
     private String skillMatchRate;
 
     @Lob
-    @Column(name = "summary", nullable = false)
+    @Column(name = "summary", columnDefinition = "TEXT", nullable = false)
     private String summary;
 
     @Lob
-    @Column(name = "recommendation_reason", nullable = false)
+    @Column(name = "recommendation_reason", columnDefinition = "TEXT", nullable = false)
     private String recommendationReason;
 
     @ElementCollection

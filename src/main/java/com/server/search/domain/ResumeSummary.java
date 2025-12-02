@@ -1,10 +1,7 @@
 package com.server.search.domain;
 
 import com.server.global.entity.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +15,7 @@ public class ResumeSummary extends BaseEntity {
     private Long resumeId;
 
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String summary;
 
     public static ResumeSummary of(Long resumeId, String summary) {

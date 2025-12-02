@@ -1,5 +1,7 @@
 package com.server.global.auth;
 
+import com.server.auth.exception.AuthErrorCase;
+import com.server.global.exception.ApplicationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
@@ -28,7 +30,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
+            throw new ApplicationException(AuthErrorCase.AUTH_INVALID_TOKEN);
         }
 
         Object principal = authentication.getPrincipal();
@@ -37,7 +39,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         try {
             return Long.parseLong(principal.toString());
         } catch (NumberFormatException e) {
-            return null;
+            throw new ApplicationException(AuthErrorCase.AUTH_INVALID_TOKEN);
         }
     }
 }

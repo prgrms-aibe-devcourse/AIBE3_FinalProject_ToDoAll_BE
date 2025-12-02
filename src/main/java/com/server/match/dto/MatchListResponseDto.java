@@ -13,5 +13,15 @@ public record MatchListResponseDto(
         MatchStatus status,
         String skillMatchRate,
         List<String> missingSkills,
+        List<String> skills,
         String resumeSummary
-) {}
+) {
+    public MatchListResponseDto {
+        // null 체크 후 백분율로 변환
+        if (matchScore != null) {
+            matchScore = Math.round(matchScore * 1000f) / 10f;
+        } else {
+            matchScore = 0f;
+        }
+    }
+}

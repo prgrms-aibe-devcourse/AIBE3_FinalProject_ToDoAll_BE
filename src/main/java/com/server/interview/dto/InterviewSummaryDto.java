@@ -14,6 +14,9 @@ public record InterviewSummaryDto(
         @Schema(description = "채용 공고 제목", example = "백엔드 개발자 (Spring)")
         String jdTitle,
 
+        @Schema(description = "이력서 ID", example = "1")
+        Long resumeId,
+
         @Schema(description = "후보자 이름", example = "홍길동")
         String candidateName,
 

@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface JobDescriptionRepository extends JpaRepository<JobDescription, Long> {
+public interface JobDescriptionRepository extends JpaRepository<JobDescription, Long>, JobDescriptionRepositoryCustom {
     List<JobDescription> findAllByStatus(String status);
 
     @Query("SELECT jd FROM JobDescription jd " +

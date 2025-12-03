@@ -180,4 +180,17 @@ public class ResumeService {
         return ResumeMemoResponseDto.from(resume);
 
     }
+
+    @Transactional(readOnly = true)
+    public ResumeInviteInfo getInviteInfo(Long resumeId) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        String jdTitle = resume.getJobDescription() != null ? resume.getJobDescription().getTitle() : null;
+
+        return new ResumeInviteInfo(resume.getId(), resume.getName(), resume.getEmail(), jdTitle);
+    }
+
+    public record ResumeInviteInfo(Long resumeId, String name, String email, String jdTitle) {}
+
 }

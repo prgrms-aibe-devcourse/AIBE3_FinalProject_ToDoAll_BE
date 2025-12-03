@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${OWNER_NAME}/jobda-app:prod
+    image: ghcr.io/${OWNER_NAME}/jobda-app:${IMAGE_TAG}
     build:
       context: .
       dockerfile: Dockerfile

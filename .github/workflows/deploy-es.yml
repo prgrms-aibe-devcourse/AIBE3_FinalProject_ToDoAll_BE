@@ -27,6 +27,6 @@ jobs:
             cd ~/AIBE3_FinalProject_ToDoAll_BE
             git pull origin develop
 
-            docker compose -f docker-compose-es.yml down
-            docker compose -f docker-compose-es.yml up -d --build
+            docker-compose -f docker-compose-es.yml down
+            docker-compose -f docker-compose-es.yml up -d --build
           EOF

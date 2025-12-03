@@ -22,6 +22,10 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(name = "email_domain")
+    private String emailDomain;
+
+
     private String password;
 
     private String name;
@@ -83,12 +87,48 @@ public class User extends BaseEntity {
     ) {
         User user = new User();
         user.email = email;
+        user.emailDomain = extractEmailDomain(email);      // 도메인 자동 세팅
         user.password = encodedPassword;
         user.name = name;
         user.nickname = nickname;
         user.companyName = companyName;
         user.position = position;
         user.status = EmailStatus.VERIFIED;
+        return user;
+    }
+
+    // 이메일에서 도메인(@ 뒤)만 추출하는 유틸 메서드
+    private static String extractEmailDomain(String email) {
+        if (email == null) return null;
+        int atIndex = email.indexOf("@");
+        if (atIndex < 0 || atIndex == email.length() - 1) return null;
+        return email.substring(atIndex + 1);
+    }
+
+    // 정적 팩토리 메서드 (범용 User 생성용)
+    public static User of(
+            String email,
+            String encodedPassword,
+            String name,
+            String nickname,
+            String phoneNumber,
+            LocalDate birthDate,
+            Gender gender,              // ← enum Gender로 받기
+            String companyName,
+            String position
+    ) {
+        User user = new User();
+        user.email = email;
+        user.emailDomain = extractEmailDomain(email);  // ← 자동 도메인 저장
+        user.password = encodedPassword;
+        user.name = name;
+        user.nickname = nickname;
+        user.phoneNumber = phoneNumber;
+        user.birthDate = birthDate;
+        user.gender = gender;
+        user.companyName = companyName;
+        user.position = position;
+        user.status = EmailStatus.UNVERIFIED; // 기본값: 미인증
         return user;
     }
 

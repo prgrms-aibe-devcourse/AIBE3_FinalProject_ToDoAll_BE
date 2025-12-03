@@ -1,0 +1,32 @@
+name: Deploy Elasticsearch to EC2
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  deploy:
+    name: Deploy Elasticsearch to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.AWS_SSH_KEY }}
+
+      - name: Add EC2 host to known_hosts
+        run: ssh-keyscan -H 3.39.210.5 >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh ubuntu@${{ secrets.EC2_ES_HOST }} << 'EOF'
+            cd ~/AIBE3_FinalProject_ToDoAll_BE
+            git pull origin develop
+
+            docker compose -f docker-compose-es.yml down
+            docker compose -f docker-compose-es.yml up -d --build
+          EOF

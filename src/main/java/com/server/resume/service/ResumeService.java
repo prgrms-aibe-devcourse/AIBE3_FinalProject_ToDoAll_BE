@@ -8,6 +8,8 @@ import com.server.jd.repository.SkillRepository;
 import com.server.match.domain.Match;
 import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.*;
+import com.server.resume.domain.Resume;
+import com.server.resume.domain.ResumeStatus;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
@@ -179,5 +181,20 @@ public class ResumeService {
 
         return ResumeMemoResponseDto.from(resume);
 
+    }
+
+    @Transactional(readOnly = true)
+    public ResumeInterviewInfoResponseDto getResumeInterviewInfo(Long resumeId) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        return new ResumeInterviewInfoResponseDto(
+                resume.getName(),
+                resume.getEmail(),
+                resume.getPhone(),
+                resume.getBirthDate(),
+                resume.getPortfolioFileUrl(),
+                resume.getJobDescription().getTitle()
+        );
     }
 }

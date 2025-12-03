@@ -1,5 +1,6 @@
 package com.server.interview.service;
 
+import com.server.global.auth.AuthUtils;
 import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.*;
 import com.server.interview.dto.*;
@@ -12,6 +13,7 @@ import com.server.jd.domain.Skill;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.mcp.dto.InterviewCreatedAiEvent;
+import com.server.mcp.dto.InterviewFinishedAiEvent;
 import com.server.resume.domain.Resume;
 import com.server.resume.domain.ResumeSkill;
 import com.server.resume.exception.ResumeErrorCase;
@@ -22,11 +24,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.server.mcp.dto.InterviewFinishedAiEvent;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,7 +49,7 @@ public class InterviewService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto, Long userId) {
+    public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
 
         // 인터뷰 생성 로직
         JobDescription jobDescription = jobDescriptionRepository.findById(interviewCreateRequestDto.jdId()).orElseThrow(
@@ -55,7 +59,8 @@ public class InterviewService {
                 ()->new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND)
         );
 
-        userId = 1L;
+        Long userId = AuthUtils.getCurrentUserId();
+
         User organizer = userRepository.findById(userId).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
 
         LocalDateTime scheduledAt =  interviewCreateRequestDto.scheduledAt();
@@ -114,9 +119,9 @@ public class InterviewService {
         return new InterviewCreateResponseDto(interview.getId());
     }
 
-    public InterviewListResponseDto getInterviews(InterviewSearchConditionDto condition, Long userId) {
+    public InterviewListResponseDto getInterviews(InterviewSearchConditionDto condition) {
 
-        userId = 1L;
+        Long userId = AuthUtils.getCurrentUserId();
         Long jdId = condition.jdId();
         String status = condition.status();
 
@@ -154,9 +159,9 @@ public class InterviewService {
 
 
     @Transactional
-    public void deleteInterview(Long interviewId, Long userId) {
+    public void deleteInterview(Long interviewId) {
 
-        userId = 1L;
+        Long userId = AuthUtils.getCurrentUserId();
 
         Interview interview = interviewRepository.findById(interviewId)
                 .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));

@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,10 +25,9 @@ public class InterviewController {
             @ApiResponse(responseCode = "404", description = "채용공고 또는 이력서를 찾을 수 없음")
     })
     public CommonResponse<InterviewCreateResponseDto> createInterview (
-            @RequestBody @Valid InterviewCreateRequestDto interviewCreateRequestDto,
-            @AuthenticationPrincipal Long userId
+            @RequestBody @Valid InterviewCreateRequestDto interviewCreateRequestDto
     ){
-        InterviewCreateResponseDto interviewCreateResponseDto = interviewService.create(interviewCreateRequestDto, userId);
+        InterviewCreateResponseDto interviewCreateResponseDto = interviewService.create(interviewCreateRequestDto);
         return CommonResponse.success(interviewCreateResponseDto);
     }
 
@@ -40,10 +38,9 @@ public class InterviewController {
             @ApiResponse(responseCode = "400", description = "유효하지 않은 상태(status) 값입니다.")
     })
     public CommonResponse<InterviewListResponseDto> getInterviews (
-            @ModelAttribute @Valid InterviewSearchConditionDto condition,
-            @AuthenticationPrincipal Long userId
+            @ModelAttribute @Valid InterviewSearchConditionDto condition
     ){
-        InterviewListResponseDto interviewSearchResponseDto = interviewService.getInterviews(condition, userId);
+        InterviewListResponseDto interviewSearchResponseDto = interviewService.getInterviews(condition);
         return CommonResponse.success(interviewSearchResponseDto);
     }
 
@@ -54,10 +51,9 @@ public class InterviewController {
             @ApiResponse(responseCode = "403", description = "면접을 삭제할 권한이 없습니다.")
     })
     public CommonResponse<String> deleteInterview (
-            @PathVariable("interviewId") Long interviewId,
-            @AuthenticationPrincipal Long userId
+            @PathVariable("interviewId") Long interviewId
     ){
-        interviewService.deleteInterview(interviewId, userId);
+        interviewService.deleteInterview(interviewId);
         return CommonResponse.success("면접 삭제 완료");
     }
 

@@ -66,10 +66,17 @@ public class NotificationController {
             @ApiResponse(responseCode = "200", description = "알림 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 알림")
     })
-    public  CommonResponse<String> deleteNotification(
+    public CommonResponse<String> deleteNotification(
             @PathVariable Long notificationId
     ) {
         notificationService.deleteNotification(notificationId);
+        return CommonResponse.success("알림 삭제 성공");
+    }
+
+    @DeleteMapping("")
+    @Operation(summary = "내 알림 전체 삭제 api", description = "자신에게 온 알림을 전체 삭제")
+    public CommonResponse<String> deleteAllNotification() {
+        notificationService.deleteAllNotification();
         return CommonResponse.success("알림 삭제 성공");
     }
 }

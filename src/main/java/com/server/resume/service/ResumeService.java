@@ -182,6 +182,21 @@ public class ResumeService {
     }
 
     @Transactional(readOnly = true)
+    public ResumeInterviewInfoResponseDto getResumeInterviewInfo(Long resumeId) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        return new ResumeInterviewInfoResponseDto(
+                resume.getName(),
+                resume.getEmail(),
+                resume.getPhone(),
+                resume.getBirthDate(),
+                resume.getPortfolioFileUrl(),
+                resume.getJobDescription().getTitle()
+        );
+    }
+
+    @Transactional(readOnly = true)
     public ResumeInviteInfo getInviteInfo(Long resumeId) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));

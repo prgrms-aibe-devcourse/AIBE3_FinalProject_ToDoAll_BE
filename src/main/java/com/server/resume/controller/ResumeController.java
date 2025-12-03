@@ -84,4 +84,19 @@ public class ResumeController {
         ResumeMemoResponseDto response = resumeService.updateResumeMemo(resumeId, request);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
+
+    @GetMapping("/{resumeId}/interview-info")
+    @Operation(summary = "인터뷰 생성시 필요한 이력서 정보 조회", description = "인터뷰 생성시에 필요한 이력서 정보만 조회하는 api입니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "이력서를 찾을 수 없음")
+    })
+    public ResponseEntity<CommonResponse<ResumeInterviewInfoResponseDto>> getResumeInterviewInfo(
+            @PathVariable Long resumeId) {
+
+        ResumeInterviewInfoResponseDto response = resumeService.getResumeInterviewInfo(resumeId);
+
+        return ResponseEntity.ok(CommonResponse.success(response));
+    }
+
 }

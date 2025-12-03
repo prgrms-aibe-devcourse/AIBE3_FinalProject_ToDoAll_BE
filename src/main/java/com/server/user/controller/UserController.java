@@ -5,6 +5,7 @@ import com.server.global.response.CommonResponse;
 import com.server.user.dto.*;
 import com.server.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,13 +15,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URI;
+import java.util.List;
 
-import static com.server.user.domain.QUser.user;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
+@Tag(name = "UserController", description = "API 유저 컨트롤러")
 public class UserController {
 
     private final UserService userService;
@@ -106,6 +107,14 @@ public class UserController {
     ) {
         UserProfileResponseDto updated = userService.removeProfileImage(userId);
         return CommonResponse.success(updated);
+    }
+
+    @GetMapping("/domain")
+    @Operation(summary = "같은 회사 유저 조회", description = "같은 회사인 유저들을 전체 조회")
+    public CommonResponse<List<UsersByEmailDomainResponseDto>> getUsersByDomain()
+    {
+        List<UsersByEmailDomainResponseDto> response = userService.getUsersByEmailDomain();
+        return CommonResponse.success(response);
     }
 
 }

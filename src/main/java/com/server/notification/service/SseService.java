@@ -1,5 +1,6 @@
 package com.server.notification.service;
 
+import com.server.global.auth.AuthUtils;
 import com.server.notification.domain.Notification;
 import com.server.notification.dto.NotificationResponseDto;
 import com.server.notification.repository.EmitterRepository;
@@ -17,7 +18,9 @@ public class SseService {
     private static final Long TIMEOUT = 1000L * 60 * 60; // 1시간
 
     // 클라이언트가 구독할 때 호출
-    public SseEmitter subscribe(Long userId) {
+    public SseEmitter subscribe() {
+
+        Long userId = AuthUtils.getCurrentUserId();
 
         SseEmitter emitter = new SseEmitter(TIMEOUT);
 

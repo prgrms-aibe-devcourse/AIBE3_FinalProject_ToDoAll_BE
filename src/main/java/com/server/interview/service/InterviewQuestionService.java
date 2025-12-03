@@ -1,5 +1,6 @@
 package com.server.interview.service;
 
+import com.server.global.auth.AuthUtils;
 import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.Interview;
 import com.server.interview.domain.InterviewQuestion;
@@ -41,8 +42,8 @@ public class InterviewQuestionService {
     }
 
     private User getUser() {
-        // TODO: JWT 인증 후 실제 userId 사용하도록 수정
-        return userRepository.findById(1L)
+        Long userId = AuthUtils.getCurrentUserId();
+        return userRepository.findById(userId)
                 .orElseThrow();
     }
 

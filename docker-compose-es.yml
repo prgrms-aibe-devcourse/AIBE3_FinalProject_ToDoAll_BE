@@ -1,0 +1,30 @@
+version: '3'
+services:
+  elasticsearch:
+    build:
+      context: .
+      dockerfile: elasticsearch-nori.Dockerfile
+    container_name: jobda-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - jobda-network
+
+volumes:
+  es-data:
+
+networks:
+  jobda-network:
+    driver: bridge

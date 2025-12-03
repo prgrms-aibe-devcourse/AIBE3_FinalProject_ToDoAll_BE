@@ -37,12 +37,12 @@ public class InterviewInviteTokenService {
         String[] parts = value.split("\\|", 3);
         if(parts.length != 3) return Optional.empty();
 
-        Long interviewid = Long.valueOf(parts[0]);
+        Long interviewId = Long.valueOf(parts[0]);
         Long resumeId = Long.valueOf(parts[1]);
         String email = parts[2];
 
-        if(!interviewid.equals(expectedInterviewId)) return Optional.empty();
-        return Optional.of(new InvitePayload(interviewid,resumeId, email));
+        if(!interviewId.equals(expectedInterviewId)) return Optional.empty();
+        return Optional.of(new InvitePayload(interviewId,resumeId, email));
     }
 
     public record InvitePayload(Long interviewId, Long resumeId, String email) {}

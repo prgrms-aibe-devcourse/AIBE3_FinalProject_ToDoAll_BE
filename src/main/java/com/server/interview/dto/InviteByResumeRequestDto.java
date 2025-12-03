@@ -1,4 +1,4 @@
-package com.server.interview.domain;
+package com.server.interview.dto;
 
 import jakarta.validation.constraints.NotNull;
 

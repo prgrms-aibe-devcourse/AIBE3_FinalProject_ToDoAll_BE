@@ -109,6 +109,10 @@ public class InterviewInviteMailService {
                 </html>
                 """;
 
+
+        String safeInviteUrl = escapeHtml(inviteUrl);
+
+
         return template
                 .replace("{{applicantName}}", escapeHtml(applicantName))
                 .replace("{{jdTitle}}", escapeHtml(jdTitle))

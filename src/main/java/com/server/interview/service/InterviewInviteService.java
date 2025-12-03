@@ -15,7 +15,7 @@ public class InterviewInviteService {
     private final InterviewInviteMailService mailService;
 
     @Value("${app.email.auth-expiry-minutes:30}")
-    private int expriyMinutes;
+    private int expiryMinutes;
 
 
     @Value("${app.interview.frontend-base-url:http://localhost:5173}")
@@ -37,7 +37,7 @@ public class InterviewInviteService {
                 ? "Jobda"
                 : info.jdTitle();
 
-        mailService.sendInviteEmail(info.email(), subject, info.name(), link, expriyMinutes);
+        mailService.sendInviteEmail(info.email(), subject, info.name(), link, expiryMinutes);
         return new InviteResponseDto(interviewId, info.email(), token);
     }
 

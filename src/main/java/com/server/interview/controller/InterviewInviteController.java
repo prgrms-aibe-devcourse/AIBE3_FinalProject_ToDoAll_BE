@@ -1,7 +1,7 @@
 package com.server.interview.controller;
 
 import com.server.global.response.CommonResponse;
-import com.server.interview.domain.InviteByResumeRequestDto;
+import com.server.interview.dto.InviteByResumeRequestDto;
 import com.server.interview.dto.InviteResponseDto;
 import com.server.interview.service.InterviewInviteService;
 import jakarta.validation.Valid;

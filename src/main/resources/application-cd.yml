@@ -1,8 +1,14 @@
 spring:
+  application:
+    name: jobda-app
+
+  jackson:
+    time-zone: Asia/Seoul
+
   datasource:
-    url: jdbc:mysql://db:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true
-    username: root
-    password: ${MYSQL_ROOT_PASSWORD}
+    url: jdbc:mysql://${AWS_RDS_URL}:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true
+    username: admin
+    password: ${AWS_RDS_ROOT_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -20,9 +26,6 @@ spring:
       port: 6379
       database: 1
       password:
-
-    elasticsearch:
-      uris: http://elasticsearch:9200
 
   mail:
     host: smtp.gmail.com
@@ -48,10 +51,6 @@ spring:
         annotation-scanner:
           enabled: true
 
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
-
 mcp:
   base-url: http://localhost:8090
   summary-path: /api/ai/interviews/generate-summary
@@ -64,7 +63,7 @@ logging:
 app:
   email:
     auth-expiry-minutes: 30
-    auth-base-url: http://localhost:5173/signup/form
+    auth-base-url: https://jobda.vercel.app/signup/form
   password-reset:
     expiry-minutes: 30
     frontend-url: https://jobda.vercel.app/reset-password

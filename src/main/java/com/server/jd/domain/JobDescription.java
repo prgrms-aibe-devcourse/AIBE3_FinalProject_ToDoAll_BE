@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -64,11 +66,11 @@ public class JobDescription extends BaseEntity {
 
     // 필수 스킬
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<JobRequiredSkill> requiredSkills = new ArrayList<>();
+    private Set<JobRequiredSkill> requiredSkills = new HashSet<>();
 
     // 우대 스킬
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<JobPreferredSkill> preferredSkills = new ArrayList<>();
+    private Set<JobPreferredSkill> preferredSkills = new HashSet<>();
 
     public static JobDescription of(
             String title,

@@ -8,10 +8,12 @@ import com.server.interview.exception.InterviewErrorCase;
 import com.server.interview.exception.InterviewNoteErrorCase;
 import com.server.interview.repository.*;
 import com.server.jd.domain.JobDescription;
+import com.server.jd.domain.Skill;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.mcp.dto.InterviewCreatedAiEvent;
 import com.server.resume.domain.Resume;
+import com.server.resume.domain.ResumeSkill;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.User;
@@ -23,9 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.server.mcp.dto.InterviewFinishedAiEvent;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -213,5 +214,70 @@ public class InterviewService {
         } catch (IllegalArgumentException e) {
             throw new ApplicationException(InterviewErrorCase.INVALID_STATUS);
         }
+    }
+
+    public InterviewProfileResponseDto getInterviewProfile(Long interviewId) {
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        Resume resume = interview.getResume();
+        JobDescription jd = interview.getJobDescription();
+
+        // 1) 보유 스킬 (ResumeSkill -> Skill.name)
+        List<String> ownedSkills = resume.getSkills().stream()
+                .map(ResumeSkill::getSkill)
+                .map(Skill::getName)
+                .toList();
+        List<String> requiredSkills = jd.getRequiredSkillNames().stream()
+                .toList();
+
+        // 3) 부족 스킬 = JD 필요 스킬 - 보유 스킬
+        Set<String> ownedLower = ownedSkills.stream()
+                .map(s -> s.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+        List<String> missingSkills = requiredSkills.stream()
+                .filter(req -> !ownedLower.contains(req.toLowerCase(Locale.ROOT)))
+                .toList();
+
+        // 4) 경력 문자열 만들기 (ResumeExperience 사용)
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        List<String> experiences = resume.getExperiences().stream()
+                .sorted((e1, e2) -> {
+                    // 시작일 기준 오름차순 정렬 (null 처리 포함)
+                    if (e1.getStartDate() == null && e2.getStartDate() == null) return 0;
+                    if (e1.getStartDate() == null) return 1;
+                    if (e2.getStartDate() == null) return -1;
+                    return e1.getStartDate().compareTo(e2.getStartDate());
+                })
+                .map(exp -> {
+                    String period;
+
+                    if (exp.getStartDate() == null && exp.getEndDate() == null) {
+                        period = "";
+                    } else if (exp.getEndDate() == null) {
+                        period = String.format("(%s ~ 현재)",
+                                exp.getStartDate() != null ? exp.getStartDate().format(fmt) : "");
+                    } else {
+                        period = String.format("(%s ~ %s)",
+                                exp.getStartDate() != null ? exp.getStartDate().format(fmt) : "",
+                                exp.getEndDate().format(fmt));
+                    }
+
+                    // 프론트에서 보기 좋게 한 줄로
+                    return String.format(
+                            "%s %s %s %s",
+                            nullToEmpty(exp.getCompanyName()),   // EX
+                            nullToEmpty(exp.getDepartment()),    // 개발부
+                            nullToEmpty(exp.getPosition()),      // 사원
+                            period
+                    ).trim();
+                })
+                .toList();
+
+        return new InterviewProfileResponseDto(ownedSkills, missingSkills, experiences);
+    }
+    private String nullToEmpty(String s) {
+        return s == null ? "" : s;
     }
 }

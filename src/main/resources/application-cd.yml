@@ -27,6 +27,13 @@ spring:
       database: 1
       password:
 
+  elasticsearch:
+    uris: localhost:9200
+
+  cache:
+    redis:
+      time-to-live: 3600000  # 1시간 (ms)
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -35,9 +42,10 @@ spring:
     properties:
       mail:
         smtp:
-          auth: true
           starttls:
             enable: true
+            required: true
+          auth: true
 
   ai:
     openai:

@@ -3,11 +3,11 @@ package com.server.user.domain;
 
 import com.server.global.entity.BaseEntity;
 import jakarta.persistence.*;
-
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -24,7 +24,6 @@ public class User extends BaseEntity {
 
     @Column(name = "email_domain")
     private String emailDomain;
-
 
     private String password;
 

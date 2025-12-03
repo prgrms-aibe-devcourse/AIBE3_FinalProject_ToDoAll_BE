@@ -2,16 +2,14 @@ package com.server.user.service;
 
 import com.server.auth.exception.AuthErrorCase;
 import com.server.auth.service.EmailAuthService;
+import com.server.global.auth.AuthUtils;
 import com.server.global.exception.ApplicationException;
 import com.server.s3.domain.Partition;
 import com.server.s3.service.PresignedUrlProvider;
 import com.server.s3.service.S3Uploader;
 import com.server.user.config.UserProperties;
 import com.server.user.domain.User;
-import com.server.user.dto.UserProfileResponseDto;
-import com.server.user.dto.UserProfileUpdateRequestDto;
-import com.server.user.dto.UserSignupRequestDto;
-import com.server.user.dto.UserSignupResponseDto;
+import com.server.user.dto.*;
 import com.server.user.exception.UserErrorCase;
 import com.server.user.repository.UserRepository;
 import com.server.user.util.PasswordValidator;
@@ -20,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 
 @Service
@@ -241,4 +241,17 @@ public class UserService {
         }
     }
 
+    public List<UsersByEmailDomainResponseDto> getUsersByEmailDomain() {
+        Long userId = AuthUtils.getCurrentUserId();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApplicationException(UserErrorCase.USER_NOT_FOUND));
+
+        String emailDomain = user.getEmailDomain();
+
+        List<User> users = userRepository.findByEmailDomain(emailDomain);
+        return users.stream()
+                .map(UsersByEmailDomainResponseDto::from)
+                .toList();
+    }
 }

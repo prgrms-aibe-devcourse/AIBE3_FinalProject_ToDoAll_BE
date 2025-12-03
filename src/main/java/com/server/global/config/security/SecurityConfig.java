@@ -54,7 +54,7 @@ public class SecurityConfig {
                                 "/chat-test.html",
                                 "/ws/**",
                                 "/actuator/**",
-                                "/mcp",
+                                "/mcp/**",
                                 "/api/v1/users", // 회원가입
                                 "/api/v1/auth/email-verifications/**", // 이메일 인증
                                 "/api/v1/auth/token", // 로그인

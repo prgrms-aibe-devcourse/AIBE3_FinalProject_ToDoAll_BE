@@ -10,13 +10,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 @RequiredArgsConstructor
 public class InterviewInviteService {
+
     private final ResumeService resumeService;
     private final InterviewInviteTokenService interviewInviteTokenService;
     private final InterviewInviteMailService mailService;
 
     @Value("${app.email.auth-expiry-minutes:30}")
     private int expiryMinutes;
-
 
     @Value("${app.interview.frontend-base-url:http://localhost:5173}")
     private String guestChatBaseUrl;
@@ -33,13 +33,20 @@ public class InterviewInviteService {
                 .buildAndExpand(interviewId)
                 .toUriString();
 
-        String subject = (info.jdTitle() == null || info.jdTitle().isBlank())
+        String jdTitle = (info.jdTitle() == null || info.jdTitle().isBlank())
                 ? "Jobda"
                 : info.jdTitle();
 
-        mailService.sendInviteEmail(info.email(), subject, info.name(), link, expiryMinutes);
+        try {
+            mailService.sendInviteEmail(info.email(), jdTitle, info.name(), link, expiryMinutes);
+        } catch (RuntimeException e) {
+            try {
+                interviewInviteTokenService.deleteTokenOrThrow(token);
+            } catch (RuntimeException ignore) {
+            }
+            throw e;
+        }
+
         return new InviteResponseDto(interviewId, info.email(), token);
     }
-
-
 }

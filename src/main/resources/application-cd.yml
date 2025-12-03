@@ -28,7 +28,7 @@ spring:
       password:
 
   elasticsearch:
-    uris: localhost:9200
+    uris: http://3.39.210.5:9200
 
   cache:
     redis:
@@ -96,7 +96,7 @@ management:
     port: 8081
   health:
     elasticsearch:
-      enabled: false
+      enabled: true
   endpoints:
     web:
       base-path: /actuator

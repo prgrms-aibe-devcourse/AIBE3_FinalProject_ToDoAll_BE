@@ -1,5 +1,6 @@
 package com.server.notification.service;
 
+import com.server.global.auth.AuthUtils;
 import com.server.global.exception.ApplicationException;
 import com.server.notification.domain.Notification;
 import com.server.notification.dto.NotificationRequestDto;
@@ -38,8 +39,8 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<NotificationResponseDto> getNotifications(Long userId) {
-
+    public List<NotificationResponseDto> getNotifications() {
+        Long userId = AuthUtils.getCurrentUserId();
         //userId에 해당하는 알림들 최신순으로 다건 조회
         List<Notification> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
@@ -49,8 +50,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markRead(Long notificationId, Long currentUserId) {
-
+    public void markRead(Long notificationId) {
+        Long currentUserId = AuthUtils.getCurrentUserId();
         //알림 단건 조회
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOTIFICATION_NOT_FOUND));
@@ -63,7 +64,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteNotification(Long notificationId, Long currentUserId) {
+    public void deleteNotification(Long notificationId) {
+        Long currentUserId = AuthUtils.getCurrentUserId();
 
         Notification notification  = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOTIFICATION_NOT_FOUND));
@@ -73,5 +75,12 @@ public class NotificationService {
         }
 
         notificationRepository.delete(notification);
+    }
+
+    @Transactional
+    public void deleteAllNotification() {
+        Long currentUserId = AuthUtils.getCurrentUserId();
+
+        notificationRepository.deleteByUserId(currentUserId);
     }
 }

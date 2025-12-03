@@ -1,5 +1,6 @@
 package com.server.interview.service;
 
+import com.server.global.auth.AuthUtils;
 import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.InterviewNote;
 import com.server.interview.dto.InterviewNoteSearchResponseDto;
@@ -36,7 +37,8 @@ public class InterviewNoteService {
                         new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND));
 
         // 사용자 조회 (토큰 대신 userId=1)
-        User user = userRepository.findById(1L)
+        Long userId = AuthUtils.getCurrentUserId();
+        User user = userRepository.findById(userId)
                 .orElseThrow();
 
         // 권한 체크 (인터뷰어 또는 옵저버)

@@ -16,4 +16,7 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
             "LEFT JOIN FETCH jd.preferredSkills " +
             "WHERE jd.id = :id")
     Optional<JobDescription> findByIdFetchSkills(@Param("id") Long id);
+
+    long countByStatus(String status);
+    List<JobDescription> findTop5ByOrderByCreatedAtDesc();
 }

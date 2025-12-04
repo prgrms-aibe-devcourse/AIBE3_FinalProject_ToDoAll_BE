@@ -107,6 +107,7 @@ public class InterviewWebSocketService {
                 new InterviewNoteMemoCreateRequestDto(noteMessage.content());
 
         var response = interviewNoteMemoService.create(interviewId, requestDto);
+
         Long noteId = response.memoId();
 
         NoteMessage outgoing = NoteMessage.builder()

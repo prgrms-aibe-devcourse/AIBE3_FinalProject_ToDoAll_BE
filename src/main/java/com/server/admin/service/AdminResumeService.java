@@ -1,6 +1,8 @@
 package com.server.admin.service;
 
+import com.server.global.exception.ApplicationException;
 import com.server.resume.domain.Resume;
+import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,15 @@ public class AdminResumeService {
 
     @Transactional
     public void softDelete(Long resumeId) {
-        Resume resume = resumeRepository.findById(resumeId).orElseThrow();
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
         resume.softDelete();
     }
 
     @Transactional
     public void restore(Long resumeId) {
-        Resume resume = resumeRepository.findById(resumeId).orElseThrow();
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
         resume.restore();
     }
 }

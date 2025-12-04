@@ -28,7 +28,7 @@ spring:
       password:
 
   elasticsearch:
-    uris: localhost:9200
+    uris: http://3.39.210.5:9200
 
   cache:
     redis:
@@ -60,8 +60,9 @@ spring:
           enabled: true
 
 mcp:
-  base-url: http://localhost:8090
+  base-url: http://3.39.210.5:8090
   summary-path: /api/ai/interviews/generate-summary
+  generate-questions-path: /api/ai/interviews/generate-questions
 
 logging:
   level:

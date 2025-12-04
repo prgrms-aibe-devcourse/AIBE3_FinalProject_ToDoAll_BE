@@ -8,8 +8,6 @@ import com.server.jd.repository.SkillRepository;
 import com.server.match.domain.Match;
 import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.*;
-import com.server.resume.domain.Resume;
-import com.server.resume.domain.ResumeStatus;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
@@ -70,6 +68,7 @@ public class ResumeService {
         if (!matchRepository.existsByJobDescription_IdAndResume_Id(jdEntity.getId(), savedResume.getId())) {
             Match match = Match.ofForApplication(jdEntity, savedResume); // APPLIED 형태로 matches 테이블에 저장
             matchRepository.save(match);
+            jdEntity.increaseApplicantCount();
         }
 
         addEducations(savedResume, request.education());
@@ -197,4 +196,17 @@ public class ResumeService {
                 resume.getJobDescription().getTitle()
         );
     }
+
+    @Transactional(readOnly = true)
+    public ResumeInviteInfo getInviteInfo(Long resumeId) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        String jdTitle = resume.getJobDescription() != null ? resume.getJobDescription().getTitle() : null;
+
+        return new ResumeInviteInfo(resume.getId(), resume.getName(), resume.getEmail(), jdTitle);
+    }
+
+    public record ResumeInviteInfo(Long resumeId, String name, String email, String jdTitle) {}
+
 }

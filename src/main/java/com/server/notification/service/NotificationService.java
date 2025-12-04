@@ -76,4 +76,11 @@ public class NotificationService {
 
         notificationRepository.delete(notification);
     }
+
+    @Transactional
+    public void deleteAllNotification() {
+        Long currentUserId = AuthUtils.getCurrentUserId();
+
+        notificationRepository.deleteByUserId(currentUserId);
+    }
 }

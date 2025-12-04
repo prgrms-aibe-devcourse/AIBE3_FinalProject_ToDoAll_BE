@@ -29,9 +29,8 @@ public class NotificationController {
     // 이걸 SSE로 인식하고 스트리밍 연결을 유지함.
     @GetMapping(value = "/subscribe", produces = "text/event-stream")
     @Operation(summary = "SSE 구독", description = "SSE를 구독하여 Emitter를 생성합니다.")
-    public SseEmitter subscribe(
-    ) {
-        return sseService.subscribe();
+    public SseEmitter subscribe(@RequestParam Long userId) {
+        return sseService.subscribe(userId);
     }
 
     // 알림 조회
@@ -66,10 +65,17 @@ public class NotificationController {
             @ApiResponse(responseCode = "200", description = "알림 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 알림")
     })
-    public  CommonResponse<String> deleteNotification(
+    public CommonResponse<String> deleteNotification(
             @PathVariable Long notificationId
     ) {
         notificationService.deleteNotification(notificationId);
+        return CommonResponse.success("알림 삭제 성공");
+    }
+
+    @DeleteMapping("")
+    @Operation(summary = "내 알림 전체 삭제 api", description = "자신에게 온 알림을 전체 삭제")
+    public CommonResponse<String> deleteAllNotification() {
+        notificationService.deleteAllNotification();
         return CommonResponse.success("알림 삭제 성공");
     }
 }

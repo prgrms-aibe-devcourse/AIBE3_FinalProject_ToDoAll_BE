@@ -1,11 +1,14 @@
 package com.server.admin.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "admin_users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminUser {
     @Id
     @GeneratedValue
@@ -16,4 +19,11 @@ public class AdminUser {
 
     @Column(nullable = false)
     private String password;
+
+    public static AdminUser create(String username, String encodedPassword) {
+        AdminUser admin = new AdminUser();
+        admin.username = username;
+        admin.password = encodedPassword;
+        return admin;
+    }
 }

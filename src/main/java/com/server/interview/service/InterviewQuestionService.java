@@ -144,4 +144,54 @@ public class InterviewQuestionService {
 
         question.toggleCheck();
     }
+
+    @Transactional
+    public void updateQuestionsBySystem(Long interviewId, InterviewQuestionUpdateRequestDto request) {
+        // 인터뷰 존재 확인 (공통 메서드 재사용)
+        Interview interview = getInterview(interviewId);
+
+        // 형식 검증
+        if (request == null || request.questions() == null) {
+            throw new ApplicationException(InterviewQuestionErrorCase.INVALID_FORMAT);
+        }
+
+        // 삭제 처리 (기존 로직 그대로 사용, 권한 체크만 제거)
+        if (request.deleteQuestionIds() != null && !request.deleteQuestionIds().isEmpty()) {
+
+            int deleted = questionRepository.deleteByIdsAndInterviewId(
+                    request.deleteQuestionIds(), interviewId
+            );
+
+            if (deleted != request.deleteQuestionIds().size()) {
+                throw new ApplicationException(InterviewQuestionErrorCase.INVALID_DELETE_TARGET);
+            }
+        }
+
+        // 추가 / 수정 처리
+        for (var q : request.questions()) {
+
+            // 새 질문 추가
+            if (q.questionId() == null) {
+                InterviewQuestion newQuestion = InterviewQuestion.of(
+                        interview,
+                        q.questionType(),
+                        q.content(),
+                        QuestionStatus.PENDING,
+                        false // isChecked 기본값
+                );
+                questionRepository.save(newQuestion);
+            }
+
+            // 기존 질문 수정
+            else {
+                InterviewQuestion existQuestion = getQuestion(q.questionId());
+
+                // 이 인터뷰에 속한 질문인지 검증
+                validateQuestionBelongsToInterview(existQuestion, interviewId);
+
+                // 타입/내용만 업데이트
+                existQuestion.update(q.questionType(), q.content());
+            }
+        }
+    }
 }

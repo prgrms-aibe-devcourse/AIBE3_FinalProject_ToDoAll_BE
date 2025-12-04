@@ -29,9 +29,8 @@ public class NotificationController {
     // 이걸 SSE로 인식하고 스트리밍 연결을 유지함.
     @GetMapping(value = "/subscribe", produces = "text/event-stream")
     @Operation(summary = "SSE 구독", description = "SSE를 구독하여 Emitter를 생성합니다.")
-    public SseEmitter subscribe(
-    ) {
-        return sseService.subscribe();
+    public SseEmitter subscribe(@RequestParam Long userId) {
+        return sseService.subscribe(userId);
     }
 
     // 알림 조회

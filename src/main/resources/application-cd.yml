@@ -60,7 +60,7 @@ spring:
           enabled: true
 
 mcp:
-  base-url: http://localhost:8090
+  base-url: http://3.39.210.5:8090
   summary-path: /api/ai/interviews/generate-summary
 
 logging:
@@ -96,7 +96,7 @@ management:
     port: 8081
   health:
     elasticsearch:
-      enabled: true
+      enabled: false
   endpoints:
     web:
       base-path: /actuator

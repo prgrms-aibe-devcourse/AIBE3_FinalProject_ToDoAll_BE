@@ -1,12 +1,13 @@
 services:
   app:
-    image: ghcr.io/${OWNER_NAME}/jobda-app:prod
+    image: ghcr.io/${OWNER_NAME}/jobda-app:${IMAGE_TAG}
     build:
       context: .
       dockerfile: Dockerfile
     container_name: jobda-app
     ports:
       - "8080:8080"
+      - "8081:8081"
     depends_on:
       redis:
         condition: service_healthy
@@ -30,8 +31,9 @@ services:
       - ./logs:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
-      interval: 10s
+      interval: 15s
       timeout: 3s
+      start_period: 30s
       retries: 5
 
   redis:

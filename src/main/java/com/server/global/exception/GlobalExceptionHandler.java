@@ -1,6 +1,7 @@
 package com.server.global.exception;
 
 import com.server.global.response.CommonResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +56,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<CommonResponse<?>> handleUnexpectedException(Exception e) {
+    public ResponseEntity<CommonResponse<?>> handleUnexpectedException(Exception e, HttpServletRequest request) throws Exception {
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/actuator")) {
+            throw e;
+        }
+
         log.error("[UnexpectedException] {}", e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

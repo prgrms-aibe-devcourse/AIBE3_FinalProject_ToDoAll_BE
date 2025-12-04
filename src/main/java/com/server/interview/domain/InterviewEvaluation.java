@@ -42,10 +42,7 @@ public class InterviewEvaluation extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
-    // 면접 결과 (PASS, HOLD, FAIL, PENDING)
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private InterviewResult result;
+
 
 
     public static InterviewEvaluation of(Interview interview,
@@ -53,8 +50,7 @@ public class InterviewEvaluation extends BaseEntity {
                                          Integer scoreTech,
                                          Integer scoreComm,
                                          Double scoreOverall,
-                                         String comment,
-                                         InterviewResult result) {
+                                         String comment) {
         InterviewEvaluation eval = new InterviewEvaluation();
         eval.interview = interview;
         eval.evaluator = evaluator;
@@ -62,7 +58,6 @@ public class InterviewEvaluation extends BaseEntity {
         eval.scoreComm = scoreComm;
         eval.scoreOverall = scoreOverall;
         eval.comment = comment;
-        eval.result = result;
         return eval;
     }
 
@@ -71,9 +66,5 @@ public class InterviewEvaluation extends BaseEntity {
         this.scoreComm = scoreComm;
         this.scoreOverall = scoreOverall;
         this.comment = comment;
-    }
-
-    public void updateResult(InterviewResult newResult) {
-        this.result = newResult;
     }
 }

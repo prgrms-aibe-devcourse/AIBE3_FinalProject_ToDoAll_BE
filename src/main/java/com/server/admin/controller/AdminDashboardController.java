@@ -1,5 +1,6 @@
 package com.server.admin.controller;
 
+import com.server.admin.dto.AdminDashboardSummaryDto;
 import com.server.admin.service.AdminDashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +21,10 @@ public class AdminDashboardController {
     public String dashboard(Model model) {
         log.info("[ADMIN] Dashboard requested");
 
-        model.addAttribute("userCount", dashboardService.countActiveUsers());
-        model.addAttribute("jdCount", dashboardService.countJds());
-        model.addAttribute("resumeCount", dashboardService.countResumes());
-        model.addAttribute("interviewCount", dashboardService.countInterviews());
+        AdminDashboardSummaryDto summary = dashboardService.getSummary();
+        model.addAttribute("summary", summary);
+        model.addAttribute("recentUsers", dashboardService.getRecentUsers());
+        model.addAttribute("recentJds", dashboardService.getRecentJds());
 
         return "admin/dashboard";
     }

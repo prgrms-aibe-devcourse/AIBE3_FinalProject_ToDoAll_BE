@@ -54,6 +54,7 @@ public class SecurityConfig {
                                 "/chat-test.html",
                                 "/ws/**",
                                 "/actuator/**",
+                                "/mcp", // mcp 관련 예방용 열어두기
                                 "/mcp/**",
                                 "/api/v1/users", // 회원가입
                                 "/api/v1/auth/email-verifications/**", // 이메일 인증

@@ -23,7 +23,7 @@ public class SessionRegistry {
         interviewSessions.computeIfAbsent(interviewId, id -> ConcurrentHashMap.newKeySet());
 
         String existing = findSessionByUser(interviewId, userId);
-        if(existing != null && !existing.equals(sessionId)) {
+        if (userId != -1L && existing != null && !existing.equals(sessionId)) {
             removeSessionInternal(existing);
         }
 

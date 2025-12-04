@@ -63,9 +63,15 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
+                    <tr th:each="u : ${recentUsers}">
+                        <td th:text="${u.id}"></td>
+                        <td th:text="${u.email}"></td>
+                        <td th:text="${u.name}"></td>
+                        <td th:text="${#temporals.format(u.createdAt, 'yyyy-MM-dd')}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentUsers)}">
                         <td colspan="4" style="text-align: center; color: #9ca3af;">
-                            최근 가입 회원 데이터 연동하기.
+                            최근 가입 회원 데이터가 없습니다.
                         </td>
                     </tr>
                     </tbody>
@@ -86,9 +92,15 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
+                    <tr th:each="jd : ${recentJds}">
+                        <td th:text="${jd.id}"></td>
+                        <td th:text="${jd.title}"></td>
+                        <td th:text="${jd.status}"></td>
+                        <td th:text="${#temporals.format(jd.createdAt, 'yyyy-MM-dd')}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentJds)}">
                         <td colspan="4" style="text-align: center; color: #9ca3af;">
-                            최근 채용공고 데이터 연동하기.
+                            최근 채용공고 데이터가 없습니다.
                         </td>
                     </tr>
                     </tbody>

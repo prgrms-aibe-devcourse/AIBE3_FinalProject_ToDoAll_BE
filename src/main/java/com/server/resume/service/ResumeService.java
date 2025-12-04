@@ -68,6 +68,7 @@ public class ResumeService {
         if (!matchRepository.existsByJobDescription_IdAndResume_Id(jdEntity.getId(), savedResume.getId())) {
             Match match = Match.ofForApplication(jdEntity, savedResume); // APPLIED 형태로 matches 테이블에 저장
             matchRepository.save(match);
+            jdEntity.increaseApplicantCount();
         }
 
         addEducations(savedResume, request.education());

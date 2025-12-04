@@ -96,7 +96,7 @@ management:
     port: 8081
   health:
     elasticsearch:
-      enabled: true
+      enabled: false
   endpoints:
     web:
       base-path: /actuator

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout (content)">
+<head>
+    <meta charset="UTF-8">
+    <title>Jobda Admin</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #f5f5f8;
+            color: #222;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #111827;
+            color: #f9fafb;
+            padding: 0.75rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.3);
+        }
+
+        .admin-logo {
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.04em;
+        }
+
+        .admin-logo span {
+            color: #38bdf8;
+        }
+
+        nav.admin-nav {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.95rem;
+        }
+
+        nav.admin-nav a {
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            color: #e5e7eb;
+        }
+
+        nav.admin-nav a:hover {
+            background-color: rgba(148, 163, 184, 0.2);
+        }
+
+        nav.admin-nav a.active {
+            background-color: #38bdf8;
+            color: #020617;
+        }
+
+        main {
+            padding: 1.5rem 2rem 2rem;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .admin-page-header {
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .admin-page-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+        }
+
+        .admin-page-subtitle {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .admin-card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+            border: 1px solid #e5e7eb;
+        }
+
+        .admin-card + .admin-card {
+            margin-top: 1rem;
+        }
+
+        .admin-card-header {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .admin-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .admin-grid-4 {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .admin-grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        @media (max-width: 1024px) {
+            .admin-grid-4, .admin-grid-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            main {
+                padding: 1rem;
+            }
+
+            .admin-grid-4, .admin-grid-3 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+
+            nav.admin-nav {
+                display: none;
+            }
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.15rem;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .metric-tag {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            background-color: #ecfeff;
+            color: #0369a1;
+            margin-top: 0.3rem;
+        }
+
+        .admin-table-wrapper {
+            overflow-x: auto;
+        }
+
+        table.admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        table.admin-table thead {
+            background-color: #f9fafb;
+        }
+
+        table.admin-table th,
+        table.admin-table td {
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        table.admin-table th {
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        table.admin-table tr:hover td {
+            background-color: #f9fafb;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+        }
+
+        .badge-role-admin {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-role-user {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem 0.8rem;
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background-color: #0f172a;
+            color: #f9fafb;
+        }
+
+        .btn.btn-secondary {
+            background-color: #ffffff;
+            color: #111827;
+            border-color: #e5e7eb;
+        }
+
+        .btn.btn-danger {
+            background-color: #ef4444;
+            border-color: #b91c1c;
+        }
+
+        .btn + .btn {
+            margin-left: 0.4rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .admin-search-bar {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .admin-search-bar input,
+        .admin-search-bar select {
+            padding: 0.35rem 0.6rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            font-size: 0.8rem;
+        }
+
+        .admin-pagination {
+            margin-top: 0.75rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .admin-pagination a {
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        footer {
+            padding: 1rem 2rem;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="admin-logo">
+        Jobda <span>Admin</span>
+    </div>
+    <nav class="admin-nav">
+        <a th:href="@{/admin}"
+           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin') and #httpServletRequest.requestURI == '/admin' } ? ' active'">
+            Dashboard
+        </a>
+        <a th:href="@{/admin/users}"
+           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/users')} ? ' active'">
+            Users
+        </a>
+        <a th:href="@{/admin/jds}"
+           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/jds')} ? ' active'">
+            JDs
+        </a>
+        <a th:href="@{/admin/resumes}"
+           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/resumes')} ? ' active'">
+            Resumes
+        </a>
+        <a th:href="@{/admin/interviews}"
+           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/interviews')} ? ' active'">
+            Interviews
+        </a>
+    </nav>
+</header>
+
+<main>
+    <div class="admin-container" th:insert="${content}"></div>
+</main>
+
+<footer>
+    Jobda Admin &copy; <span th:text="${#temporals.createNow().getYear()}">2025</span>
+</footer>
+</body>
+</html>

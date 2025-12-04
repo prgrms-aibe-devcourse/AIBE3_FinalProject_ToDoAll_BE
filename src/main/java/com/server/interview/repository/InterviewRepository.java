@@ -17,4 +17,7 @@ public interface InterviewRepository extends JpaRepository<Interview, Long>, Int
           AND i.scheduledAt <= :now
     """)
     void updateInProgress(LocalDateTime now);
+
+    @Query("select count(i) from Interview i where i.scheduledAt >= :today")
+    long countToday(LocalDateTime today);
 }

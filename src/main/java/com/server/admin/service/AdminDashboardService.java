@@ -16,6 +16,10 @@ public class AdminDashboardService {
     private final ResumeRepository resumeRepository;
     private final InterviewRepository interviewRepository;
 
+    public long countActiveUsers() {
+        return userRepository.countByDeletedAtIsNull();
+    }
+
     public long countJds() {
         return jdRepository.count();
     }

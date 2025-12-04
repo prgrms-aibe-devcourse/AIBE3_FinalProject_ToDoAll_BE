@@ -65,8 +65,9 @@ public class InterviewService {
 
         LocalDateTime scheduledAt =  interviewCreateRequestDto.scheduledAt();
         InterviewStatus status = InterviewStatus.WAITING;
+        InterviewResult result = InterviewResult.PENDING;
 
-        Interview interview = Interview.of(jobDescription, resume, organizer, scheduledAt, status);
+        Interview interview = Interview.of(jobDescription, resume, organizer, scheduledAt, status, result);
 
         interviewRepository.save(interview);
 
@@ -284,5 +285,38 @@ public class InterviewService {
     }
     private String nullToEmpty(String s) {
         return s == null ? "" : s;
+    }
+
+    @Transactional
+    public void updateResult(
+            Long interviewId,
+            InterviewResultUpdateRequestDto request
+    ) {
+        if (!interviewRepository.existsById(interviewId)) {
+            throw new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND);
+        }
+        // result 필수 값 검증
+        if (request.result() == null) {
+            throw new ApplicationException(InterviewErrorCase.RESULT_REQUIRED);
+        }
+
+        // 문자열 → Enum 변환 + 유효성 체크
+        InterviewResult newResult;
+        try {
+            newResult = InterviewResult.valueOf(request.result().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ApplicationException(InterviewErrorCase.INVALID_RESULT);
+        }
+
+        // PENDING 은 이 API에서 허용하지 않음
+        if (newResult == InterviewResult.PENDING) {
+            throw new ApplicationException(InterviewErrorCase.INVALID_RESULT);
+        }
+
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // 결과 업데이트
+        interview.updateResult(newResult);
     }
 }

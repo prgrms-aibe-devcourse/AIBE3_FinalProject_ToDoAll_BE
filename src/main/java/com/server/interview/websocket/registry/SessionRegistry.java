@@ -74,7 +74,8 @@ public class SessionRegistry {
 
     // 특정 interviewId에 몇 명이 접속했는지 확인
     public int getSessionCount(Long interviewId) {
-        return interviewSessions.getOrDefault(interviewId, Collections.emptySet()).size();
+        Set<String> set = interviewSessions.get(interviewId);
+        return (set != null ? set.size() : 0);
     }
 
     // 이 세션이 어느 인터뷰 방인지 확인
@@ -92,7 +93,7 @@ public class SessionRegistry {
     // 이 노트 작성자의 userId 확인
     public Long getUserIdBySession(String sessionId) {
         SessionInfo info = sessions.get(sessionId);
-        return info != null ? info.getUserId() : null;
+        return info != null ? info.getUserId() : -1L;
     }
 
 }

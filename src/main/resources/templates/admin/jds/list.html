@@ -26,8 +26,9 @@
         <tbody>
         <tr th:each="jd : ${jds}">
             <td th:text="${jd.id}"></td>
-            <td th:text="${jd.title}"></td>
-
+            <td>
+                <a th:href="@{|/admin/jds/${jd.id}|}" th:text="${jd.title}"></a>
+            </td>
             <td>
                 <form th:action="@{|/admin/jds/${jd.id}/status|}" method="post">
                     <select name="status" class="admin-select" onchange="this.form.submit()">

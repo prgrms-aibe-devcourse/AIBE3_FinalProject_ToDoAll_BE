@@ -50,17 +50,9 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markRead(Long notificationId) {
+    public void markRead() {
         Long currentUserId = AuthUtils.getCurrentUserId();
-        //알림 단건 조회
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new ApplicationException(NotificationErrorCase.NOTIFICATION_NOT_FOUND));
-
-        if (!notification.getUserId().equals(currentUserId)) {
-            throw new ApplicationException(NotificationErrorCase.FORBIDDEN);
-        }
-        // 읽음 표시
-        notification.markRead();
+        notificationRepository.markAllAsRead(currentUserId);
     }
 
     @Transactional

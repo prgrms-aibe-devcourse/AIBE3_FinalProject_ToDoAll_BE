@@ -46,6 +46,11 @@ public class Interview extends BaseEntity {
     @Column(nullable = false)
     private InterviewStatus status;
 
+    // 면접 결과 (PASS, HOLD, FAIL, PENDING)
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private InterviewResult result;
+
     //AI가 생성한 면접 요약 결과 저장 필드
     @Column(name = "summary", columnDefinition = "TEXT")
     private String summary;
@@ -55,10 +60,11 @@ public class Interview extends BaseEntity {
 
     public static Interview of(
             JobDescription jobDescription,
-           Resume resume,
-           User organizer,
-           LocalDateTime scheduledAt,
-           InterviewStatus status
+            Resume resume,
+            User organizer,
+            LocalDateTime scheduledAt,
+            InterviewStatus status,
+            InterviewResult result
     ) {
         Interview interview = new Interview();
         interview.jobDescription = jobDescription;
@@ -66,6 +72,7 @@ public class Interview extends BaseEntity {
         interview.organizer = organizer;
         interview.scheduledAt = scheduledAt;
         interview.status = status;
+        interview.result = result;
         return interview;
     }
 
@@ -77,5 +84,10 @@ public class Interview extends BaseEntity {
     // 인터뷰 상태 변경 메서드
     public void updateStatus(InterviewStatus status) {
         this.status = status;
+    }
+
+    // 인터뷰 결과 변경 메서드
+    public void updateResult(InterviewResult newResult) {
+        this.result = newResult;
     }
 }

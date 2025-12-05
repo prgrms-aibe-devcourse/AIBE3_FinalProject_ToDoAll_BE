@@ -2,14 +2,18 @@ package com.server.interview.repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.server.interview.domain.QInterview;
+import com.server.interview.domain.QInterviewParticipant;
 import com.server.interview.dto.InterviewSummaryDto;
 import com.server.jd.domain.QJobDescription;
 import com.server.resume.domain.QResume;
+import com.server.user.domain.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -31,7 +35,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
             int limit
     ) {
 
-        var query = queryFactory
+        List<InterviewSummaryDto> interviews = queryFactory
                 .select(Projections.constructor(
                         InterviewSummaryDto.class,
                         i.id,                      // interviewId
@@ -39,7 +43,10 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                         jd.title,                  // jdTitle
                         r.id,                      // resumeId
                         r.name,                    // candidateName
-                        i.status.stringValue(),    // InterviewStatus → String
+                        i.status.stringValue(),    // status
+                        i.result.stringValue(),     //resultStatus
+                        r.portfolioFileUrl,             // candidateAvatar
+                        Expressions.constant(Collections.<String>emptyList()),
                         i.scheduledAt,
                         i.createdAt
                 ))
@@ -51,20 +58,43 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                         jdId == null ? null : jd.id.eq(jdId),
                         status == null ? null : i.status.stringValue().eq(status),
                         cursor == null ? null : i.id.lt(cursor)
-                );
+                )
+                .orderBy(i.createdAt.desc())
+                .limit(limit)
+                .fetch();
 
-        if ("createdAt,asc".equals(sort)) {
-            query.orderBy(i.createdAt.asc());
-        } else if ("createdAt,desc".equals(sort)) {
-            query.orderBy(i.createdAt.desc());
-        } else {
-            // 기본 정렬: 최근순
-            query.orderBy(i.id.desc());
+        // 면접관 정보 조인해서 interviewers 채우기
+        QInterviewParticipant ip = QInterviewParticipant.interviewParticipant;
+        QUser u = QUser.user;
+
+        for (int idx = 0; idx < interviews.size(); idx++) {
+            InterviewSummaryDto base = interviews.get(idx);
+
+            List<String> interviewerNames = queryFactory
+                    .select(u.name)
+                    .from(ip)
+                    .join(ip.user, u)
+                    .where(ip.interview.id.eq(base.interviewId()))
+                    .fetch();
+
+            interviews.set(idx, new InterviewSummaryDto(
+                    base.interviewId(),
+                    base.jdId(),
+                    base.jdTitle(),
+                    base.resumeId(),
+                    base.candidateName(),
+                    base.status(),
+                    base.resultStatus(),
+                    base.candidateAvatar(),
+                    interviewerNames,
+                    base.scheduledAt(),
+                    base.createdAt()
+            ));
         }
 
-        // limit + 1로 다음 페이지 판단용
-        return query.limit(limit).fetch();
+        return interviews;
     }
+
 
     private BooleanExpression belongsToUser(Long userId) {
         if (userId == null) return null;

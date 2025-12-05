@@ -37,7 +37,7 @@ public class JobDescriptionController {
             throw new IllegalArgumentException("Size must be greater than 0");
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        return ResponseEntity.ok(CommonResponse.success(jobService.getList(pageable, 5)));
+        return ResponseEntity.ok(CommonResponse.success(jobService.getMyList(pageable, 5)));
     }
 
     @GetMapping("/{id}")

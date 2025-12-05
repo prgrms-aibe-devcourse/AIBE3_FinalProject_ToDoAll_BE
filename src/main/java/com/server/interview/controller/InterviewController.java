@@ -73,4 +73,18 @@ public class InterviewController {
         InterviewProfileResponseDto dto = interviewService.getInterviewProfile(interviewId);
         return CommonResponse.success(dto);
     }
+
+    @PatchMapping("/{interviewId}/result")
+    @Operation(summary = "인터뷰 결과 등록", description = "인터뷰의 결과를 등록합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "결과 등록 성공"),
+            @ApiResponse(responseCode = "404", description = "를 찾을 수 없음")
+    })
+    public CommonResponse<String> updateResult(
+            @PathVariable Long interviewId,
+            @Valid @RequestBody InterviewResultUpdateRequestDto request
+    ) {
+        interviewService.updateResult(interviewId, request);
+        return CommonResponse.success("결과 변경 완료");
+    }
 }

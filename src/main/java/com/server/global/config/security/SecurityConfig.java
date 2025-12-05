@@ -3,6 +3,7 @@ package com.server.global.config.security;
 import com.server.global.config.security.jwt.JwtAuthenticationFilter;
 import com.server.global.config.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -54,6 +55,7 @@ public class SecurityConfig {
                                 "/chat-test.html",
                                 "/ws/**",
                                 "/actuator/**",
+                                "/mcp", // mcp 관련 예방용 열어두기
                                 "/mcp/**",
                                 "/api/v1/users", // 회원가입
                                 "/api/v1/auth/email-verifications/**", // 이메일 인증

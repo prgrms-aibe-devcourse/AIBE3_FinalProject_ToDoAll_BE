@@ -128,6 +128,10 @@ public class InterviewNoteMemoService {
         if (!memo.getNote().getId().equals(note.getId())) {
             throw new ApplicationException(InterviewNoteMemoErrorCase.INTERVIEW_MEMO_NOT_FOUND);
         }
+        // 7)  본인 메모인지 확인
+        if (!memo.getAuthor().getId().equals(user.getId())) {
+            throw new ApplicationException(InterviewNoteMemoErrorCase.FORBIDDEN);
+        }
 
         // 내용 수정
         memo.updateContent(request.content());

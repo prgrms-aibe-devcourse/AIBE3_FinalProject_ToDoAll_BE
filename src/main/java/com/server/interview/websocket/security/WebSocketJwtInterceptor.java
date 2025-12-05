@@ -13,6 +13,8 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -33,7 +35,14 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
             if (token != null) {
                 try {
                     Long userId = jwtTokenProvider.getUserId(token);
+
+                    // ✅ Principal 설정
                     accessor.setUser(new JwtAuthentication(userId));
+
+                    // ✅ sessionAttributes에 userId 저장 (SUBSCRIBE에서 쓰려고)
+                    Map<String, Object> attrs = accessor.getSessionAttributes();
+                    if (attrs != null) attrs.put("userId", userId);
+
                     log.info("WS CONNECT - userId={}", userId);
                 } catch (Exception e) {
                     log.warn("JWT 파싱 실패 → 익명 처리", e);
@@ -47,26 +56,31 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
 
         if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String destination = accessor.getDestination();
-
             Long interviewId = extractInterviewIdFromDestination(destination);
 
-            Object idObj = accessor.getSessionAttributes().get("userId");
-            Long userId = (idObj instanceof Long) ? (Long) idObj : null;
+            // ✅ CONNECT 때 sessionAttributes에 넣어둔 userId를 꺼냄
+            Long userId = null;
+            Map<String, Object> attrs = accessor.getSessionAttributes();
+            if (attrs != null && attrs.get("userId") != null) {
+                Object idObj = attrs.get("userId");
+                if (idObj instanceof Long) userId = (Long) idObj;
+                else if (idObj instanceof String) userId = Long.valueOf((String) idObj);
+            }
 
+            // NOTE는 면접관만
             if (destination.contains("/note")) {
+                boolean isInterviewer = sessionRegistry.isInterviewer(accessor.getSessionId());
                 if (userId == null) {
                     log.warn("NOTE 구독 차단 - 로그인 사용자 아님");
-                    throw new IllegalArgumentException("NOTE 구독은 면접관만 가능합니다.");
+                    throw new IllegalArgumentException("NOTE 구독은 로그인 사용자만 가능합니다.");
                 }
-
-                boolean isInterviewer = sessionRegistry.isInterviewer(accessor.getSessionId());
                 if (!isInterviewer) {
                     log.warn("NOTE 구독 차단 - 면접관 아님");
                     throw new IllegalArgumentException("NOTE 권한 없음");
                 }
             }
 
-
+            // chat/system은 참가자만 (로그인한 경우만 체크)
             if (destination.contains("/chat") || destination.contains("/system")) {
                 if (userId != null) {
                     boolean isParticipant =
@@ -83,9 +97,7 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
 
     private String extractToken(String raw) {
         if (raw == null) return null;
-        if (raw.startsWith("Bearer ")) {
-            return raw.substring(7);
-        }
+        if (raw.startsWith("Bearer ")) return raw.substring(7);
         return raw;
     }
 

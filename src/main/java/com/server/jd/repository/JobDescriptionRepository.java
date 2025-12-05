@@ -1,6 +1,9 @@
 package com.server.jd.repository;
 
 import com.server.jd.domain.JobDescription;
+import com.server.jd.domain.JobStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +19,8 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
             "LEFT JOIN FETCH jd.preferredSkills " +
             "WHERE jd.id = :id")
     Optional<JobDescription> findByIdFetchSkills(@Param("id") Long id);
+
+    long countByStatus(JobStatus status);
+    List<JobDescription> findTop5ByOrderByCreatedAtDesc();
+    Page<JobDescription> findAllByAuthorId(Long authorId, Pageable pageable);
 }

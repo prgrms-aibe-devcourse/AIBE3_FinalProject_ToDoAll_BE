@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ResumeRepository extends JpaRepository<Resume, Long> {
@@ -24,4 +25,12 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
 """)
     Optional<Resume> findWithEssentialDetailsById(@Param("resumeId") Long resumeId);
 
+    @Query("""
+        SELECT DISTINCT r FROM Resume r
+        LEFT JOIN FETCH r.jobDescription
+        ORDER BY r.createdAt DESC
+    """)
+    List<Resume> findAllWithJobDescriptionOrderByCreatedAtDesc();
+
+    Long countByJobDescriptionId(Long jobDescriptionId);
 }

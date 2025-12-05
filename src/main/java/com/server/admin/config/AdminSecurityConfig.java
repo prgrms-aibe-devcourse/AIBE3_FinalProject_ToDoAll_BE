@@ -16,6 +16,7 @@ public class AdminSecurityConfig {
 
     private final AdminUserDetailsService adminUserDetailsService;
 
+    @Order(1)
     @Bean
     public SecurityFilterChain adminFilterChain(HttpSecurity http) throws Exception {
         http

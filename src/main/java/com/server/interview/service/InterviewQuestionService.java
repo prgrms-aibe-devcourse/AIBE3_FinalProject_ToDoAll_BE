@@ -75,7 +75,8 @@ public class InterviewQuestionService {
                         q.getType().name(),
                         q.getQuestionText(),
                         q.getCreatedAt(),
-                        q.getUpdatedAt()
+                        q.getUpdatedAt(),
+                        q.isChecked()
                 ))
                 .toList();
     }

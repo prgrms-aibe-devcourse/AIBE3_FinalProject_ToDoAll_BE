@@ -11,6 +11,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+
 
 @Slf4j
 @RestControllerAdvice
@@ -53,6 +55,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(CommonResponse.error(405, "허용되지 않은 HTTP 메소드입니다."));
+    }
+
+    // 정적 리소스 없음 → 404로 분리 처리
+
+    @ExceptionHandler(NoResourceFoundException.class) // 정적 리소스 핸들러가 파일을 찾지 못했을 때
+    public ResponseEntity<CommonResponse<?>> handleNoResourceFound(NoResourceFoundException e, HttpServletRequest request) {
+        String uri = request.getRequestURI(); // 요청 URI 확인 (어떤 경로에서 에러났는지 로그용)
+        log.warn("[NoResourceFoundException] uri={}, message={}", uri, e.getMessage()); // 경고 로그 (500이 아닌 404 상황)
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND) // 404 Not Found로 응답
+                .body(CommonResponse.error(404, "요청하신 리소스를 찾을 수 없습니다.")); // 사용자에게는 리소스 없음 메시지
     }
 
     @ExceptionHandler(Exception.class)

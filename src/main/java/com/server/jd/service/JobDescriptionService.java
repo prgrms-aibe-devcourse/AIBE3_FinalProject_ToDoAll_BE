@@ -37,7 +37,7 @@ public class JobDescriptionService {
     // JD 초안 생성 서비스 로직 (지원자 수 0 초기화 및 공고 생성 (본인이 원하는대로 수정)
     @Transactional
     public Long createDraft(JobDescriptionCreateRequestDto request) {
-        User author = userRepository.findById(request.authorId())
+        User author = userRepository.findById(AuthUtils.getCurrentUserId())
                 .orElseThrow(() -> new ApplicationException(JobErrorCase.AUTHOR_NOT_FOUND));
 
         JobDescription jd = JobDescription.of(

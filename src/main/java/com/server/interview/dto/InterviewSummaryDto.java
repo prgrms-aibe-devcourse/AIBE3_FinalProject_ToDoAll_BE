@@ -24,6 +24,9 @@ public record InterviewSummaryDto(
         @Schema(description = "면접 상태", example = "SCHEDULED")
         String status,
 
+        @Schema(description = "면접 결과 상태", example = "PENDING")
+        String resultStatus,
+
         @Schema(description = "후보자 프로필 이미지", example = "https://...")
         String candidateAvatar,
 

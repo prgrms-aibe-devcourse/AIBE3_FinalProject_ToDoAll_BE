@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="admin/layout :: layout(~{::body})">
+<body>
+<div class="admin-page-header">
+    <div>
+        <div class="admin-page-title">사용자 관리</div>
+        <div class="admin-page-subtitle">
+            서비스 전체 사용자 계정 관리 및 삭제/복구 기능
+        </div>
+    </div>
+</div>
+
+<div class="admin-table-wrapper">
+    <table class="admin-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>이메일</th>
+            <th>이름</th>
+            <th>회사</th>
+            <th>상태</th>
+            <th>가입일</th>
+            <th style="text-align:right;">관리</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="u : ${users}">
+            <td th:text="${u.id}"></td>
+            <td th:text="${u.email}"></td>
+            <td th:text="${u.name}"></td>
+            <td th:text="${u.companyName}"></td>
+
+            <td>
+                <span th:if="${u.deletedAt == null}" style="color:#10b981; font-weight:600">ACTIVE</span>
+                <span th:if="${u.deletedAt != null}" style="color:#ef4444; font-weight:600">DELETED</span>
+            </td>
+
+            <td th:text="${#temporals.format(u.createdAt, 'yyyy-MM-dd')}"></td>
+
+            <td style="text-align:right;">
+                <form th:if="${u.deletedAt == null}"
+                      th:action="@{|/admin/users/${u.id}/delete|}" method="post"
+                      style="display:inline">
+                    <button class="admin-btn-danger">삭제</button>
+                </form>
+
+                <form th:if="${u.deletedAt != null}"
+                      th:action="@{|/admin/users/${u.id}/restore|}" method="post"
+                      style="display:inline">
+                    <button class="admin-btn-primary">복구</button>
+                </form>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(users)}">
+            <td colspan="7" style="text-align: center; color:#9ca3af;">
+                등록된 사용자가 없습니다.
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

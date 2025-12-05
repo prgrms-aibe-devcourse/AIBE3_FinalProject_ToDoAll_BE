@@ -3,6 +3,7 @@ package com.server.global.config.security;
 import com.server.global.config.security.jwt.JwtAuthenticationFilter;
 import com.server.global.config.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

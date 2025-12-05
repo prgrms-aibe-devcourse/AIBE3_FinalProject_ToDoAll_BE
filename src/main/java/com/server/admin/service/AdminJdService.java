@@ -1,15 +1,23 @@
 package com.server.admin.service;
 
+import com.server.admin.dto.AdminJdForm;
 import com.server.global.exception.ApplicationException;
-import com.server.jd.domain.JobDescription;
-import com.server.jd.domain.JobStatus;
+import com.server.jd.domain.*;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.jd.repository.JobPreferredSkillRepository;
+import com.server.jd.repository.JobRequiredSkillRepository;
+import com.server.jd.repository.SkillRepository;
 import com.server.resume.repository.ResumeRepository;
+import com.server.user.domain.User;
+import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -18,6 +26,10 @@ public class AdminJdService {
 
     private final JobDescriptionRepository jdRepository;
     private final ResumeRepository resumeRepository;
+    private final UserRepository userRepository;
+    private final SkillRepository skillRepository;
+    private final JobRequiredSkillRepository jobRequiredSkillRepository;
+    private final JobPreferredSkillRepository jobPreferredSkillRepository;
 
     @Transactional(readOnly = true)
     public List<JobDescription> getAll() {
@@ -29,6 +41,81 @@ public class AdminJdService {
         });
 
         return jds;
+    }
+
+    @Transactional(readOnly = true)
+    public JobDescription getDetail(Long id) {
+        return jdRepository.findByIdFetchSkills(id)
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+    }
+
+    @Transactional
+    public Long createFromAdmin(AdminJdForm form) {
+        User author = userRepository.findById(form.getAuthorId())
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.AUTHOR_NOT_FOUND));
+
+        LocalDate deadline = null;
+        if (StringUtils.hasText(form.getDeadline())) {
+            deadline = LocalDate.parse(form.getDeadline());
+        }
+
+        // 공고 생성
+        JobDescription jd = JobDescription.of(
+                form.getTitle(),
+                form.getDepartment(),
+                form.getWorkType(),
+                form.getExperience(),
+                form.getEducation(),
+                form.getSalary(),
+                form.getDescription(),
+                null,
+                deadline,
+                JobStatus.OPEN,
+                form.getBenefits(),
+                0L,
+                form.getLocation(),
+                form.getThumbnailUrl(),
+                author
+        );
+
+        jdRepository.save(jd);
+        jdRepository.flush();
+
+        // 필수 스킬
+        saveRequiredSkills(jd, form.getRequiredSkills());
+
+        // 우대 스킬
+        savePreferredSkills(jd, form.getPreferredSkills());
+
+        return jd.getId();
+    }
+
+    private void saveRequiredSkills(JobDescription jd, String csv) {
+        for (String skillName : parseSkills(csv)) {
+            String normalized = skillName.trim().toLowerCase();
+            Skill skill = skillRepository.findByName(normalized)
+                    .orElseGet(() -> skillRepository.save(Skill.of(normalized)));
+            jobRequiredSkillRepository.save(JobRequiredSkill.of(jd, skill));
+        }
+    }
+
+    private void savePreferredSkills(JobDescription jd, String csv) {
+        for (String skillName : parseSkills(csv)) {
+            String normalized = skillName.trim().toLowerCase();
+            Skill skill = skillRepository.findByName(normalized)
+                    .orElseGet(() -> skillRepository.save(Skill.of(normalized)));
+            jobPreferredSkillRepository.save(JobPreferredSkill.of(jd, skill));
+        }
+    }
+    
+    private List<String> parseSkills(String csv) {
+        if (!StringUtils.hasText(csv)) {
+            return List.of();
+        }
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 
     @Transactional

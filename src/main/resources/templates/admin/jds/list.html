@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::body})}">
+<body>
+
+<div class="admin-page-header">
+    <div>
+        <div class="admin-page-title">채용공고 관리</div>
+        <div class="admin-page-subtitle">등록된 모든 채용공고의 상태 및 노출을 관리합니다.</div>
+    </div>
+</div>
+
+<div class="admin-table-wrapper">
+    <table class="admin-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>제목</th>
+            <th>상태</th>
+            <th>노출</th>
+            <th>지원자 수</th>
+            <th>등록일</th>
+            <th style="text-align:right;">관리</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="jd : ${jds}">
+            <td th:text="${jd.id}"></td>
+            <td th:text="${jd.title}"></td>
+
+            <td>
+                <form th:action="@{|/admin/jds/${jd.id}/status|}" method="post">
+                    <select name="status" class="admin-select" onchange="this.form.submit()">
+                        <option th:each="s : ${statuses}"
+                                th:value="${s}"
+                                th:selected="${s == jd.status}"
+                                th:text="${s}">
+                        </option>
+                    </select>
+                </form>
+            </td>
+
+            <td>
+                <span th:if="${jd.deletedAt == null}" style="color:#10b981; font-weight:600;">ACTIVE</span>
+                <span th:if="${jd.deletedAt != null}" style="color:#ef4444; font-weight:600;">DELETED</span>
+            </td>
+
+            <td th:text="${jd.applicantCount}"></td>
+            <td th:text="${#temporals.format(jd.createdAt, 'yyyy-MM-dd')}"></td>
+
+            <td style="text-align:right;">
+                <form th:if="${jd.deletedAt == null}"
+                      th:action="@{|/admin/jds/${jd.id}/delete|}" method="post"
+                      style="display:inline">
+                    <button class="admin-btn-danger">삭제</button>
+                </form>
+
+                <form th:if="${jd.deletedAt != null}"
+                      th:action="@{|/admin/jds/${jd.id}/restore|}" method="post"
+                      style="display:inline">
+                    <button class="admin-btn-primary">복구</button>
+                </form>
+            </td>
+        </tr>
+
+        <tr th:if="${#lists.isEmpty(jds)}">
+            <td colspan="7" style="text-align:center; color:#9ca3af;">
+                등록된 채용공고가 없습니다.
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

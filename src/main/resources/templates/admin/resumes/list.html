@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::body})}">
+<body>
+
+<div class="admin-page-header">
+    <div>
+        <div class="admin-page-title">이력서 관리</div>
+        <div class="admin-page-subtitle">
+            채용공고에 등록된 모든 이력서를 조회하고 삭제/복구할 수 있습니다.
+        </div>
+    </div>
+</div>
+
+<div class="admin-table-wrapper">
+    <table class="admin-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>채용공고</th>
+            <th>지원자 이름</th>
+            <th>이메일</th>
+            <th>이력서 상태</th>
+            <th>노출</th>
+            <th>등록일</th>
+            <th style="text-align:right;">관리</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${resumes}">
+            <td th:text="${r.id}"></td>
+            <td>
+                <span th:if="${r.jobDescription != null}">
+                    <span th:text="'#' + ${r.jobDescription.id}"></span>
+                    <span th:text="${r.jobDescription.title}"></span>
+                </span>
+                <span th:if="${r.jobDescription == null}" style="color:#9ca3af;">
+                    (연결된 채용공고 없음)
+                </span>
+            </td>
+
+            <td th:text="${r.name}"></td>
+            <td th:text="${r.email}"></td>
+            <td th:text="${r.status}"></td>
+
+            <td>
+                <span th:if="${r.deletedAt == null}" style="color:#10b981; font-weight:600;">
+                    ACTIVE
+                </span>
+                <span th:if="${r.deletedAt != null}" style="color:#ef4444; font-weight:600;">
+                    DELETED
+                </span>
+            </td>
+
+            <td th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd')}"></td>
+            <td style="text-align:right;">
+
+                <form th:if="${r.deletedAt == null}"
+                      th:action="@{|/admin/resumes/${r.id}/delete|}" method="post"
+                      style="display:inline">
+                    <button class="admin-btn-danger">삭제</button>
+                </form>
+
+                <form th:if="${r.deletedAt != null}"
+                      th:action="@{|/admin/resumes/${r.id}/restore|}" method="post"
+                      style="display:inline">
+                    <button class="admin-btn-primary">복구</button>
+                </form>
+            </td>
+        </tr>
+
+        <tr th:if="${#lists.isEmpty(resumes)}">
+            <td colspan="8" style="text-align:center; color:#9ca3af;">
+                등록된 이력서가 없습니다.
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

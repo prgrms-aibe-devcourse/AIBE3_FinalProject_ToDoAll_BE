@@ -154,4 +154,8 @@ public class JobDescription extends BaseEntity {
         JobPreferredSkill jps = JobPreferredSkill.of(this, skill);
         preferredSkills.add(jps);
     }
+
+    public void applyApplicantCount(long count) {
+        this.applicantCount = count;
+    }
 }

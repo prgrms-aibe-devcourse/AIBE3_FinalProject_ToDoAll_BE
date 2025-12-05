@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Login</title>
+</head>
+<body>
+<h2>잡다 어드민 로그인</h2>
+
+<form th:action="@{/admin/login}" method="post">
+    <input type="text" name="username" placeholder="아이디" required />
+    <input type="password" name="password" placeholder="비밀번호" required />
+    <button type="submit">로그인</button>
+</form>
+
+<div th:if="${param.error}">
+    <p style="color:red;">로그인 실패</p>
+</div>
+</body>
+</html>

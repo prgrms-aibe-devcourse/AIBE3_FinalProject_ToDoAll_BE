@@ -31,4 +31,6 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
         ORDER BY r.createdAt DESC
     """)
     List<Resume> findAllWithJobDescriptionOrderByCreatedAtDesc();
+
+    Long countByJobDescriptionId(Long jobDescriptionId);
 }

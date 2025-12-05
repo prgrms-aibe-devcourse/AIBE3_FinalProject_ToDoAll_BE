@@ -22,14 +22,14 @@ public class AdminSecurityConfig {
                 .securityMatcher("/admin/**")
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/login", "/admin/login-error").permitAll()
+                        .requestMatchers("/admin/login").permitAll()
                         .anyRequest().hasRole("ADMIN")
                 )
                 .formLogin(login -> login
                         .loginPage("/admin/login")
                         .loginProcessingUrl("/admin/login")
                         .defaultSuccessUrl("/admin", true)
-                        .failureUrl("/admin/login-error")
+                        .failureUrl("/admin/login?error=true")
                 )
                 .userDetailsService(adminUserDetailsService)
                 .sessionManagement(session -> session

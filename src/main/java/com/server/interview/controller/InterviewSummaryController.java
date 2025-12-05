@@ -33,7 +33,9 @@ public class InterviewSummaryController {
     @GetMapping("/{interviewId}/summary")
     @Operation(summary = "면접 요약 조회", description = "저장된 AI 면접 요약을 조회합니다.")
     public CommonResponse<String> getSummary(@PathVariable Long interviewId) {
-        String summary = interviewSummaryQueryService.getSummary(interviewId);
+        String summary = interviewSummaryQueryService
+                .getSummary(interviewId)
+                .orElse("");
         return CommonResponse.success(summary);
     }
 

@@ -293,24 +293,19 @@
         Jobda <span>Admin</span>
     </div>
     <nav class="admin-nav">
-        <a th:href="@{/admin}"
-           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin') and #httpServletRequest.requestURI == '/admin' } ? ' active'">
+        <a th:href="@{/admin}">
             Dashboard
         </a>
-        <a th:href="@{/admin/users}"
-           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/users')} ? ' active'">
+        <a th:href="@{/admin/users}">
             Users
         </a>
-        <a th:href="@{/admin/jds}"
-           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/jds')} ? ' active'">
+        <a th:href="@{/admin/jds}">
             JDs
         </a>
-        <a th:href="@{/admin/resumes}"
-           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/resumes')} ? ' active'">
+        <a th:href="@{/admin/resumes}">
             Resumes
         </a>
-        <a th:href="@{/admin/interviews}"
-           th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/interviews')} ? ' active'">
+        <a th:href="@{/admin/interviews}">
             Interviews
         </a>
     </nav>

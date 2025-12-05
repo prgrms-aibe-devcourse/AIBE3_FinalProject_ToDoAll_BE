@@ -36,7 +36,7 @@ public class InterviewNoteService {
                 .orElseThrow(() ->
                         new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND));
 
-        // 사용자 조회 (토큰 대신 userId=1)
+        // 사용자 조회
         Long userId = AuthUtils.getCurrentUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow();

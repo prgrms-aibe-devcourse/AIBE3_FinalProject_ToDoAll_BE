@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="admin/layout :: layout(~{::body})">
+<body>
+<div>
+    <div class="admin-page-header">
+        <div>
+            <div class="admin-page-title">매칭 관리</div>
+            <div class="admin-page-subtitle">
+                채용공고와 이력서 간 매칭 현황을 조회하고 상태를 관리할 수 있습니다.
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-bottom: 1.25rem;">
+        <div class="admin-card-header">매칭 리스트</div>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>Match ID</th>
+                    <th>채용공고</th>
+                    <th>이력서</th>
+                    <th>상태</th>
+                    <th>매칭 점수</th>
+                    <th>지원일</th>
+                    <th>삭제 여부</th>
+                    <th>작업</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="m : ${matches}">
+                    <td th:text="${m.id}">1</td>
+                    <td>
+                        <div>
+                            <span class="badge">JD #<span th:text="${m.jdId}">1</span></span>
+                        </div>
+                        <div th:text="${m.jdTitle}">공고 제목</div>
+                    </td>
+                    <td>
+                        <div>
+                            <span class="badge">RESUME #<span th:text="${m.resumeId}">1</span></span>
+                        </div>
+                        <div th:text="${m.resumeName}">홍길동</div>
+                    </td>
+                    <td th:text="${m.status}">APPLIED</td>
+                    <td th:text="${m.matchScore != null ? m.matchScore : 0}">0.0</td>
+                    <td th:text="${#temporals.format(m.appliedAt, 'yyyy-MM-dd HH:mm')}">
+                        2025-12-05 12:34
+                    </td>
+                    <td>
+                        <span th:if="${m.deleted}" class="badge badge-danger">삭제됨</span>
+                        <span th:if="${!m.deleted}" class="badge badge-success">정상</span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/admin/matches/' + ${m.id}}"
+                           class="admin-button admin-button-sm">
+                            상세
+                        </a>
+
+                        <form th:if="${!m.deleted}"
+                              th:action="@{'/admin/matches/' + ${m.id} + '/delete'}"
+                              method="post"
+                              style="display:inline;">
+                            <button type="submit"
+                                    class="admin-button admin-button-sm admin-button-danger">
+                                삭제
+                            </button>
+                        </form>
+
+                        <form th:if="${m.deleted}"
+                              th:action="@{'/admin/matches/' + ${m.id} + '/restore'}"
+                              method="post"
+                              style="display:inline;">
+                            <button type="submit"
+                                    class="admin-button admin-button-sm admin-button-secondary">
+                                복구
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(matches)}">
+                    <td colspan="8" style="text-align: center; color: #9ca3af;">
+                        등록된 매칭 데이터가 없습니다.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

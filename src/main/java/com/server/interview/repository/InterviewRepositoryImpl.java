@@ -44,6 +44,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                         r.id,                      // resumeId
                         r.name,                    // candidateName
                         i.status.stringValue(),    // status
+                        i.result.stringValue(),     //resultStatus
                         r.portfolioFileUrl,             // candidateAvatar
                         Expressions.constant(Collections.<String>emptyList()),
                         i.scheduledAt,
@@ -83,6 +84,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                     base.resumeId(),
                     base.candidateName(),
                     base.status(),
+                    base.resultStatus(),
                     base.candidateAvatar(),
                     interviewerNames,
                     base.scheduledAt(),

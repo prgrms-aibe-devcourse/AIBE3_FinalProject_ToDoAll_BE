@@ -19,6 +19,9 @@ public interface InterviewRepository extends JpaRepository<Interview, Long>, Int
     """)
     void updateInProgress(LocalDateTime now);
 
+    @Query("select count(i) from Interview i where i.scheduledAt >= :today")
+    long countToday(LocalDateTime today);
+
     @Query("SELECT i.id FROM Interview i WHERE i.scheduledAt < :thresholdDate")
     List<Long> findInterviewIdsOlderThan(LocalDateTime thresholdDate);
 }

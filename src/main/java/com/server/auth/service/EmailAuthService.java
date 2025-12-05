@@ -29,6 +29,8 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.Set;
 
+import static java.lang.System.err;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -79,6 +81,7 @@ public class EmailAuthService {
         // 1) 이미 가입된 이메일인지 확인
         if (userRepository.existsByEmail(email)) {
             // 이미 가입된 회사 이메일이라면, 다시 가입용 인증 요청은 막기
+            log.info("[EmailAuth] 이미 가입된 이메일로 인증 요청: {}", email);
             throw ApplicationException.from(UserErrorCase.USER_ALREADY_EXISTS);
         }
 

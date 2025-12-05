@@ -7,6 +7,7 @@ public record InterviewQuestionResponseDto (
         String questionType,
         String content,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        boolean checked
 ){
 }

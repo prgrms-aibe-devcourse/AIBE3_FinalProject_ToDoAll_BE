@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::body})}">
+<body>
+<div class="admin-page-header">
+    <div>
+        <div class="admin-page-title">채용공고 상세</div>
+        <div class="admin-page-subtitle">
+            선택한 채용공고의 상세 정보를 확인할 수 있습니다.
+        </div>
+    </div>
+</div>
+
+<div class="admin-grid admin-grid-2">
+    <div class="admin-card">
+        <div class="admin-card-header">기본 정보</div>
+        <p><strong>ID</strong> <span th:text="${jd.id}"></span></p>
+        <p><strong>제목</strong> <span th:text="${jd.title}"></span></p>
+        <p><strong>부서</strong> <span th:text="${jd.department}"></span></p>
+        <p><strong>근무형태</strong> <span th:text="${jd.workType}"></span></p>
+        <p><strong>경력</strong> <span th:text="${jd.experience}"></span></p>
+        <p><strong>학력</strong> <span th:text="${jd.education}"></span></p>
+        <p><strong>급여</strong> <span th:text="${jd.salary}"></span></p>
+        <p><strong>상태</strong> <span th:text="${jd.status}"></span></p>
+        <p><strong>지원자 수</strong> <span th:text="${jd.applicantCount}"></span></p>
+        <p><strong>근무지</strong> <span th:text="${jd.location}"></span></p>
+        <p><strong>시작일</strong>
+            <span th:text="${#temporals.format(jd.startDate, 'yyyy-MM-dd')}"></span>
+        </p>
+        <p><strong>마감일</strong>
+            <span th:text="${#temporals.format(jd.deadline, 'yyyy-MM-dd')}"></span>
+        </p>
+    </div>
+
+    <div class="admin-card">
+        <div class="admin-card-header">복지 및 썸네일</div>
+        <p><strong>복지</strong></p>
+        <p th:text="${jd.welfare}">복지 내용</p>
+
+        <p><strong>썸네일 URL</strong></p>
+        <p>
+            <a th:href="${jd.thumbnailUrl}" th:text="${jd.thumbnailUrl}" target="_blank"></a>
+        </p>
+    </div>
+</div>
+
+<div class="admin-grid admin-grid-2" style="margin-top:1rem;">
+    <div class="admin-card">
+        <div class="admin-card-header">필수 기술 스택</div>
+        <div>
+            <span th:each="s : ${jd.requiredSkillNames}"
+                  th:text="${s}"
+                  style="display:inline-block; margin:0 0.25rem 0.25rem 0; padding:0.2rem 0.5rem; border-radius:999px; background:#eef2ff; font-size:0.8rem;">
+            </span>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="admin-card-header">우대 기술 스택</div>
+        <div>
+            <span th:each="s : ${jd.preferredSkillNames}"
+                  th:text="${s}"
+                  style="display:inline-block; margin:0 0.25rem 0.25rem 0; padding:0.2rem 0.5rem; border-radius:999px; background:#ecfdf3; font-size:0.8rem;">
+            </span>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:1rem;">
+    <a th:href="@{/admin/jds}" class="btn btn-secondary">목록으로</a>
+</div>
+</body>
+</html>

@@ -8,12 +8,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class SessionRegistry {
 
-    // interviewId -> sessionId 목록
+    // interviewId 번호별 현재 접속한 sessionId 목록
     private final Map<Long, Set<String>> interviewSessions = new ConcurrentHashMap<>();
 
+    // sessionId별 유저 정보
     private final Map<String, SessionInfo> sessions = new ConcurrentHashMap<>();
 
 
+    // 세션 등록
     public void addSession(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
 
         Objects.requireNonNull(userId, "userId는 필수입니다.");
@@ -31,6 +33,7 @@ public class SessionRegistry {
 
     }
 
+    // 현재 특정 유저가 로그인하고 있는지 확인
     private String findSessionByUser(Long interviewId, Long userId) {
         return interviewSessions
                 .getOrDefault(interviewId, Set.of())
@@ -44,6 +47,7 @@ public class SessionRegistry {
     }
 
 
+    // 세션 제거
     public void removeSession(String sessionId) {
         SessionInfo info = sessions.get(sessionId);
         if (info == null) return;
@@ -55,6 +59,7 @@ public class SessionRegistry {
         }
     }
 
+    // 세션 깔끔하게 삭제
     private void removeSessionInternal(String sessionId) {
         SessionInfo info = sessions.remove(sessionId);
         if (info == null) return;
@@ -67,20 +72,24 @@ public class SessionRegistry {
         });
     }
 
+    // 특정 interviewId에 몇 명이 접속했는지 확인
     public int getSessionCount(Long interviewId) {
         return interviewSessions.getOrDefault(interviewId, Collections.emptySet()).size();
     }
 
+    // 이 세션이 어느 인터뷰 방인지 확인
     public Long getInterviewIdBySession(String sessionId) {
         SessionInfo info = sessions.get(sessionId);
         return info != null ? info.getInterviewId() : null;
     }
 
+    // 이 세션이 면접관인지 확인
     public boolean isInterviewer(String sessionId) {
         SessionInfo info = sessions.get(sessionId);
         return info != null && info.isInterviewer();
     }
 
+    // 이 노트 작성자의 userId 확인
     public Long getUserIdBySession(String sessionId) {
         SessionInfo info = sessions.get(sessionId);
         return info != null ? info.getUserId() : null;

@@ -87,7 +87,6 @@ class ResumeControllerTest {
         );
     }
 
-
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
     @DisplayName("GET /api/v1/resumes/{id} - 이력서 조회 성공")
@@ -101,7 +100,7 @@ class ResumeControllerTest {
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
-    @DisplayName("GET /api/v1/resumes - 조회 실패")
+    @DisplayName("GET /api/v1/resumes/{id} - 조회 실패")
     void getResume_fail() throws Exception {
         ApplicationException applicationException = new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND);
 
@@ -111,44 +110,43 @@ class ResumeControllerTest {
         mockMvc.perform(get("/api/v1/resumes/999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errorCode").value(4041))
-                .andExpect(jsonPath("$.message").value("해당 이력서를 찾을 수 없습니다."));;
+                .andExpect(jsonPath("$.message").value("해당 이력서를 찾을 수 없습니다."));
     }
-
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
-    @DisplayName("POST /api/v1/resumes - 생성 성공")
+    @DisplayName("POST /api/v1/resumes - 생성 성공 (multipart)")
     void createResume_success() throws Exception {
-
-
         Mockito.when(resumeService.createResume(any(), any(), any()))
                 .thenReturn(resumeResponseDto);
 
         MockMultipartFile dataPart = new MockMultipartFile(
                 "data",
-                "data",
-                "application/json",
+                "data.json",
+                MediaType.APPLICATION_JSON_VALUE,
                 objectMapper.writeValueAsBytes(resumeCreateRequestDto)
         );
 
+
         MockMultipartFile resumeFile = new MockMultipartFile(
-                "resumeFile",
+                "resumeFiles",
                 "resume.png",
                 "image/png",
                 "dummy".getBytes()
         );
 
         MockMultipartFile portfolioFile = new MockMultipartFile(
-                "portfolioFile",
+                "portfolioFiles",
                 "portfolio.png",
                 "image/png",
                 "dummy".getBytes()
         );
 
-        mockMvc.perform(post("/api/v1/resumes")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(resumeCreateRequestDto)))
+        mockMvc.perform(multipart("/api/v1/resumes")
+                        .file(dataPart)
+                        .file(resumeFile)
+                        .file(portfolioFile)
+                        .with(csrf()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value(1L))
                 .andExpect(jsonPath("$.data.name").value("홍길동"))
@@ -159,9 +157,8 @@ class ResumeControllerTest {
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
-    @DisplayName("POST /api/v1/resumes - 유효성 검증 실패(이름)")
+    @DisplayName("POST /api/v1/resumes - 유효성 검증 실패(이름) (multipart)")
     void createResume_validationFail1() throws Exception {
-
         ResumeCreateRequestDto invalidRequest = new ResumeCreateRequestDto(
                 "",
                 10L,
@@ -180,22 +177,25 @@ class ResumeControllerTest {
                 "portfolio-url"
         );
 
-        mockMvc.perform(post("/api/v1/resumes")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+        MockMultipartFile dataPart = new MockMultipartFile(
+                "data",
+                "data.json",
+                MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(invalidRequest)
+        );
+
+        mockMvc.perform(multipart("/api/v1/resumes")
+                        .file(dataPart)
+                        .with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").value(4001))
                 .andExpect(jsonPath("$.message").value("이름은 필수입니다."));
-        ;
-
     }
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
-    @DisplayName("POST /api/v1/resumes - 유효성 검증 실패(지원 직무)")
+    @DisplayName("POST /api/v1/resumes - 유효성 검증 실패(지원 직무) (multipart)")
     void createResume_validationFail() throws Exception {
-
         ResumeCreateRequestDto invalidRequest = new ResumeCreateRequestDto(
                 "홍길동",
                 null,
@@ -214,17 +214,20 @@ class ResumeControllerTest {
                 "portfolio-url"
         );
 
-        mockMvc.perform(post("/api/v1/resumes")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+        MockMultipartFile dataPart = new MockMultipartFile(
+                "data",
+                "data.json",
+                MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(invalidRequest)
+        );
+
+        mockMvc.perform(multipart("/api/v1/resumes")
+                        .file(dataPart)
+                        .with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").value(4001))
                 .andExpect(jsonPath("$.message").value("지원 직무는 필수입니다."));
-        ;
-
     }
-
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
@@ -243,26 +246,21 @@ class ResumeControllerTest {
     void deleteResume_notFound() throws Exception {
         ApplicationException applicationException = new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND);
 
-
         Mockito.doThrow(applicationException)
                 .when(resumeService).deleteResume(999L);
 
         mockMvc.perform(delete("/api/v1/resumes/999").with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errorCode").value(4041))
-                .andExpect(jsonPath("$.message").value("해당 이력서를 찾을 수 없습니다."));;
+                .andExpect(jsonPath("$.message").value("해당 이력서를 찾을 수 없습니다."));
     }
-
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
     @DisplayName("PATCH /api/v1/resumes/{id}/status - 상태 변경 성공")
     void updateResumeStatus_success() throws Exception {
-
         ResumeStatusUpdateDto requestDto = new ResumeStatusUpdateDto(ResumeStatus.BOOKMARK);
-
-        ResumeStatusUpdateResponseDto responseDto =
-                new ResumeStatusUpdateResponseDto(1L, ResumeStatus.BOOKMARK);
+        ResumeStatusUpdateResponseDto responseDto = new ResumeStatusUpdateResponseDto(1L, ResumeStatus.BOOKMARK);
 
         Mockito.when(resumeService.updateResumeStatus(eq(1L), any()))
                 .thenReturn(responseDto);
@@ -279,11 +277,8 @@ class ResumeControllerTest {
     @WithMockUser(username = "testUser", roles = "USER")
     @DisplayName("PATCH /api/v1/resumes/{id}/status - 잘못된 상태 변경 시 400")
     void updateResumeStatus_invalidTransition() throws Exception {
-
         ResumeStatusUpdateDto requestDto = new ResumeStatusUpdateDto(ResumeStatus.NEW);
-
-        ApplicationException applicationException =
-                new ApplicationException(ResumeErrorCase.INVALID_STATUS);
+        ApplicationException applicationException = new ApplicationException(ResumeErrorCase.INVALID_STATUS);
 
         Mockito.when(resumeService.updateResumeStatus(eq(1L), any()))
                 .thenThrow(applicationException);

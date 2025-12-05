@@ -9,9 +9,11 @@ import com.server.match.domain.Match;
 import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.Resume;
 import com.server.resume.domain.ResumeStatus;
-import com.server.resume.dto.*;
+import com.server.resume.dto.ResumeCreateRequestDto;
+import com.server.resume.dto.ResumeStatusUpdateDto;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
+import com.server.s3.service.S3Uploader;
 import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,17 +39,16 @@ class ResumeServiceTest {
     @Mock
     private SkillRepository skillRepository;
 
-    @Mock
-    private ResumeSearchRepository resumeSearchRepository;
 
-    @Mock
-    private ResumeSearchService resumeSearchService;
-
-    @InjectMocks
-    private ResumeService resumeService;
 
     @Mock
     private MatchRepository matchRepository;
+
+    @Mock
+    private S3Uploader s3Uploader;
+
+    @InjectMocks
+    private ResumeService resumeService;
 
     @BeforeEach
     void init() {
@@ -79,7 +81,7 @@ class ResumeServiceTest {
     }
 
     @Test
-    @DisplayName("createResume - 성공")
+    @DisplayName("createResume - 성공(파일 없음)")
     void createResume_success() {
         JobDescription jd = mock(JobDescription.class);
         when(jd.getId()).thenReturn(10L);
@@ -90,13 +92,11 @@ class ResumeServiceTest {
         Resume savedResume = mock(Resume.class);
         when(savedResume.getId()).thenReturn(100L);
 
-        when(resumeRepository.save(any())).thenReturn(savedResume);
+        when(resumeRepository.save(any(Resume.class))).thenReturn(savedResume);
 
         when(matchRepository.existsByJobDescription_IdAndResume_Id(10L, 100L)).thenReturn(false);
 
-        when(matchRepository.save(any())).thenReturn(null);
-
-        when(resumeSearchRepository.count()).thenReturn(0L);
+        doNothing().when(jd).increaseApplicantCount();
 
         ResumeCreateRequestDto request = new ResumeCreateRequestDto(
                 "홍길동",
@@ -116,12 +116,14 @@ class ResumeServiceTest {
                 "portfolio-url"
         );
 
-        resumeService.createResume(request);
+        resumeService.createResume(request, null, null);
 
         verify(jobDescriptionRepository).findById(10L);
         verify(resumeRepository).save(any(Resume.class));
         verify(matchRepository).existsByJobDescription_IdAndResume_Id(10L, 100L);
         verify(matchRepository).save(any(Match.class));
+
+        verifyNoInteractions(s3Uploader);
     }
 
     @Test
@@ -129,7 +131,7 @@ class ResumeServiceTest {
     void createResume_jdNull_fail() {
         ResumeCreateRequestDto request = new ResumeCreateRequestDto(
                 "홍길동",
-                null, // JD null
+                null,
                 "M",
                 LocalDate.of(1990, 1, 1),
                 "test@test.com",
@@ -145,7 +147,7 @@ class ResumeServiceTest {
                 "portfolio-url"
         );
 
-        assertThatThrownBy(() -> resumeService.createResume(request))
+        assertThatThrownBy(() -> resumeService.createResume(request, null, null))
                 .isInstanceOf(ApplicationException.class)
                 .extracting("errorCase")
                 .isEqualTo(ResumeErrorCase.JD_NOT_FOUND);
@@ -175,7 +177,7 @@ class ResumeServiceTest {
                 "portfolio-url"
         );
 
-        assertThatThrownBy(() -> resumeService.createResume(request))
+        assertThatThrownBy(() -> resumeService.createResume(request, null, null))
                 .isInstanceOf(ApplicationException.class)
                 .extracting("errorCase")
                 .isEqualTo(ResumeErrorCase.JD_NOT_FOUND);

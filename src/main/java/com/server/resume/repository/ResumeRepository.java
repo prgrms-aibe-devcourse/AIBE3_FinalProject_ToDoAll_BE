@@ -25,6 +25,10 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
 """)
     Optional<Resume> findWithEssentialDetailsById(@Param("resumeId") Long resumeId);
 
-    // 관리자용: 생성일 내림차순 전체 조회
-    List<Resume> findAllByOrderByCreatedAtDesc();
+    @Query("""
+        SELECT DISTINCT r FROM Resume r
+        LEFT JOIN FETCH r.jobDescription
+        ORDER BY r.createdAt DESC
+    """)
+    List<Resume> findAllWithJobDescriptionOrderByCreatedAtDesc();
 }

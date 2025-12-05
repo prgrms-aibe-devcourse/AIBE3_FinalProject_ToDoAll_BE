@@ -18,7 +18,7 @@ public class AdminResumeService {
 
     @Transactional(readOnly = true)
     public List<Resume> getAllResumes() {
-        return resumeRepository.findAllByOrderByCreatedAtDesc();
+        return resumeRepository.findAllWithJobDescriptionOrderByCreatedAtDesc();
     }
 
     @Transactional

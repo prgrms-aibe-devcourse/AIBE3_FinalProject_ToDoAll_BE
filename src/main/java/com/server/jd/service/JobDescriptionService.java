@@ -1,5 +1,6 @@
 package com.server.jd.service;
 
+import com.server.global.auth.AuthUtils;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.*;
 import com.server.jd.dto.*;
@@ -225,4 +226,34 @@ public class JobDescriptionService {
     public List<JobDescriptionInterviewOptionDto> getMyInterviewOptionJdList(Long userId) {
         userId = 1L;
         return jobRepository.findJdListByInterviewParticipant(userId);}
+
+    @Transactional(readOnly = true)
+    public Page<JobDescriptionListResponseDto> getMyList(Pageable pageable, int skillLimit) {
+        Long userId = AuthUtils.getCurrentUserId();
+        Page<JobDescription> page = jobRepository.findAllByAuthorId(userId, pageable);
+        List<Long> ids = page.stream().map(JobDescription::getId).toList();
+
+        Map<Long, List<String>> requiredMap = jobRequiredSkillRepository
+                .findRequiredSkillsByJobIds(ids).stream()
+                .collect(Collectors.groupingBy(
+                        SkillByJobProjection::getJobId,
+                        Collectors.mapping(SkillByJobProjection::getSkillName, Collectors.toList())
+                ));
+
+        List<JobDescriptionListResponseDto> content = page.stream()
+                .map(e -> JobDescriptionListResponseDto.builder()
+                        .id(e.getId())
+                        .title(e.getTitle())
+                        .location(e.getLocation())
+                        .applicantCount(Optional.ofNullable(e.getApplicantCount()).orElse(0L))
+                        .status(e.getStatus())
+                        .requiredSkills(requiredMap.getOrDefault(e.getId(), List.of())
+                                .stream().distinct().limit(skillLimit).toList())
+                        .startDate(e.getStartDate())
+                        .deadline(e.getDeadline())
+                        .build())
+                .toList();
+
+        return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
+    }
 }

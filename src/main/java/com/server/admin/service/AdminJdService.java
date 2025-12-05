@@ -107,7 +107,7 @@ public class AdminJdService {
             jobPreferredSkillRepository.save(JobPreferredSkill.of(jd, skill));
         }
     }
-    
+
     private List<String> parseSkills(String csv) {
         if (!StringUtils.hasText(csv)) {
             return List.of();

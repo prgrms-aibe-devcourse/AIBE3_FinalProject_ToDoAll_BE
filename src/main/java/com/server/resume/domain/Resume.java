@@ -179,4 +179,12 @@ public class Resume extends BaseEntity {
     public void updateMemo(String memo) {
         this.memo = memo;
     }
+
+    public void updateResumeFileKey(String fileKey) {
+        this.resumeFileUrl = fileKey;
+    }
+
+    public void updatePortfolioFileKey(String fileKey) {
+        this.portfolioFileUrl = fileKey;
+    }
 }

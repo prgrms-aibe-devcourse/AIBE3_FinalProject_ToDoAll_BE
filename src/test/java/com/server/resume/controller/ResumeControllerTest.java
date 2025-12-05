@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -119,7 +120,30 @@ class ResumeControllerTest {
     @DisplayName("POST /api/v1/resumes - 생성 성공")
     void createResume_success() throws Exception {
 
-        Mockito.when(resumeService.createResume(any())).thenReturn(resumeResponseDto);
+
+        Mockito.when(resumeService.createResume(any(), any(), any()))
+                .thenReturn(resumeResponseDto);
+
+        MockMultipartFile dataPart = new MockMultipartFile(
+                "data",
+                "data",
+                "application/json",
+                objectMapper.writeValueAsBytes(resumeCreateRequestDto)
+        );
+
+        MockMultipartFile resumeFile = new MockMultipartFile(
+                "resumeFile",
+                "resume.png",
+                "image/png",
+                "dummy".getBytes()
+        );
+
+        MockMultipartFile portfolioFile = new MockMultipartFile(
+                "portfolioFile",
+                "portfolio.png",
+                "image/png",
+                "dummy".getBytes()
+        );
 
         mockMvc.perform(post("/api/v1/resumes")
                         .with(csrf())

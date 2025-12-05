@@ -4,6 +4,7 @@ import com.server.admin.dto.AdminDashboardSummaryDto;
 import com.server.admin.dto.RecentJdDto;
 import com.server.admin.dto.RecentUserDto;
 import com.server.interview.repository.InterviewRepository;
+import com.server.jd.domain.JobStatus;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.resume.repository.ResumeRepository;
 import com.server.user.repository.UserRepository;
@@ -27,8 +28,8 @@ public class AdminDashboardService {
         long todaySignups = userRepository.countJoinedToday(LocalDate.now().atStartOfDay());
 
         long totalJds = jdRepository.count();
-        long openJds = jdRepository.countByStatus("OPEN");
-        long closedJds = jdRepository.countByStatus("CLOSED");
+        long openJds = jdRepository.countByStatus(JobStatus.OPEN);
+        long closedJds = jdRepository.countByStatus(JobStatus.CLOSED);
 
         long totalResumes = resumeRepository.count();
         long totalInterviews = interviewRepository.count();

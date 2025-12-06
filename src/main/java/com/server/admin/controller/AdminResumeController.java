@@ -2,6 +2,7 @@ package com.server.admin.controller;
 
 import com.server.admin.dto.AdminResumeForm;
 import com.server.admin.service.AdminResumeService;
+import com.server.resume.domain.Resume;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,6 +41,24 @@ public class AdminResumeController {
     public String create(@ModelAttribute("resumeForm") AdminResumeForm form) {
         Long id = adminResumeService.createFromAdmin(form);
         return "redirect:/admin/resumes/" + id;
+    }
+
+    // 이력서 수정 처리
+    @PostMapping("/{id}/edit")
+    public String update(@PathVariable Long id,
+                         @ModelAttribute("resumeForm") AdminResumeForm form) {
+        adminResumeService.updateFromAdmin(id, form);
+        return "redirect:/admin/resumes/" + id;
+    }
+
+    // 이력서 수정
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        Resume resume = adminResumeService.getResumeDetail(id);
+        AdminResumeForm form = AdminResumeForm.from(resume);
+        model.addAttribute("resumeForm", form);
+        model.addAttribute("resumeId", id);
+        return "admin/resumes/edit-form";
     }
 
     // 소프트 삭제

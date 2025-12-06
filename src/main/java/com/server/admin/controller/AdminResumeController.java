@@ -1,5 +1,6 @@
 package com.server.admin.controller;
 
+import com.server.admin.dto.AdminResumeForm;
 import com.server.admin.service.AdminResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -25,6 +26,20 @@ public class AdminResumeController {
     public String detail(@PathVariable Long id, Model model) {
         model.addAttribute("resume", adminResumeService.getResumeDetail(id));
         return "admin/resumes/detail";
+    }
+
+    // 이력서 신규 생성
+    @GetMapping("/new")
+    public String newForm(Model model) {
+        model.addAttribute("resumeForm", new AdminResumeForm());
+        return "admin/resumes/form";
+    }
+
+    // 이력서 생성 요청
+    @PostMapping("/new")
+    public String create(@ModelAttribute("resumeForm") AdminResumeForm form) {
+        Long id = adminResumeService.createFromAdmin(form);
+        return "redirect:/admin/resumes/" + id;
     }
 
     // 소프트 삭제

@@ -11,14 +11,8 @@ import java.util.Optional;
 
 public interface ResumeRepository extends JpaRepository<Resume, Long> {
     @Query("""
-        select distinct r from Resume r
+        select r from Resume r
         left join fetch r.jobDescription jd
-        left join fetch r.educations edu
-        left join fetch r.experiences exp
-        left join fetch r.skills rs
-        left join fetch rs.skill s
-        left join fetch r.activities act
-        left join fetch r.certifications cert
         where r.id = :id
         """)
     Optional<Resume> findByIdWithDetails(@Param("id") Long id);

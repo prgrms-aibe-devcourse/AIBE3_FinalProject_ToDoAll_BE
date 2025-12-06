@@ -15,6 +15,7 @@ import com.server.resume.repository.ResumeRepository;
 import com.server.resume.service.ResumeService;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -63,8 +64,18 @@ public class AdminResumeService {
 
     @Transactional(readOnly = true)
     public Resume getResumeDetail(Long resumeId) {
-        return resumeRepository.findByIdWithDetails(resumeId)
+        Resume resume = resumeRepository.findByIdWithDetails(resumeId)
                 .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+
+        Hibernate.initialize(resume.getEducations());
+        Hibernate.initialize(resume.getExperiences());
+        Hibernate.initialize(resume.getActivities());
+        Hibernate.initialize(resume.getCertifications());
+        Hibernate.initialize(resume.getSkills());
+        
+        resume.getSkills().forEach(rs -> Hibernate.initialize(rs.getSkill()));
+
+        return resume;
     }
 
     @Transactional

@@ -43,6 +43,15 @@ public class AdminJdController {
         return "redirect:/admin/jds/" + id;
     }
 
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        JobDescription jd = adminJdService.getDetail(id);
+        AdminJdForm form = AdminJdForm.from(jd);
+        model.addAttribute("jdForm", form);
+        model.addAttribute("jdId", id);
+        return "admin/jds/edit-form";
+    }
+
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id) {
         adminJdService.softDelete(id);

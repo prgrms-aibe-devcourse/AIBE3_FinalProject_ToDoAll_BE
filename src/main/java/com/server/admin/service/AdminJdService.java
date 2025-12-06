@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.admin.dto.AdminJdForm;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.*;
+import com.server.jd.dto.JobDescriptionUpdateRequestDto;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
 import com.server.jd.repository.JobPreferredSkillRepository;
@@ -91,6 +92,38 @@ public class AdminJdService {
         savePreferredSkills(jd, preferred);
 
         return jd.getId();
+    }
+
+    @Transactional
+    public void updateFromAdmin(Long id, AdminJdForm form) {
+        JobDescription jd = jdRepository.findByIdFetchSkills(id)
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+
+        JobDescriptionUpdateRequestDto dto = new JobDescriptionUpdateRequestDto(
+                form.getTitle(),
+                form.getDepartment(),
+                form.getWorkType(),
+                form.getExperience(),
+                form.getEducation(),
+                form.getSalary(),
+                form.getDescription(),
+                form.getDeadline() != null && !form.getDeadline().isBlank()
+                        ? LocalDate.parse(form.getDeadline())
+                        : null,
+                form.getBenefits(),
+                form.getLocation(),
+                form.getThumbnailUrl(),
+                parseSkillsFlexible(form.getRequiredSkills()),
+                parseSkillsFlexible(form.getPreferredSkills())
+        );
+
+        // 엔티티 필드 업데이트
+        jd.update(dto);
+
+        jobRequiredSkillRepository.deleteByJobId(jd.getId());
+        jobPreferredSkillRepository.deleteByJobId(jd.getId());
+        saveRequiredSkills(jd, dto.requiredSkills());
+        savePreferredSkills(jd, dto.preferredSkills());
     }
 
     private void saveRequiredSkills(JobDescription jd, List<String> skills) {

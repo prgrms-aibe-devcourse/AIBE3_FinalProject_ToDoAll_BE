@@ -1,9 +1,13 @@
 package com.server.admin.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.server.admin.dto.AdminResumeForm;
 import com.server.global.exception.ApplicationException;
 import com.server.resume.domain.Resume;
+import com.server.resume.dto.ResumeCreateRequestDto;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
+import com.server.resume.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +19,30 @@ import java.util.List;
 public class AdminResumeService {
 
     private final ResumeRepository resumeRepository;
+    private final ResumeService resumeService;
+    private final ObjectMapper objectMapper;
+
+
+    @Transactional
+    public Long createFromAdmin(AdminResumeForm form) {
+
+        if (form.getJobDescriptionId() == null) {
+            throw new ApplicationException(ResumeErrorCase.JD_NOT_FOUND);
+        }
+
+        try {
+            // JSON → ResumeCreateRequestDto 변환
+            ResumeCreateRequestDto dto = objectMapper.readValue(
+                    form.toJson(),
+                    ResumeCreateRequestDto.class
+            );
+
+            return resumeService.createResume(dto).id();
+
+        } catch (Exception e) {
+            throw new ApplicationException(ResumeErrorCase.INVALID_DATA);
+        }
+    }
 
     @Transactional(readOnly = true)
     public List<Resume> getAllResumes() {

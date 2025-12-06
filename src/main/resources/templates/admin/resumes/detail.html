@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::body})}">
+<body>
+
+<div class="admin-page-header">
+    <div>
+        <div class="admin-page-title">이력서 상세</div>
+        <div class="admin-page-subtitle">지원자의 정보를 상세 확인할 수 있습니다.</div>
+    </div>
+    <a href="/admin/resumes" class="admin-button admin-button-secondary">목록으로</a>
+</div>
+
+<div class="admin-card">
+    <p><strong>ID</strong> <span th:text="${resume.id}"></span></p>
+    <p><strong>이름</strong> <span th:text="${resume.name}"></span></p>
+    <p><strong>성별</strong> <span th:text="${resume.gender}"></span></p>
+    <p><strong>생년월일</strong> <span th:text="${resume.birthDate}"></span></p>
+    <p><strong>이메일</strong> <span th:text="${resume.email}"></span></p>
+    <p><strong>전화번호</strong> <span th:text="${resume.phone}"></span></p>
+    <p><strong>주소</strong> <span th:text="${resume.address}"></span></p>
+    <p><strong>상세주소</strong> <span th:text="${resume.detailAddress}"></span></p>
+</div>
+
+<div class="admin-card" style="margin-top:1rem;">
+    <div class="admin-card-header">보유 스킬</div>
+    <div>
+        <span th:each="s : ${resume.skills}" th:text="${s}"
+              style="display:inline-block; margin:0 .25rem .25rem 0;
+                     padding:.2rem .5rem; background:#eef2ff; border-radius:999px;">
+        </span>
+    </div>
+</div>
+
+<div style="margin-top:1.25rem;">
+    <a th:href="@{|/admin/jds/${resume.jobDescription.id}|}" class="btn btn-primary">채용공고 상세 보기</a>
+</div>
+
+</body>
+</html>

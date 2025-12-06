@@ -31,15 +31,24 @@
             <td th:text="${r.id}"></td>
             <td>
                 <span th:if="${r.jobDescription != null}">
-                    <span th:text="'#' + ${r.jobDescription.id}"></span>
-                    <span th:text="${r.jobDescription.title}"></span>
+                    <a th:href="@{|/admin/jds/${r.jobDescription.id}|}"
+                       style="font-weight:600;">
+                        <span th:text="'#' + ${r.jobDescription.id}"></span>
+                        &nbsp;
+                        <span th:text="${r.jobDescription.title}"></span>
+                    </a>
                 </span>
                 <span th:if="${r.jobDescription == null}" style="color:#9ca3af;">
                     (연결된 채용공고 없음)
                 </span>
             </td>
 
-            <td th:text="${r.name}"></td>
+            <td>
+                <a th:href="@{|/admin/resumes/${r.id}|}"
+                   th:text="${r.name}"
+                   style="font-weight:600; text-decoration:underline; cursor:pointer;">
+                </a>
+            </td>
             <td th:text="${r.email}"></td>
             <td th:text="${r.status}"></td>
 

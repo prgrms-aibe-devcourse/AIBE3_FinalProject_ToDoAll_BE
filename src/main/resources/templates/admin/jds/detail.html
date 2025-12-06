@@ -35,7 +35,7 @@
     <div class="admin-card">
         <div class="admin-card-header">복지 및 썸네일</div>
         <p><strong>복지</strong></p>
-        <p th:text="${jd.welfare}">복지 내용</p>
+        <p th:text="${jd.benefits}">복지내용</p>
 
         <p><strong>썸네일 URL</strong></p>
         <p>
@@ -64,6 +64,11 @@
             </span>
         </div>
     </div>
+</div>
+
+<div style="margin-top:1.25rem;">
+    <a href="/admin/jds" class="btn btn-secondary" style="margin-right:0.5rem;">목록으로</a>
+    <a href="/admin/jds/new" class="btn">새 공고 등록</a>
 </div>
 
 <div style="margin-top:1rem;">

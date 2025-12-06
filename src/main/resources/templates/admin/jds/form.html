@@ -51,13 +51,13 @@
                 <label>썸네일 URL</label>
                 <input type="text" th:field="*{thumbnailUrl}" class="admin-input">
 
-                <label>필수 기술 (콤마 구분)</label>
+                <label>필수 기술</label>
                 <input type="text" th:field="*{requiredSkills}" class="admin-input"
-                       placeholder="spring, jpa, redis, java, mysql">
+                       placeholder='예시: ["spring","jpa","redis"] 또는 spring, jpa, redis'>
 
-                <label>우대 기술 (콤마 구분)</label>
+                <label>우대 기술</label>
                 <input type="text" th:field="*{preferredSkills}" class="admin-input"
-                       placeholder="python, kafka, docker, aws">
+                       placeholder='예시: ["python","kafka","docker","aws"] 또는 python, kafka, docker, aws'>
             </div>
         </div>
 

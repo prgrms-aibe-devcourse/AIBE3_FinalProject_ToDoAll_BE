@@ -14,68 +14,95 @@
 <div class="admin-card">
     <form th:action="@{/admin/resumes/new}" th:object="${resumeForm}" method="post">
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-            <div>
-                <label>지원자 이름</label>
+        <div class="admin-form-grid">
+
+            <div class="admin-form-group">
+                <label class="admin-label">지원자 이름</label>
                 <input type="text" th:field="*{name}" class="admin-input" required>
+            </div>
 
-                <label>성별</label>
-                <input type="text" th:field="*{gender}" class="admin-input" placeholder="남성 / 여성" required>
+            <div class="admin-form-group">
+                <label class="admin-label">성별</label>
+                <input type="text" th:field="*{gender}" class="admin-input"
+                       placeholder="남성 / 여성" required>
+            </div>
 
-                <label>생년월일 (yyyy-MM-dd)</label>
-                <input type="text" th:field="*{birthDate}" class="admin-input" placeholder="1992-05-14" required>
+            <div class="admin-form-group">
+                <label class="admin-label">생년월일 (yyyy-MM-dd)</label>
+                <input type="text" th:field="*{birthDate}" class="admin-input"
+                       placeholder="1992-05-14" required>
+            </div>
 
-                <label>이메일</label>
+            <div class="admin-form-group">
+                <label class="admin-label">이메일</label>
                 <input type="email" th:field="*{email}" class="admin-input">
+            </div>
 
-                <label>전화번호</label>
+            <div class="admin-form-group">
+                <label class="admin-label">전화번호</label>
                 <input type="text" th:field="*{phone}" class="admin-input">
+            </div>
 
-                <label>주소</label>
+            <div class="admin-form-group">
+                <label class="admin-label">주소</label>
                 <input type="text" th:field="*{address}" class="admin-input">
+            </div>
 
-                <label>상세 주소</label>
+            <div class="admin-form-group">
+                <label class="admin-label">상세 주소</label>
                 <input type="text" th:field="*{detailAddress}" class="admin-input">
+            </div>
 
-                <label>채용공고 ID (jobDescriptionId)</label>
+            <div class="admin-form-group">
+                <label class="admin-label">채용공고 ID (jobDescriptionId)</label>
                 <input type="number" th:field="*{jobDescriptionId}" class="admin-input" required>
             </div>
 
-            <div>
-                <label>이력서 파일 URL</label>
+            <div class="admin-form-group">
+                <label class="admin-label">이력서 파일 URL</label>
                 <input type="text" th:field="*{resumeFileUrl}" class="admin-input">
+            </div>
 
-                <label>포트폴리오 파일 URL</label>
+            <div class="admin-form-group">
+                <label class="admin-label">포트폴리오 파일 URL</label>
                 <input type="text" th:field="*{portfolioFileUrl}" class="admin-input">
-
-                <label>Skills JSON</label>
-                <textarea th:field="*{skillsJson}" class="admin-textarea" rows="4"
-                          placeholder='[{"skillName":"spring","proficiencyLevel":"EXPERT"}]'></textarea>
-
-                <label>Experience JSON</label>
-                <textarea th:field="*{experienceJson}" class="admin-textarea" rows="4"
-                          placeholder='[{"companyName":"카카오","department":"AI","position":"백엔드","startDate":"2018-01-01","endDate":"2022-12-31"}]'></textarea>
-
-                <label>Education JSON</label>
-                <textarea th:field="*{educationJson}" class="admin-textarea" rows="4"
-                          placeholder='[{"educationLevel":"UNIVERSITY_ABOVE","schoolName":"서울대","major":"컴공","isGraduated":true,"admissionDate":"2011-03-01","graduationDate":"2015-02-28","attendanceType":"DAY","gpa":4.04,"gpaScale":4.5}]'></textarea>
             </div>
         </div>
 
-        <div style="margin-top:1rem;">
-            <label>Activities JSON</label>
-            <textarea th:field="*{activitiesJson}" class="admin-textarea" rows="4"
-                      placeholder='[{"title":"GitHub Contributor","type":"ACTIVITY","organization":"TensorFlow 팀"}]'></textarea>
+        <div class="admin-form-grid" style="margin-top:1rem;">
+            <div class="admin-form-group">
+                <label class="admin-label">Skills JSON</label>
+                <textarea th:field="*{skillsJson}" class="admin-textarea" rows="4"
+                          placeholder='[{"skillName":"spring","proficiencyLevel":"EXPERT"}]'></textarea>
+            </div>
+
+            <div class="admin-form-group">
+                <label class="admin-label">Experience JSON</label>
+                <textarea th:field="*{experienceJson}" class="admin-textarea" rows="4"
+                          placeholder='[{"companyName":"카카오","department":"AI","position":"백엔드","startDate":"2018-01-01","endDate":"2022-12-31"}]'></textarea>
+            </div>
+
+            <div class="admin-form-group">
+                <label class="admin-label">Education JSON</label>
+                <textarea th:field="*{educationJson}" class="admin-textarea" rows="4"
+                          placeholder='[{"educationLevel":"UNIVERSITY_ABOVE","schoolName":"서울대","major":"컴공","isGraduated":true,"admissionDate":"2011-03-01","graduationDate":"2015-02-28","attendanceType":"DAY","gpa":4.04,"gpaScale":4.5}]'></textarea>
+            </div>
+
+            <div class="admin-form-group">
+                <label class="admin-label">Activities JSON</label>
+                <textarea th:field="*{activitiesJson}" class="admin-textarea" rows="4"
+                          placeholder='[{"title":"GitHub Contributor","type":"ACTIVITY","organization":"TensorFlow 팀"}]'></textarea>
+            </div>
+
+            <div class="admin-form-group">
+                <label class="admin-label">Certifications JSON</label>
+                <textarea th:field="*{certificationsJson}" class="admin-textarea" rows="4"
+                          placeholder='[{"name":"정보처리기사","type":"LICENSE","scoreOrLevel":"합격"}]'></textarea>
+            </div>
         </div>
 
-        <div style="margin-top:1rem;">
-            <label>Certifications JSON</label>
-            <textarea th:field="*{certificationsJson}" class="admin-textarea" rows="4"
-                      placeholder='[{"name":"정보처리기사","type":"LICENSE","scoreOrLevel":"합격"}]'></textarea>
-        </div>
-
-        <div style="margin-top:1.5rem; text-align:right;">
-            <a th:href="@{/admin/resumes}" class="btn btn-secondary" style="margin-right:0.5rem;">취소</a>
+        <div class="admin-actions-right">
+            <a th:href="@{/admin/resumes}" class="btn btn-secondary">취소</a>
             <button type="submit" class="btn">저장</button>
         </div>
     </form>

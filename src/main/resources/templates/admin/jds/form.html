@@ -9,65 +9,91 @@
             관리자 권한으로 새로운 채용공고를 등록합니다.
         </div>
     </div>
+    <a th:href="@{/admin/jds}" class="admin-button admin-button-secondary">목록으로</a>
 </div>
 
 <div class="admin-card">
-    <form th:action="@{/admin/jds/new}" th:object="${jdForm}" method="post">
+    <form th:action="@{/admin/jds/new}" th:object="${jdForm}" method="post"
+          class="admin-form">
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-            <div>
-                <label>제목</label>
+        <div class="admin-form-grid">
+
+            <div class="admin-form-group">
+                <label class="admin-label">제목</label>
                 <input type="text" th:field="*{title}" class="admin-input" required>
+            </div>
 
-                <label>부서</label>
+            <div class="admin-form-group">
+                <label class="admin-label">부서</label>
                 <input type="text" th:field="*{department}" class="admin-input">
+            </div>
 
-                <label>근무형태</label>
+            <div class="admin-form-group">
+                <label class="admin-label">근무형태</label>
                 <input type="text" th:field="*{workType}" class="admin-input">
+            </div>
 
-                <label>경력</label>
+            <div class="admin-form-group">
+                <label class="admin-label">경력</label>
                 <input type="text" th:field="*{experience}" class="admin-input">
+            </div>
 
-                <label>학력</label>
+            <div class="admin-form-group">
+                <label class="admin-label">학력</label>
                 <input type="text" th:field="*{education}" class="admin-input">
+            </div>
 
-                <label>급여</label>
+            <div class="admin-form-group">
+                <label class="admin-label">급여</label>
                 <input type="text" th:field="*{salary}" class="admin-input">
+            </div>
 
-                <label>마감일 (yyyy-MM-dd)</label>
-                <input type="text" th:field="*{deadline}" class="admin-input" placeholder="2025-12-31">
+            <div class="admin-form-group">
+                <label class="admin-label">마감일 (yyyy-MM-dd)</label>
+                <input type="text" th:field="*{deadline}" class="admin-input"
+                       placeholder="2025-12-31">
+            </div>
 
-                <label>근무지</label>
+            <div class="admin-form-group">
+                <label class="admin-label">근무지</label>
                 <input type="text" th:field="*{location}" class="admin-input">
+            </div>
 
-                <label>작성자 ID (authorId)</label>
+            <div class="admin-form-group">
+                <label class="admin-label">작성자 ID (authorId)</label>
                 <input type="number" th:field="*{authorId}" class="admin-input" required>
             </div>
 
-            <div>
-                <label>복지</label>
-                <textarea th:field="*{welfare}" class="admin-textarea" rows="4"></textarea>
-
-                <label>썸네일 URL</label>
+            <div class="admin-form-group">
+                <label class="admin-label">썸네일 URL</label>
                 <input type="text" th:field="*{thumbnailUrl}" class="admin-input">
+            </div>
 
-                <label>필수 기술</label>
+            <div class="admin-form-group full">
+                <label class="admin-label">복지 (welfare)</label>
+                <textarea th:field="*{welfare}" class="admin-textarea" rows="3"></textarea>
+            </div>
+
+            <div class="admin-form-group">
+                <label class="admin-label">필수 기술</label>
                 <input type="text" th:field="*{requiredSkills}" class="admin-input"
-                       placeholder='예시: ["spring","jpa","redis"] 또는 spring, jpa, redis'>
+                       placeholder='["spring","jpa","redis","java","mysql"] 또는 spring,jpa,redis'>
+            </div>
 
-                <label>우대 기술</label>
+            <div class="admin-form-group">
+                <label class="admin-label">우대 기술</label>
                 <input type="text" th:field="*{preferredSkills}" class="admin-input"
-                       placeholder='예시: ["python","kafka","docker","aws"] 또는 python, kafka, docker, aws'>
+                       placeholder='["python","kafka","docker","aws"] 또는 python,kafka,docker'>
             </div>
         </div>
 
-        <div style="margin-top:1rem;">
-            <label>상세 설명</label>
-            <textarea th:field="*{description}" class="admin-textarea" rows="8"></textarea>
+        <div class="admin-form-group full">
+            <label class="admin-label">상세 설명</label>
+            <textarea th:field="*{description}" class="admin-textarea" rows="6"></textarea>
         </div>
 
-        <div style="margin-top:1.5rem; text-align:right;">
-            <a th:href="@{/admin/jds}" class="btn btn-secondary" style="margin-right:0.5rem;">취소</a>
+        <div class="admin-actions-right">
+            <a th:href="@{/admin/jds}" class="btn btn-secondary">취소</a>
             <button type="submit" class="btn">저장</button>
         </div>
     </form>

@@ -21,14 +21,14 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
         left join fetch r.certifications cert
         where r.id = :id
         """)
-    Optional<Resume> findByIdWithDetails(@Param("resumeId") Long resumeId);
+    Optional<Resume> findByIdWithDetails(@Param("id") Long id);
 
     @Query("""
-    SELECT DISTINCT r FROM Resume r
-    LEFT JOIN FETCH r.jobDescription
-    LEFT JOIN FETCH r.educations 
-    WHERE r.id = :resumeId
-""")
+        SELECT DISTINCT r FROM Resume r
+        LEFT JOIN FETCH r.jobDescription
+        LEFT JOIN FETCH r.educations 
+        WHERE r.id = :resumeId
+        """)
     Optional<Resume> findWithEssentialDetailsById(@Param("resumeId") Long resumeId);
 
     @Query("""

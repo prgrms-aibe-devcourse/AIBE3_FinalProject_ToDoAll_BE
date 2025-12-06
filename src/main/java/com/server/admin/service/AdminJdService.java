@@ -1,5 +1,7 @@
 package com.server.admin.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.admin.dto.AdminJdForm;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.*;
@@ -30,6 +32,7 @@ public class AdminJdService {
     private final SkillRepository skillRepository;
     private final JobRequiredSkillRepository jobRequiredSkillRepository;
     private final JobPreferredSkillRepository jobPreferredSkillRepository;
+    private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
     public List<JobDescription> getAll() {
@@ -59,7 +62,6 @@ public class AdminJdService {
             deadline = LocalDate.parse(form.getDeadline());
         }
 
-        // 공고 생성
         JobDescription jd = JobDescription.of(
                 form.getTitle(),
                 form.getDepartment(),
@@ -81,17 +83,18 @@ public class AdminJdService {
         jdRepository.save(jd);
         jdRepository.flush();
 
-        // 필수 스킬
-        saveRequiredSkills(jd, form.getRequiredSkills());
+        // JSON 배열 또는 CSV 모두 처리
+        List<String> required = parseSkillsFlexible(form.getRequiredSkills());
+        List<String> preferred = parseSkillsFlexible(form.getPreferredSkills());
 
-        // 우대 스킬
-        savePreferredSkills(jd, form.getPreferredSkills());
+        saveRequiredSkills(jd, required);
+        savePreferredSkills(jd, preferred);
 
         return jd.getId();
     }
 
-    private void saveRequiredSkills(JobDescription jd, String csv) {
-        for (String skillName : parseSkills(csv)) {
+    private void saveRequiredSkills(JobDescription jd, List<String> skills) {
+        for (String skillName : skills) {
             String normalized = skillName.trim().toLowerCase();
             Skill skill = skillRepository.findByName(normalized)
                     .orElseGet(() -> skillRepository.save(Skill.of(normalized)));
@@ -99,8 +102,8 @@ public class AdminJdService {
         }
     }
 
-    private void savePreferredSkills(JobDescription jd, String csv) {
-        for (String skillName : parseSkills(csv)) {
+    private void savePreferredSkills(JobDescription jd, List<String> skills) {
+        for (String skillName : skills) {
             String normalized = skillName.trim().toLowerCase();
             Skill skill = skillRepository.findByName(normalized)
                     .orElseGet(() -> skillRepository.save(Skill.of(normalized)));
@@ -108,14 +111,19 @@ public class AdminJdService {
         }
     }
 
-    private List<String> parseSkills(String csv) {
-        if (!StringUtils.hasText(csv)) {
-            return List.of();
+    private List<String> parseSkillsFlexible(String input) {
+        if (!StringUtils.hasText(input)) return List.of();
+
+        try {
+            // JSON
+            return objectMapper.readValue(input, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            // CSV
+            return Arrays.stream(input.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
         }
-        return Arrays.stream(csv.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toList();
     }
 
     @Transactional

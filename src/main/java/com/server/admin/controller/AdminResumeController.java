@@ -20,6 +20,13 @@ public class AdminResumeController {
         return "admin/resumes/list";
     }
 
+    // 이력서 상세 
+    @GetMapping("/{id}")
+    public String detail(@PathVariable Long id, Model model) {
+        model.addAttribute("resume", adminResumeService.getResumeDetail(id));
+        return "admin/resumes/detail";
+    }
+
     // 소프트 삭제
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id) {

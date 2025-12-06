@@ -67,6 +67,11 @@
 
             <td th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd')}"></td>
             <td style="text-align:right;">
+                <a th:href="@{|/admin/resumes/${r.id}/edit|}"
+                   class="admin-btn-primary"
+                   style="margin-right:0.5rem;">
+                    수정
+                </a>
 
                 <form th:if="${r.deletedAt == null}"
                       th:action="@{|/admin/resumes/${r.id}/delete|}" method="post"

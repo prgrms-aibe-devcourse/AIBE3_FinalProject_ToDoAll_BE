@@ -36,6 +36,12 @@
     <a th:href="@{|/admin/jds/${resume.jobDescription.id}|}" class="btn btn-primary">채용공고 상세 보기</a>
 </div>
 
+<div style="margin-top:1.25rem;">
+    <a th:href="@{|/admin/resumes/${resume.id}/edit|}" class="btn admin-button-primary">
+        이력서 수정하기
+    </a>
+</div>
+
 <a href="/admin/resumes/new" class="btn admin-button-secondary">새 이력서 등록</a>
 
 </body>

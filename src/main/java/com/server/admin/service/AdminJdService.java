@@ -74,7 +74,7 @@ public class AdminJdService {
                 null,
                 deadline,
                 JobStatus.OPEN,
-                form.getBenefits(),
+                form.getWelfare(),
                 0L,
                 form.getLocation(),
                 form.getThumbnailUrl(),
@@ -110,7 +110,7 @@ public class AdminJdService {
                 form.getDeadline() != null && !form.getDeadline().isBlank()
                         ? LocalDate.parse(form.getDeadline())
                         : null,
-                form.getBenefits(),
+                form.getWelfare(),
                 form.getLocation(),
                 form.getThumbnailUrl(),
                 parseSkillsFlexible(form.getRequiredSkills()),

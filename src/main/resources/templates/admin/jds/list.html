@@ -6,14 +6,17 @@
 <div class="admin-page-header">
     <div>
         <div class="admin-page-title">채용공고 관리</div>
-        <div class="admin-page-subtitle">등록된 모든 채용공고의 상태 및 노출을 관리합니다.</div>
+        <div class="admin-page-subtitle">
+            등록된 모든 채용공고의 상태 및 노출을 관리합니다.
+        </div>
     </div>
 </div>
 
+<div style="text-align:right; margin-bottom:1rem;">
+    <a href="/admin/jds/new" class="btn">새 공고 등록</a>
+</div>
+
 <div class="admin-table-wrapper">
-    <div style="text-align:right; margin-bottom:1rem;">
-        <a href="/admin/jds/new" class="btn">새 채용공고 등록</a>
-    </div>
     <table class="admin-table">
         <thead>
         <tr>
@@ -24,15 +27,19 @@
             <th>지원자 수</th>
             <th>등록일</th>
             <th style="text-align:right;">관리</th>
-            <a th:href="@{|/admin/jds/${jd.id}/edit|}" class="admin-btn-primary" style="margin-right:0.3rem;">수정</a>
         </tr>
         </thead>
         <tbody>
+
         <tr th:each="jd : ${jds}">
             <td th:text="${jd.id}"></td>
+
             <td>
-                <a th:href="@{|/admin/jds/${jd.id}|}" th:text="${jd.title}"></a>
+                <a th:href="@{|/admin/jds/${jd.id}|}"
+                   th:text="${jd.title}">
+                </a>
             </td>
+
             <td>
                 <form th:action="@{|/admin/jds/${jd.id}/status|}" method="post">
                     <select name="status" class="admin-select" onchange="this.form.submit()">
@@ -46,14 +53,27 @@
             </td>
 
             <td>
-                <span th:if="${jd.deletedAt == null}" style="color:#10b981; font-weight:600;">ACTIVE</span>
-                <span th:if="${jd.deletedAt != null}" style="color:#ef4444; font-weight:600;">DELETED</span>
+                <span th:if="${jd.deletedAt == null}"
+                      style="color:#10b981; font-weight:600;">
+                    ACTIVE
+                </span>
+                <span th:if="${jd.deletedAt != null}"
+                      style="color:#ef4444; font-weight:600;">
+                    DELETED
+                </span>
             </td>
 
             <td th:text="${jd.applicantCount}"></td>
+
             <td th:text="${#temporals.format(jd.createdAt, 'yyyy-MM-dd')}"></td>
 
             <td style="text-align:right;">
+                <a th:href="@{|/admin/jds/${jd.id}/edit|}"
+                   class="admin-btn-primary"
+                   style="margin-right:0.5rem;">
+                    수정
+                </a>
+
                 <form th:if="${jd.deletedAt == null}"
                       th:action="@{|/admin/jds/${jd.id}/delete|}" method="post"
                       style="display:inline">
@@ -73,6 +93,7 @@
                 등록된 채용공고가 없습니다.
             </td>
         </tr>
+
         </tbody>
     </table>
 </div>

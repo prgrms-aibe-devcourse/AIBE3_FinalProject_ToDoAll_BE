@@ -21,6 +21,12 @@ public class AdminResumeService {
         return resumeRepository.findAllWithJobDescriptionOrderByCreatedAtDesc();
     }
 
+    @Transactional(readOnly = true)
+    public Resume getResumeDetail(Long resumeId) {
+        return resumeRepository.findByIdWithDetails(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+    }
+
     @Transactional
     public void softDelete(Long resumeId) {
         Resume resume = resumeRepository.findById(resumeId)

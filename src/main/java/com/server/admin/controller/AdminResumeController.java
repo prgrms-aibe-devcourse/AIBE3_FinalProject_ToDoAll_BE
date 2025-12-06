@@ -20,7 +20,7 @@ public class AdminResumeController {
         return "admin/resumes/list";
     }
 
-    // 이력서 상세 
+    // 이력서 상세
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
         model.addAttribute("resume", adminResumeService.getResumeDetail(id));

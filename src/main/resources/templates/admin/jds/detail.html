@@ -67,11 +67,12 @@
 </div>
 
 <div style="margin-top:1.25rem;">
-    <a href="/admin/jds" class="btn btn-secondary" style="margin-right:0.5rem;">목록으로</a>
     <a href="/admin/jds/new" class="btn">새 공고 등록</a>
+    <a href="/admin/jds" class="btn btn-secondary" style="margin-right:0.5rem;">목록으로</a>
 </div>
 
 <div style="margin-top:1rem;">
+    <a th:href="@{|/admin/jds/${jd.id}/edit|}" class="btn btn-primary" style="margin-right:0.5rem;">수정</a>
     <a th:href="@{/admin/jds}" class="btn btn-secondary">목록으로</a>
 </div>
 </body>

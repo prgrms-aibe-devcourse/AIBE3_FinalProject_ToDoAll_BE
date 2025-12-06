@@ -43,6 +43,13 @@ public class AdminJdController {
         return "redirect:/admin/jds/" + id;
     }
 
+    @PostMapping("/{id}/edit")
+    public String update(@PathVariable Long id,
+                         @ModelAttribute("jdForm") AdminJdForm form) {
+        adminJdService.updateFromAdmin(id, form);
+        return "redirect:/admin/jds/" + id;
+    }
+
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         JobDescription jd = adminJdService.getDetail(id);

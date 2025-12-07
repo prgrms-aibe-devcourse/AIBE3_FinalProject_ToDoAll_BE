@@ -1,6 +1,6 @@
 package com.server.dashboard.dto;
 
-public interface CountByStatus {
+public interface CountByStatusInterface {
     String getStatus();
     int getCount();
 }

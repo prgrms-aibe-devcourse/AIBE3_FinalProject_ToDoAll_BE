@@ -1,6 +1,6 @@
 package com.server.dashboard.repository;
 
-import com.server.dashboard.dto.CountByStatus;
+import com.server.dashboard.dto.CountByStatusInterface;
 import com.server.dashboard.dto.JobStatsInterface;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.JobStatus;
@@ -24,7 +24,7 @@ public interface DashboardJobRepository extends JpaRepository<JobDescription,Lon
         left join job_descriptions jd on label.status = jd.status
         group by label.status;
     """, nativeQuery = true)
-    List<CountByStatus> findCountByJobStatus();
+    List<CountByStatusInterface> findCountByJobStatus();
 
     @Query(value= """
         select
@@ -48,5 +48,5 @@ public interface DashboardJobRepository extends JpaRepository<JobDescription,Lon
             where jd.status != 'DRAFT'
             group by jd.id) as result;
     """, nativeQuery = true)
-    List<JobStatsInterface> findJobStatsForOpenJobs();
+    List<JobStatsInterface> findJobStatsForEachJobs();
 }

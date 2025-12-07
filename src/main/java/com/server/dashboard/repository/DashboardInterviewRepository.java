@@ -1,6 +1,6 @@
 package com.server.dashboard.repository;
 
-import com.server.dashboard.dto.CountByStatus;
+import com.server.dashboard.dto.CountByStatusInterface;
 import com.server.dashboard.dto.UpComingInterviewInterface;
 import com.server.dashboard.dto.WeekCalendarInterface;
 import com.server.interview.domain.Interview;
@@ -48,7 +48,7 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
         left join interview iv on label.status = iv.status
         group by label.status
     """, nativeQuery = true)
-    List<CountByStatus> findCountByInterviewStatus();
+    List<CountByStatusInterface> findCountByInterviewStatus();
 
     @Query(value= """
         select id, title, time, type from

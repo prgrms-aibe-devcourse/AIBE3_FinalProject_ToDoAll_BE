@@ -5,21 +5,20 @@ import java.time.LocalDateTime;
 import static com.server.dashboard.util.Formatter.formatterDateDividedSlash;
 import static com.server.dashboard.util.Formatter.formatterTime;
 
-
-public record DashboardUpcomingInterviewResponseDto(
+public record DashboardUpcomingInterviewsResponseDto(
         String interviewDate,
         String applicantName,
         String jobTitle,
         String interviewTime,
         String interviewers
 ) {
-    public static DashboardUpcomingInterviewResponseDto from(
+    public static DashboardUpcomingInterviewsResponseDto from(
             LocalDateTime interviewDateTime,
             String applicantName,
             String jobTitle,
             String interviewers
     ) {
-        return new DashboardUpcomingInterviewResponseDto(
+        return new DashboardUpcomingInterviewsResponseDto(
                 interviewDateTime.format(formatterDateDividedSlash),
                 applicantName,
                 jobTitle,

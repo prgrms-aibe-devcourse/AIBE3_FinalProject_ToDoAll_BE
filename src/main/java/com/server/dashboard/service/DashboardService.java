@@ -29,23 +29,23 @@ public class DashboardService {
     private final DashboardInterviewRepository dashboardRepository;
     private final DashboardJobRepository dashboardJobRepository;
 
-    private List<JobDescription> findOpenJobs() {
+    private List<JobDescription> findActiveJobs() {
         return dashboardJobRepository.findAllByStatus(JobStatus.OPEN);
     }
 
-    private List<Interview> findInterviewsBySchedule() {
+    private List<Interview> findScheduledInterviews() {
         LocalDateTime startDay = LocalDateTime.now();
         LocalDateTime endDay = startDay.plusDays(7);
         return dashboardRepository.findByScheduledAtBetween(startDay, endDay);
     }
 
     private <E extends Enum<E>> EnumMap<E, Integer> toEnumCountMap(
-            List<? extends CountByStatus> statusList,
+            List<? extends CountByStatusInterface> statusList,
             Class<E> enumType
     ) {
         EnumMap<E, Integer> map = new EnumMap<>(enumType);
 
-        for (CountByStatus r : statusList) {
+        for (CountByStatusInterface r : statusList) {
             E status = Enum.valueOf(enumType, r.getStatus());
             map.put(status, r.getCount());
         }
@@ -54,17 +54,17 @@ public class DashboardService {
     }
 
     public int getActiveJobsCount() {
-        return findOpenJobs().size();
+        return findActiveJobs().size();
     }
 
-    public long getAllApplicantsByJobStatus() {
-        List<JobDescription> jobDescriptions = findOpenJobs();
+    public long getApplicantsCountOfActiveJobs() {
+        List<JobDescription> jobDescriptions = findActiveJobs();
         return jobDescriptions.stream()
                 .mapToLong(JobDescription::getApplicantCount).sum();
     }
 
-    public int getWeekInterviewsCount() {
-        return findInterviewsBySchedule().size();
+    public int getScheduledInterviewsCount() {
+        return findScheduledInterviews().size();
     }
 
     public long getMonthHiredCount() {
@@ -74,11 +74,10 @@ public class DashboardService {
         return dashboardRepository.findByScheduledAtBetweenAndResult(oneMonthAgo, now, InterviewResult.PASS).size();
     }
 
-    public List<DashboardDetailJobResultResponseDto> getApplicantStatusForEachJob() {
-
-        return dashboardJobRepository.findJobStatsForOpenJobs().stream()
+    public List<DashboardApplicantStatsResponseDto> getApplicantStatsForEachJob() {
+        return dashboardJobRepository.findJobStatsForEachJobs().stream()
             .map(stats->{
-                return new DashboardDetailJobResultResponseDto(
+                return new DashboardApplicantStatsResponseDto(
                         stats.getTitle(),
                         new ArrayList<>(List.of(
                                 stats.getApplicantCount(),
@@ -91,9 +90,9 @@ public class DashboardService {
             }).toList();
     }
 
-    public List<DashboardUpcomingInterviewResponseDto> getUpComingInterviews() {
+    public List<DashboardUpcomingInterviewsResponseDto> getUpComingInterviews() {
         return dashboardRepository.findByUpComingInterviews().stream()
-            .map((interview)->DashboardUpcomingInterviewResponseDto.from(
+            .map((interview)-> DashboardUpcomingInterviewsResponseDto.from(
                     interview.getScheduledTime(),
                     interview.getApplicantName(),
                     interview.getJobTitle(),
@@ -101,26 +100,26 @@ public class DashboardService {
                 )).toList();
     }
 
-    public DashboardNumByProgressStatusResponseDto getCountByJobStatus() {
+    public DashboardJobStatusResponseDto getCountByJobStatus() {
         Map<JobStatus, Integer> map = toEnumCountMap(
                 dashboardJobRepository.findCountByJobStatus(),
                 JobStatus.class
         );
 
-        return new DashboardNumByProgressStatusResponseDto(
+        return new DashboardJobStatusResponseDto(
                 map.get(JobStatus.OPEN),
                 map.get(JobStatus.DRAFT),
                 map.get(JobStatus.CLOSED)
                 );
     }
 
-    public DashboardNumByProgressStatusResponseDto getCountByInterviewStatus() {
+    public DashboardJobStatusResponseDto getCountByInterviewStatus() {
         Map<InterviewStatus, Integer> map = toEnumCountMap(
                 dashboardRepository.findCountByInterviewStatus(),
                 InterviewStatus.class
         );
 
-        return new DashboardNumByProgressStatusResponseDto(
+        return new DashboardJobStatusResponseDto(
                 map.get(InterviewStatus.IN_PROGRESS),
                 map.get(InterviewStatus.WAITING),
                 map.get(InterviewStatus.DONE)

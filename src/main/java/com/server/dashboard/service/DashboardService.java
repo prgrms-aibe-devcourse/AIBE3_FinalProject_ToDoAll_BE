@@ -31,20 +31,20 @@ public class DashboardService {
     private final DashboardInterviewRepository dashboardInterviewRepository;
     private final DashboardJobRepository dashboardJobRepository;
 
-    private List<JobDescription> findActiveJobs() {
+    private List<JobDescription> findActiveJobs(Long userId) {
         try {
-            return dashboardJobRepository.findAllByStatus(JobStatus.OPEN);
+            return dashboardJobRepository.findByAuthor_IdAndStatus(userId, JobStatus.OPEN);
         } catch (Exception e) {
             throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
         }
     }
 
-    private List<Interview> findScheduledInterviews() {
+    private List<Interview> findScheduledInterviews(Long userId) {
         LocalDateTime startDay = LocalDateTime.now();
         LocalDateTime endDay = startDay.plusDays(7);
 
         try {
-            return dashboardInterviewRepository.findByScheduledAtBetween(startDay, endDay);
+            return dashboardInterviewRepository.findByOrganizer_IdAndScheduledAtBetween(userId, startDay, endDay);
         } catch (Exception e) {
             throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
         }
@@ -68,34 +68,34 @@ public class DashboardService {
         return map;
     }
 
-    public int getActiveJobsCount() {
-        return findActiveJobs().size();
+    public int getActiveJobsCount(Long userId) {
+        return findActiveJobs(userId).size();
     }
 
-    public long getApplicantsCountOfActiveJobs() {
-        List<JobDescription> jobDescriptions = findActiveJobs();
+    public long getApplicantsCountOfActiveJobs(Long userId) {
+        List<JobDescription> jobDescriptions = findActiveJobs(userId);
         return jobDescriptions.stream()
                 .mapToLong(JobDescription::getApplicantCount).sum();
     }
 
-    public int getScheduledInterviewsCount() {
-        return findScheduledInterviews().size();
+    public int getScheduledInterviewsCount(Long userId) {
+        return findScheduledInterviews(userId).size();
     }
 
-    public long getMonthHiredCount() {
+    public long getMonthHiredCount(Long userId) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneMonthAgo = now.minusMonths(1);
 
         try {
-            return dashboardInterviewRepository.findByScheduledAtBetweenAndResult(oneMonthAgo, now, InterviewResult.PASS).size();
+            return dashboardInterviewRepository.findByOrganizer_IdAndResultAndScheduledAtBetween(userId, InterviewResult.PASS, oneMonthAgo, now).size();
         } catch (Exception e) {
             throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
         }
     }
 
-    public List<DashboardApplicantStatsResponseDto> getApplicantStatsForEachJob() {
+    public List<DashboardApplicantStatsResponseDto> getApplicantStatsForEachJob(Long userId) {
         try {
-            return dashboardJobRepository.findJobStatsForEachJobs().stream()
+            return dashboardJobRepository.findJobStatsForEachJobs(userId).stream()
                     .map(stats-> new DashboardApplicantStatsResponseDto(
                             stats.getTitle(),
                             new ArrayList<>(List.of(
@@ -111,9 +111,9 @@ public class DashboardService {
         }
     }
 
-    public List<DashboardUpcomingInterviewsResponseDto> getUpComingInterviews() {
+    public List<DashboardUpcomingInterviewsResponseDto> getUpComingInterviews(Long userId) {
         try {
-            return dashboardInterviewRepository.findByUpComingInterviews().stream()
+            return dashboardInterviewRepository.findByUpComingInterviews(userId).stream()
                     .map((interview)-> DashboardUpcomingInterviewsResponseDto.from(
                             interview.getScheduledTime(),
                             interview.getApplicantName(),
@@ -125,10 +125,10 @@ public class DashboardService {
         }
     }
 
-    public DashboardJobStatusResponseDto getCountByJobStatus() {
+    public DashboardJobStatusResponseDto getCountByJobStatus(Long userId) {
         try {
             Map<JobStatus, Integer> map = toEnumCountMap(
-                    dashboardJobRepository.findCountByJobStatus(),
+                    dashboardJobRepository.findCountByJobStatus(userId),
                     JobStatus.class
             );
 
@@ -142,10 +142,10 @@ public class DashboardService {
         }
     }
 
-    public DashboardJobStatusResponseDto getCountByInterviewStatus() {
+    public DashboardJobStatusResponseDto getCountByInterviewStatus(Long userId) {
         try {
             Map<InterviewStatus, Integer> map = toEnumCountMap(
-                    dashboardInterviewRepository.findCountByInterviewStatus(),
+                    dashboardInterviewRepository.findCountByInterviewStatus(userId),
                     InterviewStatus.class
             );
 
@@ -159,7 +159,7 @@ public class DashboardService {
         }
     }
 
-    public DashboardWeeklyCalendarResponseDto getWeekCalendarData() {
+    public DashboardWeeklyCalendarResponseDto getWeekCalendarData(Long userId) {
 
         LocalDate today = LocalDate.now();
         LocalDate mon = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -167,7 +167,7 @@ public class DashboardService {
 
         List<WeekCalendarInterface> calendarDatas;
         try {
-            calendarDatas =  dashboardInterviewRepository.findWeekCalendarData(mon, sun);
+            calendarDatas =  dashboardInterviewRepository.findWeekCalendarData(userId, mon, sun);
         } catch (Exception e) {
             throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
         }

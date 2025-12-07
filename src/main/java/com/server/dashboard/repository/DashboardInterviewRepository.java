@@ -17,9 +17,9 @@ import java.util.List;
 
 @Repository
 public interface DashboardInterviewRepository extends JpaRepository<Interview, Long> {
-    List<Interview> findByScheduledAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<Interview> findByOrganizer_IdAndScheduledAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
 
-    List<Interview> findByScheduledAtBetweenAndResult(LocalDateTime startDate, LocalDateTime endDate, InterviewResult result);
+    List<Interview> findByOrganizer_IdAndResultAndScheduledAtBetween(Long userId, InterviewResult result, LocalDateTime startDate, LocalDateTime endDate);
 
     @Query(value= """
         select
@@ -29,14 +29,14 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
             rs.name as applicant_name,
             coalesce(group_concat(users.name separator ', '), '미정') as interviewer_name
         from interview iv
-        left join job_descriptions jd on iv.jd_id = jd.id
-        left join resumes rs on iv.resume_id = rs.id
-        left join interview_participant ip on iv.id = ip.interview_id
-        left join users on ip.user_id = users.id
-        where iv.status = 'WAITING'
+             left join job_descriptions jd on iv.jd_id = jd.id
+             left join resumes rs on iv.resume_id = rs.id
+             left join interview_participant ip on iv.id = ip.interview_id
+             left join users on ip.user_id = users.id
+        where iv.organizer_id = :userId and iv.status = 'WAITING'
         group by iv.id, rs.id
     """, nativeQuery = true)
-    List<UpComingInterviewInterface> findByUpComingInterviews();
+    List<UpComingInterviewInterface> findByUpComingInterviews(@Param("userId") Long userId);
 
     @Query(value = """
         select label.status, count(iv.id) as count from
@@ -45,28 +45,35 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
                 union all select 'IN_PROGRESS'
                 union  all select 'DONE'
             ) as label
-        left join interview iv on label.status = iv.status
+                left join interview iv
+                    on label.status = iv.status
+                    and iv.organizer_id = :userId
         group by label.status
     """, nativeQuery = true)
-    List<CountByStatusInterface> findCountByInterviewStatus();
+    List<CountByStatusInterface> findCountByInterviewStatus(@Param("userId") Long userId);
 
     @Query(value= """
-        select id, title, time, type from
-        (
-            select iv.id as id, rs.name as title, iv.scheduled_at as time, 'INTERVIEW' as type from interview iv
+        select id, title, time, type
+        from (
+            select iv.id as id, rs.name as title, iv.scheduled_at as time, 'INTERVIEW' as type
+            from interview iv
             left join resumes rs on iv.resume_id = rs.id
-            where iv.scheduled_at >= :startDate and
-                  iv.scheduled_at <= :endDate
+            where iv.organizer_id = :userId
+              and iv.scheduled_at >= :startDate
+              and iv.scheduled_at <= :endDate
+    
+            union all
+    
+            select jd.id as id, jd.title as title, jd.deadline as time, 'JOB_CLOSE' as type
+            from job_descriptions jd
+            where jd.author_id = :userId
+              and jd.deadline >= :startDate
+              and jd.deadline <= :endDate
         ) calendar
-        union all
-        (
-            select id, title, deadline as time, 'JOB_CLOSE' as type from job_descriptions
-            where deadline >= :startDate and
-                  deadline <= :endDate
-        )
         order by time
     """, nativeQuery = true)
     List<WeekCalendarInterface> findWeekCalendarData(
+            @Param("userId") Long userId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );

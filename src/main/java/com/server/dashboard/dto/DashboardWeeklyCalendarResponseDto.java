@@ -2,9 +2,7 @@ package com.server.dashboard.dto;
 
 import com.server.dashboard.type.CustomDayOfWeek;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,20 +35,8 @@ public record DashboardWeeklyCalendarResponseDto(
     DashboardCalendarEventContainer dailyCalendars
 ) {
 
-    public DashboardWeeklyCalendarResponseDto(LocalDate today) {
-        this(
-            getWeekStart(today),
-            getWeekEnd(today),
-            createCalendarEventContainer(getWeekStart(today))
-        );
-    }
-
-    private static LocalDate getWeekStart(LocalDate today) {
-        return today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-    }
-
-    private static LocalDate getWeekEnd(LocalDate today) {
-        return today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+    public DashboardWeeklyCalendarResponseDto(LocalDate mon, LocalDate sun) {
+        this(mon, sun, createCalendarEventContainer(mon));
     }
 
     private static DashboardCalendarEventContainer createCalendarEventContainer(LocalDate weekStart) {
@@ -69,7 +55,7 @@ public record DashboardWeeklyCalendarResponseDto(
         dailyCalendars.add(dayOfWeek, calendarEventDtos);
     }
 
-    public void addCalendarEvents(CustomDayOfWeek dayOfWeek, DashboardCalendarEventDto calendarEventDto) {
+    public void addCalendarEvent(CustomDayOfWeek dayOfWeek, DashboardCalendarEventDto calendarEventDto) {
         addCalendarEvents(dayOfWeek, List.of(calendarEventDto));
     }
 }

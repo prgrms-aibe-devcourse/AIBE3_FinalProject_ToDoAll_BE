@@ -42,7 +42,7 @@ public class DashboardService {
         try {
             return dashboardJobRepository.findByAuthor_IdAndStatus(userId, JobStatus.OPEN);
         } catch (Exception e) {
-            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
     }
 
@@ -55,7 +55,7 @@ public class DashboardService {
         try {
             return dashboardInterviewRepository.findByOrganizer_IdAndScheduledAtBetween(userId, startDay, endDay);
         } catch (Exception e) {
-            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
     }
 
@@ -70,7 +70,7 @@ public class DashboardService {
                 E status = Enum.valueOf(enumType, r.getStatus());
                 map.put(status, r.getCount());
             } catch (IllegalArgumentException e) {
-                throw new ApplicationException(DashboardErrorCase.DASHBOARD_INVALID_STATUS_VALUE, e);
+                throw ApplicationException.from(DashboardErrorCase.DASHBOARD_INVALID_STATUS_VALUE);
             }
         }
 
@@ -78,6 +78,9 @@ public class DashboardService {
     }
 
     private void validateUserExists(Long userId) {
+        if (userId == null) {
+            throw ApplicationException.from(UserErrorCase.UNAUTHORIZED);
+        }
         if (!userRepository.existsById(userId)) {
             throw ApplicationException.from(UserErrorCase.USER_NOT_FOUND);
         }
@@ -106,7 +109,7 @@ public class DashboardService {
         try {
             return dashboardInterviewRepository.findByOrganizer_IdAndResultAndScheduledAtBetween(userId, InterviewResult.PASS, oneMonthAgo, now).size();
         } catch (Exception e) {
-            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
     }
 
@@ -126,7 +129,7 @@ public class DashboardService {
                             stats.getStatus()
                     )).toList();
         } catch (Exception e) {
-            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
     }
 
@@ -144,7 +147,7 @@ public class DashboardService {
                             interview.getInterviewerName()
                     )).toList();
         } catch (Exception e) {
-            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
     }
 
@@ -163,7 +166,7 @@ public class DashboardService {
                     map.getOrDefault(JobStatus.CLOSED, 0)
             );
         } catch (Exception e) {
-            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
     }
 
@@ -182,7 +185,7 @@ public class DashboardService {
                     map.getOrDefault(InterviewStatus.DONE, 0)
             );
         } catch (Exception e) {
-            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
     }
 
@@ -197,7 +200,7 @@ public class DashboardService {
         try {
             calendarDatas =  dashboardInterviewRepository.findWeekCalendarData(userId, mon, sun);
         } catch (Exception e) {
-            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
 
         DashboardWeeklyCalendarResponseDto weeklyCalendarDto = new DashboardWeeklyCalendarResponseDto(mon, sun);

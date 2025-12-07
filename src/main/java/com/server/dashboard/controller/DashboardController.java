@@ -63,7 +63,7 @@ public class DashboardController {
     }
 
     @GetMapping("/detail/upcoming-interview")
-    @Operation(summary = "상세 - 다가오는 면접", description = "이번 주 예정된 면접 일정")
+    @Operation(summary = "상세 - 다가오는 면접", description = "7일 내 예정된 면접 일정")
     public CommonResponse<List<DashboardUpcomingInterviewsResponseDto>> showUpcomingInterviews(
             @AuthenticationPrincipal Long userId
     ) {

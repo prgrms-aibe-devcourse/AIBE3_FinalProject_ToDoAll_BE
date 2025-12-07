@@ -33,10 +33,17 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
              left join resumes rs on iv.resume_id = rs.id
              left join interview_participant ip on iv.id = ip.interview_id
              left join users on ip.user_id = users.id
-        where iv.organizer_id = :userId and iv.status = 'WAITING'
+        where iv.organizer_id = :userId
+            and iv.status = 'WAITING'
+            and iv.scheduled_at >= :startDate
+            and iv.scheduled_at <= :endDate
         group by iv.id, rs.id
     """, nativeQuery = true)
-    List<UpComingInterviewInterface> findByUpComingInterviews(@Param("userId") Long userId);
+    List<UpComingInterviewInterface> findByUpComingInterviews(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate")LocalDateTime endDate
+    );
 
     @Query(value = """
         select label.status, count(iv.id) as count from

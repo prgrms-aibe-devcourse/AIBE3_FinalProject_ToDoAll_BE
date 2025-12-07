@@ -113,7 +113,9 @@ public class DashboardService {
 
     public List<DashboardUpcomingInterviewsResponseDto> getUpComingInterviews(Long userId) {
         try {
-            return dashboardInterviewRepository.findByUpComingInterviews(userId).stream()
+            LocalDateTime startDay = LocalDateTime.now();
+            LocalDateTime endDay = startDay.plusDays(7);
+            return dashboardInterviewRepository.findByUpComingInterviews(userId, startDay, endDay).stream()
                     .map((interview)-> DashboardUpcomingInterviewsResponseDto.from(
                             interview.getScheduledTime(),
                             interview.getApplicantName(),

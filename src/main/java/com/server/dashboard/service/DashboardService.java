@@ -15,6 +15,7 @@ import com.server.user.exception.UserErrorCase;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ import static com.server.dashboard.util.Formatter.formatterTimeWithAMPM;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DashboardService {
     private final DashboardInterviewRepository dashboardInterviewRepository;
     private final DashboardJobRepository dashboardJobRepository;

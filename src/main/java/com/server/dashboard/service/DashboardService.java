@@ -1,9 +1,11 @@
 package com.server.dashboard.service;
 
 import com.server.dashboard.dto.*;
+import com.server.dashboard.exception.DashboardErrorCase;
 import com.server.dashboard.repository.DashboardInterviewRepository;
 import com.server.dashboard.repository.DashboardJobRepository;
 import com.server.dashboard.type.CustomDayOfWeek;
+import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.Interview;
 import com.server.interview.domain.InterviewResult;
 import com.server.interview.domain.InterviewStatus;
@@ -26,17 +28,26 @@ import static com.server.dashboard.util.Formatter.formatterTimeWithAMPM;
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
-    private final DashboardInterviewRepository dashboardRepository;
+    private final DashboardInterviewRepository dashboardInterviewRepository;
     private final DashboardJobRepository dashboardJobRepository;
 
     private List<JobDescription> findActiveJobs() {
-        return dashboardJobRepository.findAllByStatus(JobStatus.OPEN);
+        try {
+            return dashboardJobRepository.findAllByStatus(JobStatus.OPEN);
+        } catch (Exception e) {
+            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+        }
     }
 
     private List<Interview> findScheduledInterviews() {
         LocalDateTime startDay = LocalDateTime.now();
         LocalDateTime endDay = startDay.plusDays(7);
-        return dashboardRepository.findByScheduledAtBetween(startDay, endDay);
+
+        try {
+            return dashboardInterviewRepository.findByScheduledAtBetween(startDay, endDay);
+        } catch (Exception e) {
+            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+        }
     }
 
     private <E extends Enum<E>> EnumMap<E, Integer> toEnumCountMap(
@@ -46,8 +57,12 @@ public class DashboardService {
         EnumMap<E, Integer> map = new EnumMap<>(enumType);
 
         for (CountByStatusInterface r : statusList) {
-            E status = Enum.valueOf(enumType, r.getStatus());
-            map.put(status, r.getCount());
+            try {
+                E status = Enum.valueOf(enumType, r.getStatus());
+                map.put(status, r.getCount());
+            } catch (IllegalArgumentException e) {
+                throw new ApplicationException(DashboardErrorCase.DASHBOARD_INVALID_STATUS_VALUE, e);
+            }
         }
 
         return map;
@@ -71,59 +86,77 @@ public class DashboardService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneMonthAgo = now.minusMonths(1);
 
-        return dashboardRepository.findByScheduledAtBetweenAndResult(oneMonthAgo, now, InterviewResult.PASS).size();
+        try {
+            return dashboardInterviewRepository.findByScheduledAtBetweenAndResult(oneMonthAgo, now, InterviewResult.PASS).size();
+        } catch (Exception e) {
+            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+        }
     }
 
     public List<DashboardApplicantStatsResponseDto> getApplicantStatsForEachJob() {
-        return dashboardJobRepository.findJobStatsForEachJobs().stream()
-            .map(stats->{
-                return new DashboardApplicantStatsResponseDto(
-                        stats.getTitle(),
-                        new ArrayList<>(List.of(
-                                stats.getApplicantCount(),
-                                stats.getBookmarkCount(),
-                                stats.getInterviewCount(),
-                                stats.getPassCount()
-                        )),
-                        stats.getStatus()
-                );
-            }).toList();
+        try {
+            return dashboardJobRepository.findJobStatsForEachJobs().stream()
+                    .map(stats-> new DashboardApplicantStatsResponseDto(
+                            stats.getTitle(),
+                            new ArrayList<>(List.of(
+                                    stats.getApplicantCount(),
+                                    stats.getBookmarkCount(),
+                                    stats.getInterviewCount(),
+                                    stats.getPassCount()
+                            )),
+                            stats.getStatus()
+                    )).toList();
+        } catch (Exception e) {
+            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+        }
     }
 
     public List<DashboardUpcomingInterviewsResponseDto> getUpComingInterviews() {
-        return dashboardRepository.findByUpComingInterviews().stream()
-            .map((interview)-> DashboardUpcomingInterviewsResponseDto.from(
-                    interview.getScheduledTime(),
-                    interview.getApplicantName(),
-                    interview.getJobTitle(),
-                    interview.getInterviewerName()
-                )).toList();
+        try {
+            return dashboardInterviewRepository.findByUpComingInterviews().stream()
+                    .map((interview)-> DashboardUpcomingInterviewsResponseDto.from(
+                            interview.getScheduledTime(),
+                            interview.getApplicantName(),
+                            interview.getJobTitle(),
+                            interview.getInterviewerName()
+                    )).toList();
+        } catch (Exception e) {
+            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+        }
     }
 
     public DashboardJobStatusResponseDto getCountByJobStatus() {
-        Map<JobStatus, Integer> map = toEnumCountMap(
-                dashboardJobRepository.findCountByJobStatus(),
-                JobStatus.class
-        );
+        try {
+            Map<JobStatus, Integer> map = toEnumCountMap(
+                    dashboardJobRepository.findCountByJobStatus(),
+                    JobStatus.class
+            );
 
-        return new DashboardJobStatusResponseDto(
-                map.get(JobStatus.OPEN),
-                map.get(JobStatus.DRAFT),
-                map.get(JobStatus.CLOSED)
-                );
+            return new DashboardJobStatusResponseDto(
+                    map.getOrDefault(JobStatus.OPEN, 0),
+                    map.getOrDefault(JobStatus.DRAFT, 0),
+                    map.getOrDefault(JobStatus.CLOSED, 0)
+            );
+        } catch (Exception e) {
+            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+        }
     }
 
     public DashboardJobStatusResponseDto getCountByInterviewStatus() {
-        Map<InterviewStatus, Integer> map = toEnumCountMap(
-                dashboardRepository.findCountByInterviewStatus(),
-                InterviewStatus.class
-        );
+        try {
+            Map<InterviewStatus, Integer> map = toEnumCountMap(
+                    dashboardInterviewRepository.findCountByInterviewStatus(),
+                    InterviewStatus.class
+            );
 
-        return new DashboardJobStatusResponseDto(
-                map.get(InterviewStatus.IN_PROGRESS),
-                map.get(InterviewStatus.WAITING),
-                map.get(InterviewStatus.DONE)
-        );
+            return new DashboardJobStatusResponseDto(
+                    map.getOrDefault(InterviewStatus.IN_PROGRESS, 0),
+                    map.getOrDefault(InterviewStatus.WAITING, 0),
+                    map.getOrDefault(InterviewStatus.DONE, 0)
+            );
+        } catch (Exception e) {
+            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+        }
     }
 
     public DashboardWeeklyCalendarResponseDto getWeekCalendarData() {
@@ -132,7 +165,12 @@ public class DashboardService {
         LocalDate mon = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate sun = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-        List<WeekCalendarInterface> calendarDatas =  dashboardRepository.findWeekCalendarData(mon, sun);
+        List<WeekCalendarInterface> calendarDatas;
+        try {
+            calendarDatas =  dashboardInterviewRepository.findWeekCalendarData(mon, sun);
+        } catch (Exception e) {
+            throw new ApplicationException(DashboardErrorCase.DASHBOARD_QUERY_FAIL, e);
+        }
 
         DashboardWeeklyCalendarResponseDto weeklyCalendarDto = new DashboardWeeklyCalendarResponseDto(mon, sun);
 

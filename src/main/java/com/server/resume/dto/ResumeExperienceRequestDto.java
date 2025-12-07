@@ -22,4 +22,4 @@ public record ResumeExperienceRequestDto(
 
         @NotNull(message = "근무 종료일을 입력해주세요.")
         LocalDate endDate
-) { }
+) {}

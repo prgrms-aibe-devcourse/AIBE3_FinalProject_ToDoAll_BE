@@ -1,7 +1,6 @@
 package com.server.user.domain;
 
 import com.server.global.entity.BaseEntity;
-import com.server.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

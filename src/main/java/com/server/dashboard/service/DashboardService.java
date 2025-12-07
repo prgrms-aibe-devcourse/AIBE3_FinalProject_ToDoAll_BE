@@ -11,6 +11,8 @@ import com.server.interview.domain.InterviewResult;
 import com.server.interview.domain.InterviewStatus;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.JobStatus;
+import com.server.user.exception.UserErrorCase;
+import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +32,11 @@ import static com.server.dashboard.util.Formatter.formatterTimeWithAMPM;
 public class DashboardService {
     private final DashboardInterviewRepository dashboardInterviewRepository;
     private final DashboardJobRepository dashboardJobRepository;
+    private final UserRepository userRepository;
 
     private List<JobDescription> findActiveJobs(Long userId) {
+        validateUserExists(userId);
+
         try {
             return dashboardJobRepository.findByAuthor_IdAndStatus(userId, JobStatus.OPEN);
         } catch (Exception e) {
@@ -40,6 +45,8 @@ public class DashboardService {
     }
 
     private List<Interview> findScheduledInterviews(Long userId) {
+        validateUserExists(userId);
+
         LocalDateTime startDay = LocalDateTime.now();
         LocalDateTime endDay = startDay.plusDays(7);
 
@@ -68,6 +75,12 @@ public class DashboardService {
         return map;
     }
 
+    private void validateUserExists(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw ApplicationException.from(UserErrorCase.USER_NOT_FOUND);
+        }
+    }
+
     public int getActiveJobsCount(Long userId) {
         return findActiveJobs(userId).size();
     }
@@ -83,6 +96,8 @@ public class DashboardService {
     }
 
     public long getMonthHiredCount(Long userId) {
+        validateUserExists(userId);
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneMonthAgo = now.minusMonths(1);
 
@@ -94,6 +109,8 @@ public class DashboardService {
     }
 
     public List<DashboardApplicantStatsResponseDto> getApplicantStatsForEachJob(Long userId) {
+        validateUserExists(userId);
+
         try {
             return dashboardJobRepository.findJobStatsForEachJobs(userId).stream()
                     .map(stats-> new DashboardApplicantStatsResponseDto(
@@ -112,6 +129,8 @@ public class DashboardService {
     }
 
     public List<DashboardUpcomingInterviewsResponseDto> getUpComingInterviews(Long userId) {
+        validateUserExists(userId);
+
         try {
             LocalDateTime startDay = LocalDateTime.now();
             LocalDateTime endDay = startDay.plusDays(7);
@@ -128,6 +147,8 @@ public class DashboardService {
     }
 
     public DashboardJobStatusResponseDto getCountByJobStatus(Long userId) {
+        validateUserExists(userId);
+
         try {
             Map<JobStatus, Integer> map = toEnumCountMap(
                     dashboardJobRepository.findCountByJobStatus(userId),
@@ -145,6 +166,8 @@ public class DashboardService {
     }
 
     public DashboardJobStatusResponseDto getCountByInterviewStatus(Long userId) {
+        validateUserExists(userId);
+
         try {
             Map<InterviewStatus, Integer> map = toEnumCountMap(
                     dashboardInterviewRepository.findCountByInterviewStatus(userId),
@@ -162,6 +185,7 @@ public class DashboardService {
     }
 
     public DashboardWeeklyCalendarResponseDto getWeekCalendarData(Long userId) {
+        validateUserExists(userId);
 
         LocalDate today = LocalDate.now();
         LocalDate mon = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));

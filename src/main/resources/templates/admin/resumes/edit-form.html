@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::body})}">
+<body>
+
+<div class="admin-page-header">
+    <div>
+        <div class="admin-page-title">이력서 수정</div>
+        <div class="admin-page-subtitle">지원자의 이력서 정보를 수정합니다.</div>
+    </div>
+    <a th:href="@{/admin/resumes}" class="admin-button admin-button-secondary">목록으로</a>
+</div>
+
+<div class="admin-card">
+    <form th:action="@{|/admin/resumes/${resumeId}/edit|}" th:object="${resumeForm}" method="post">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div>
+                <label>지원자 이름</label>
+                <input type="text" th:field="*{name}" class="admin-input" required>
+
+                <label>성별</label>
+                <input type="text" th:field="*{gender}" class="admin-input">
+
+                <label>생년월일 (yyyy-MM-dd)</label>
+                <input type="text" th:field="*{birthDate}" class="admin-input" required>
+
+                <label>이메일</label>
+                <input type="email" th:field="*{email}" class="admin-input">
+
+                <label>전화번호</label>
+                <input type="text" th:field="*{phone}" class="admin-input">
+
+                <label>주소</label>
+                <input type="text" th:field="*{address}" class="admin-input">
+
+                <label>상세 주소</label>
+                <input type="text" th:field="*{detailAddress}" class="admin-input">
+
+                <label>채용공고 ID (jobDescriptionId)</label>
+                <input type="number" th:field="*{jobDescriptionId}" class="admin-input" required>
+            </div>
+
+            <div>
+                <label>이력서 파일 URL</label>
+                <input type="text" th:field="*{resumeFileUrl}" class="admin-input">
+
+                <label>포트폴리오 파일 URL</label>
+                <input type="text" th:field="*{portfolioFileUrl}" class="admin-input">
+
+                <label>Skills JSON</label>
+                <textarea th:field="*{skillsJson}" class="admin-textarea" rows="4"></textarea>
+
+                <label>Experience JSON</label>
+                <textarea th:field="*{experienceJson}" class="admin-textarea" rows="4"></textarea>
+
+                <label>Education JSON</label>
+                <textarea th:field="*{educationJson}" class="admin-textarea" rows="4"></textarea>
+            </div>
+        </div>
+
+        <div style="margin-top:1rem;">
+            <label>Activities JSON</label>
+            <textarea th:field="*{activitiesJson}" class="admin-textarea" rows="4"></textarea>
+        </div>
+
+        <div style="margin-top:1rem;">
+            <label>Certifications JSON</label>
+            <textarea th:field="*{certificationsJson}" class="admin-textarea" rows="4"></textarea>
+        </div>
+
+        <div style="margin-top:1.5rem; text-align:right;">
+            <a th:href="@{/admin/resumes}" class="btn btn-secondary" style="margin-right:0.5rem;">취소</a>
+            <button type="submit" class="btn">수정 완료</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

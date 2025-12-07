@@ -38,7 +38,6 @@ public class InterviewEvaluationService {
     }
 
     private User getUser() {
-        // TODO: JWT 인증 후 실제 userId 사용하도록 수정
         Long userId = AuthUtils.getCurrentUserId();
         return userRepository.findById(userId)
                 .orElseThrow();

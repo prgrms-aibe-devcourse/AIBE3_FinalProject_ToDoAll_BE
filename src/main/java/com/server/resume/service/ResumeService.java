@@ -99,8 +99,6 @@ public class ResumeService {
         return ResumeStatusUpdateResponseDto.from(resume.getId(), resume.getStatus());
     }
 
-
-
     private void addEducations(Resume resume, List<ResumeEducationRequestDto> educationList) {
         if (educationList == null) return;
         for (ResumeEducationRequestDto edu : educationList) {
@@ -158,7 +156,6 @@ public class ResumeService {
             resume.addCertification(cert.type(), cert.name(), cert.scoreOrLevel());
         }
     }
-
 
     public Skill getOrCreateSkill(String skillName) {
         return skillRepository.findByName(skillName)

@@ -40,7 +40,7 @@ public class InterviewEventListener {
                         userId,
                         NotificationType.INTERVIEW,
                         "면접 생성 알림",
-                        "새로운 면접이 생성되었습니다!",
+                        "새로운 면접이 생성되었습니다!\n\uD83D\uDC49 질문 노트 바로가기",
                         new InterviewPayload(event.interviewId()),
                         null
                 ));
@@ -52,7 +52,7 @@ public class InterviewEventListener {
                         userId,
                         NotificationType.INTERVIEW,
                         "면접 하루 전 알림",
-                        "내일 면접이 예정되어 있어요!",
+                        "내일 면접이 예정되어 있어요!\n\uD83D\uDC49 질문 노트 바로가기",
                         new InterviewPayload(event.interviewId()),
                         interviewAt.minusDays(1)
                 ));
@@ -62,7 +62,7 @@ public class InterviewEventListener {
                         userId,
                         NotificationType.INTERVIEW,
                         "면접 준비 알림",
-                        "면접이 곧 시작됩니다. 준비해주세요!",
+                        "면접이 곧 시작됩니다. 준비해주세요!\n\uD83D\uDC49 질문 노트 바로가기",
                         new InterviewPayload(event.interviewId()),
                         interviewAt.minusHours(1)
                 ));

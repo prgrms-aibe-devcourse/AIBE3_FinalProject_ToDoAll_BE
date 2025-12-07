@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::body})}">
+<body>
+
+<div class="admin-page-header">
+    <div>
+        <div class="admin-page-title">채용공고 수정</div>
+        <div class="admin-page-subtitle">
+            등록된 채용공고 정보를 관리자가 수정합니다.
+        </div>
+    </div>
+</div>
+
+<div class="admin-card">
+    <form th:action="@{|/admin/jds/${jdId}/edit|}" th:object="${jdForm}" method="post">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div>
+                <label>제목</label>
+                <input type="text" th:field="*{title}" class="admin-input" required>
+
+                <label>부서</label>
+                <input type="text" th:field="*{department}" class="admin-input">
+
+                <label>근무형태</label>
+                <input type="text" th:field="*{workType}" class="admin-input">
+
+                <label>경력</label>
+                <input type="text" th:field="*{experience}" class="admin-input">
+
+                <label>학력</label>
+                <input type="text" th:field="*{education}" class="admin-input">
+
+                <label>급여</label>
+                <input type="text" th:field="*{salary}" class="admin-input">
+
+                <label>마감일 (yyyy-MM-dd)</label>
+                <input type="text" th:field="*{deadline}" class="admin-input" placeholder="2025-12-31">
+
+                <label>근무지</label>
+                <input type="text" th:field="*{location}" class="admin-input">
+
+                <label>작성자 ID (authorId)</label>
+                <input type="number" th:field="*{authorId}" class="admin-input" required disabled>
+                <input type="hidden" th:field="*{authorId}">
+            </div>
+
+            <div>
+                <label>복지</label>
+                <textarea th:field="*{welfare}" class="admin-textarea" rows="4"></textarea>
+
+                <label>썸네일 URL</label>
+                <input type="text" th:field="*{thumbnailUrl}" class="admin-input">
+
+                <label>필수 기술 (콤마 구분)</label>
+                <input type="text" th:field="*{requiredSkills}" class="admin-input"
+                       placeholder="spring, jpa, redis, java, mysql">
+
+                <label>우대 기술 (콤마 구분)</label>
+                <input type="text" th:field="*{preferredSkills}" class="admin-input"
+                       placeholder="python, kafka, docker, aws">
+            </div>
+        </div>
+
+        <div style="margin-top:1rem;">
+            <label>상세 설명</label>
+            <textarea th:field="*{description}" class="admin-textarea" rows="8"></textarea>
+        </div>
+
+        <div style="margin-top:1.5rem; text-align:right;">
+            <a th:href="@{/admin/jds}" class="btn btn-secondary" style="margin-right:0.5rem;">취소</a>
+            <button type="submit" class="btn">저장</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

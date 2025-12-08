@@ -49,24 +49,24 @@ public class UserControllerTest {
     @DisplayName("회원가입 성공")
     void signup_success() throws Exception {
         UserSignupRequestDto requestDto = UserSignupRequestDto.of(
-                "dummy-token",           // token
-                "test@company.com",      // email
-                "Password1!",            // password
-                "Password1!",            // passwordConfirm
-                "홍길동",                 // name
-                "길동이",                 // nickname
-                "테스트회사",             // companyName
-                "백엔드 개발자"          // position
+                "dummy-token",
+                "test@company.com",
+                "Password1!",
+                "Password1!",
+                "홍길동",
+                "길동이",
+                "테스트회사",
+                "백엔드 개발자"
         );
 
         UserSignupResponseDto responseDto = new UserSignupResponseDto(
-                1L,                       // id
-                "test@company.com",       // email
-                "홍길동",                  // name
-                "길동이",                  // nickname
-                "테스트회사",              // companyName
-                "백엔드 개발자",           // position
-                LocalDateTime.now()       // createdAt
+                1L,
+                "test@company.com",
+                "홍길동",
+                "길동이",
+                "테스트회사",
+                "백엔드 개발자",
+                LocalDateTime.now()
         );
 
         when(userService.signup(any(UserSignupRequestDto.class)))
@@ -90,29 +90,25 @@ public class UserControllerTest {
     @Test
     @DisplayName("회원가입 실패")
     void signup_duplicateEmail_conflict() throws Exception {
-        // given
         UserSignupRequestDto requestDto = UserSignupRequestDto.of(
-                "dummy-token",           // token
-                "test@company.com",      // email
-                "Password1!",            // password
-                "Password1!",            // passwordConfirm
-                "홍길동",                 // name
-                "길동이",                 // nickname
-                "테스트회사",             // companyName
-                "백엔드 개발자"          // position
+                "dummy-token",
+                "test@company.com",
+                "Password1!",
+                "Password1!",
+                "홍길동",
+                "길동이",
+                "테스트회사",
+                "백엔드 개발자"
         );
-
-        // 서비스가 중복 이메일이라고 판단해서 ApplicationException 던지는 경우를 목킹
         when(userService.signup(any(UserSignupRequestDto.class)))
                 .thenThrow(new ApplicationException(UserErrorCase.USER_ALREADY_EXISTS));
 
-        // when & then
         mockMvc.perform(
                         post("/api/v1/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestDto))
                 )
-                .andExpect(status().isConflict());   // 409만 우선 검증 (메시지/코드는 나중에 추가해도 됨)
+                .andExpect(status().isConflict());
     }
 
     // 2. 내 정보 조회
@@ -124,16 +120,16 @@ public class UserControllerTest {
         setAuthentication(userId);
 
         UserProfileResponseDto profile = new UserProfileResponseDto(
-                userId,                          // id
-                "test@company.com",              // email
-                "홍길동",                         // name
-                "길동이",                         // nickname
-                "테스트회사",                      // companyName
-                "백엔드 개발자",                   // position
-                "010-1234-5678",                 // phoneNumber
-                LocalDate.of(1999, 2, 15),       // birthDate
-                Gender.FEMALE,                   // gender (임의 값)
-                "https://example.com/profile.png"// profileUrl
+                userId,
+                "test@company.com",
+                "홍길동",
+                "길동이",
+                "테스트회사",
+                "백엔드 개발자",
+                "010-1234-5678",
+                LocalDate.of(1999, 2, 15),
+                Gender.FEMALE,
+                "https://example.com/profile.png"
         );
 
         when(userService.getMyProfile(userId))
@@ -153,7 +149,6 @@ public class UserControllerTest {
     @Test
     @DisplayName("비밀번호 변경 성공")
     void changePassword_success() throws Exception {
-        // given
         Long userId = 1L;
         setAuthentication(userId);
 
@@ -184,7 +179,6 @@ public class UserControllerTest {
                 "NewPassword1!"
         );
 
-        // void 메서드는 doThrow 사용!
         doThrow(new ApplicationException(UserErrorCase.INVALID_PASSWORD))
                 .when(userService)
                 .changePassword(eq(userId), any(), any());
@@ -194,19 +188,18 @@ public class UserControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestDto))
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value(4012))
+                .andExpect(jsonPath("$.message").value("현재 비밀번호가 일치하지 않습니다."));
     }
 
     // 5. 내 정보 수정 성공
     @Test
     @DisplayName("내 정보 수정 성공")
     void updateMyProfile_success() throws Exception {
-        // given
         Long userId = 1L;
         setAuthentication(userId);
 
-        // UserProfileUpdateRequestDto 는 기본 생성자 + 필드만 있으므로
-        // JSON 문자열로 요청 보냄
         String requestJson = """
                 {
                   "name": "홍길동",

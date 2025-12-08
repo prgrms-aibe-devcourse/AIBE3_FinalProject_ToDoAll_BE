@@ -94,7 +94,7 @@ class EmailAuthServiceTest {
     @Test
     @DisplayName("최근 5분 이내에 이미 인증 메일이 발송됨")
     void sendAuthEmail_recentTokenExists_throws() {
-        String email = "test@company.com";   // 이쪽도 회사 도메인으로
+        String email = "test@company.com";
 
         EmailAuthSendRequestDto request = EmailAuthSendRequestDto.of(email);
 

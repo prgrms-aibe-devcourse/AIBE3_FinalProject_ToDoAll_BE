@@ -44,7 +44,6 @@ class UserServiceTest {
     @Test
     @DisplayName("비밀번호 변경 성공 - 현재 비밀번호가 일치하고, 새 비밀번호가 이전과 다르면 변경됨")
     void changePassword_success() {
-        // given
         Long userId = 1L;
         String currentPassword = "CurrentPassword1!";
         String newPassword = "NewPassword1!";
@@ -82,7 +81,6 @@ class UserServiceTest {
     @Test
     @DisplayName("비밀번호 변경 실패 - 현재 비밀번호가 일치하지 않으면 예외 발생")
     void changePassword_wrongCurrentPassword_throwsException() {
-        // given
         Long userId = 1L;
         String currentPassword = "WrongPassword!";
         String newPassword = "NewPassword1!";
@@ -109,7 +107,6 @@ class UserServiceTest {
     @Test
     @DisplayName("비밀번호 변경 실패 - 새 비밀번호가 이전 비밀번호와 같으면 예외 발생")
     void changePassword_samePassword_throwsException() {
-        // given
         Long userId = 1L;
         String currentPassword = "SamePassword1!";
         String newPassword = "SamePassword1!";
@@ -155,7 +152,6 @@ class UserServiceTest {
     @Test
     @DisplayName("비밀번호 변경 실패 - 새 비밀번호 정책 위반")
     void changePassword_invalidNewPassword_throwsException() {
-        // given
         Long userId = 1L;
         String currentPassword = "CurrentPassword1!";
         String newPassword = "weak";

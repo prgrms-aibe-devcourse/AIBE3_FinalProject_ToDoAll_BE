@@ -37,13 +37,9 @@ class EmailAuthControllerTest {
     @Test
     @DisplayName("회사 이메일 인증 메일 발송 성공 - 200과 message=success, data=null 반환")
     void sendEmailAuth_success() throws Exception {
-        // given
+
         EmailAuthSendRequestDto requestDto = EmailAuthSendRequestDto.of("test@company.com");
 
-        // 실제로는 void 메서드라 when(...) 필요 없음
-        // when(emailAuthService.sendAuthEmail(any())).thenReturn(...);  // X
-
-        // when & then
         mockMvc.perform(
                         post("/api/v1/auth/email-verifications")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -57,7 +53,6 @@ class EmailAuthControllerTest {
     @Test
     @DisplayName("이메일 인증 완료 조회 성공 - 200과 이메일/시간 반환")
     void completeEmailAuth_success() throws Exception {
-        // given
         String token = "dummy-token";
 
         EmailAuthCompleteResponseDto responseDto =
@@ -69,7 +64,6 @@ class EmailAuthControllerTest {
         when(emailAuthService.completeAuth(token))
                 .thenReturn(responseDto);
 
-        // when & then
         mockMvc.perform(
                         get("/api/v1/auth/email-verifications/complete")
                                 .param("token", token)

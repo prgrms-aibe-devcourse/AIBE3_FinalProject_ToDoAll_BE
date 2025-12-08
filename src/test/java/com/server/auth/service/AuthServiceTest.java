@@ -47,7 +47,7 @@ class AuthServiceTest {
     JwtProperties jwtProperties;
 
     @Mock
-    EmailAuthService emailAuthService; // 생성자 주입 대상이므로 모킹
+    EmailAuthService emailAuthService;
 
     @InjectMocks
     AuthService authService;

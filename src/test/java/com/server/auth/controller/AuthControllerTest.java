@@ -45,7 +45,6 @@ class AuthControllerTest {
     @Test
     @DisplayName("로그인 성공")
     void login_success() throws Exception {
-        // given
         UserLoginRequestDto requestDto = new UserLoginRequestDto(
                 "test@company.com",
                 "Password1!"
@@ -59,7 +58,6 @@ class AuthControllerTest {
         when(authService.login(anyString(), anyString()))
                 .thenReturn(responseDto);
 
-        // when & then
         mockMvc.perform(
                         post("/api/v1/auth/token")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -68,13 +66,11 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").value("access-token"))
                 .andExpect(jsonPath("$.data.refreshToken").value("refresh-token"));
-        // 쿠키까지 꼼꼼히 보고 싶으면 header().string("Set-Cookie", ...) 추가하면 됨
     }
 
     @Test
     @DisplayName("리프레시 토큰으로 액세스 토큰 재발급 성공")
     void refresh_success() throws Exception {
-        // given
         TokenRefreshRequestDto requestDto = new TokenRefreshRequestDto("old-refresh-token");
 
         UserLoginResponseDto responseDto = UserLoginResponseDto.builder()
@@ -85,7 +81,6 @@ class AuthControllerTest {
         when(authService.reissueAccessToken("old-refresh-token"))
                 .thenReturn(responseDto);
 
-        // when & then
         mockMvc.perform(
                         post("/api/v1/auth/token/refresh")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -146,11 +141,9 @@ class AuthControllerTest {
     @Test
     @DisplayName("로그아웃 성공")
     void logout_success() throws Exception {
-        // given
         TokenRefreshRequestDto requestDto = new TokenRefreshRequestDto("refresh-token");
         doNothing().when(authService).logout("refresh-token");
 
-        // when & then
         mockMvc.perform(
                         post("/api/v1/auth/logout")
                                 .contentType(MediaType.APPLICATION_JSON)

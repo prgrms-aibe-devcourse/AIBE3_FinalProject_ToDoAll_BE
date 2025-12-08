@@ -187,4 +187,28 @@ public class Resume extends BaseEntity {
     public void updatePortfolioFileKey(String fileKey) {
         this.portfolioFileUrl = fileKey;
     }
+
+    public void updateBasicInfo(
+            JobDescription jobDescription,
+            String name,
+            String gender,
+            LocalDate birthDate,
+            String email,
+            String phone,
+            String address,
+            String detailAddress,
+            String resumeFileUrl,
+            String portfolioFileUrl
+    ) {
+        this.jobDescription = jobDescription;
+        this.name = name;
+        this.gender = gender;
+        this.birthDate = birthDate;
+        this.email = email;
+        this.phone = phone;
+        this.address = address;
+        this.detailAddress = detailAddress;
+        this.resumeFileUrl = resumeFileUrl;
+        this.portfolioFileUrl = portfolioFileUrl;
+    }
 }

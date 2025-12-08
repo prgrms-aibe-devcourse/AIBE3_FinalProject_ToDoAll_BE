@@ -35,4 +35,4 @@ public record ResumeEducationRequestDto(
 
         @Positive(message = "기준 학점은 양수여야 합니다.")
         double gpaScale
-        ) { }
+){}

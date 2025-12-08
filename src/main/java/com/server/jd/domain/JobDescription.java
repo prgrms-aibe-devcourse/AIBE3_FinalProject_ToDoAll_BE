@@ -1,7 +1,6 @@
 package com.server.jd.domain;
 
 import com.server.global.entity.BaseEntity;
-import com.server.jd.dto.JobDescriptionCreateRequestDto;
 import com.server.jd.dto.JobDescriptionUpdateRequestDto;
 import com.server.user.domain.User;
 import jakarta.persistence.*;
@@ -10,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

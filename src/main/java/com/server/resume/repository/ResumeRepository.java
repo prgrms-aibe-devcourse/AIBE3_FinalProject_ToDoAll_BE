@@ -11,25 +11,26 @@ import java.util.Optional;
 
 public interface ResumeRepository extends JpaRepository<Resume, Long> {
     @Query("""
-    SELECT r FROM Resume r
-    LEFT JOIN FETCH r.jobDescription
-    WHERE r.id = :resumeId
-""")
-    Optional<Resume> findByIdWithDetails(@Param("resumeId") Long resumeId);
-
-    @Query("""
-    SELECT DISTINCT r FROM Resume r
-    LEFT JOIN FETCH r.jobDescription
-    LEFT JOIN FETCH r.educations 
-    WHERE r.id = :resumeId
-""")
-    Optional<Resume> findWithEssentialDetailsById(@Param("resumeId") Long resumeId);
+        select r from Resume r
+        left join fetch r.jobDescription jd
+        where r.id = :id
+        """)
+    Optional<Resume> findByIdWithDetails(@Param("id") Long id);
 
     @Query("""
         SELECT DISTINCT r FROM Resume r
         LEFT JOIN FETCH r.jobDescription
-        ORDER BY r.createdAt DESC
-    """)
+        LEFT JOIN FETCH r.educations 
+        WHERE r.id = :resumeId
+        """)
+    Optional<Resume> findWithEssentialDetailsById(@Param("resumeId") Long resumeId);
+
+    @Query("""
+        select distinct r from Resume r
+        left join fetch r.jobDescription jd
+        where r.deletedAt is null
+        order by r.createdAt desc
+        """)
     List<Resume> findAllWithJobDescriptionOrderByCreatedAtDesc();
 
     Long countByJobDescriptionId(Long jobDescriptionId);

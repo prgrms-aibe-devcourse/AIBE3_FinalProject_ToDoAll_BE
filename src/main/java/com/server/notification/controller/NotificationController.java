@@ -46,16 +46,13 @@ public class NotificationController {
     }
 
     // 읽음 처리
-    @PatchMapping("/{notificationId}/read")
-    @Operation(summary = "알림 읽음 처리 api", description = "읽은 알림의 상태 변경")
+    @PatchMapping("/read")
+    @Operation(summary = "알림 읽음 처리 api", description = "알림창의 모든 알림 읽음으로 상태 변경")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "알림 상태 변경 성공"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 알림")
+            @ApiResponse(responseCode = "200", description = "알림 상태 변경 성공")
     })
-    public CommonResponse<String> markRead(
-            @PathVariable Long notificationId
-    ) {
-        notificationService.markRead(notificationId);
+    public CommonResponse<String> markRead() {
+        notificationService.markRead();
         return CommonResponse.success("읽음 처리 성공");
     }
 

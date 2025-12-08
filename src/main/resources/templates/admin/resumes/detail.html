@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::body})}">
+<body>
+
+<div class="admin-page-header">
+    <div>
+        <div class="admin-page-title">이력서 상세</div>
+        <div class="admin-page-subtitle">지원자의 정보를 상세 확인할 수 있습니다.</div>
+    </div>
+    <a href="/admin/resumes" class="admin-button admin-button-secondary">목록으로</a>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card">
+        <div class="admin-card-header">기본 정보</div>
+        <p><strong>ID</strong> <span th:text="${resume.id}"></span></p>
+        <p><strong>이름</strong> <span th:text="${resume.name}"></span></p>
+        <p><strong>성별</strong> <span th:text="${resume.gender}"></span></p>
+        <p><strong>생년월일</strong> <span th:text="${resume.birthDate}"></span></p>
+        <p><strong>이메일</strong> <span th:text="${resume.email}"></span></p>
+        <p><strong>전화번호</strong> <span th:text="${resume.phone}"></span></p>
+        <p><strong>주소</strong> <span th:text="${resume.address}"></span></p>
+        <p><strong>상세주소</strong> <span th:text="${resume.detailAddress}"></span></p>
+        <p><strong>상태</strong> <span th:text="${resume.status}"></span></p>
+    </div>
+
+    <div class="admin-card">
+        <div class="admin-card-header">파일</div>
+        <p><strong>이력서 파일</strong></p>
+        <p>
+            <a th:href="${resume.resumeFileUrl}" th:text="${resume.resumeFileUrl}"
+               target="_blank"></a>
+        </p>
+        <p><strong>포트폴리오 파일</strong></p>
+        <p>
+            <a th:href="${resume.portfolioFileUrl}" th:text="${resume.portfolioFileUrl}"
+               target="_blank"></a>
+        </p>
+    </div>
+</div>
+
+<div class="admin-grid admin-grid-2" style="margin-top:1rem;">
+    <div class="admin-card">
+        <div class="admin-card-header">보유 스킬</div>
+        <div>
+            <span th:each="rs : ${resume.skills}"
+                  th:text="${rs.skill.name + ' (' + rs.proficiencyLevel + ')'}"
+                  style="display:inline-block; margin:0 .25rem .25rem 0;
+                         padding:.2rem .55rem; background:#eef2ff;
+                         border-radius:999px; font-size:.8rem;">
+            </span>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="admin-card-header">경력</div>
+        <ul class="admin-list">
+            <li th:each="exp : ${resume.experiences}">
+                <div class="admin-list-title"
+                     th:text="${exp.companyName + ' / ' + exp.position}"></div>
+                <div class="admin-list-sub"
+                     th:text="${exp.startDate + ' ~ ' + exp.endDate}"></div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div style="margin-top:1.25rem;">
+    <a th:href="@{|/admin/jds/${resume.jobDescription.id}|}" class="btn btn-primary">채용공고 상세 보기</a>
+</div>
+
+<div style="margin-top:1.25rem;">
+    <a th:href="@{|/admin/resumes/${resume.id}/edit|}" class="btn admin-button-primary">
+        이력서 수정하기
+    </a>
+</div>
+
+<a href="/admin/resumes/new" class="btn admin-button-secondary">새 이력서 등록</a>
+
+</body>
+</html>

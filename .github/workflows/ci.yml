@@ -1,4 +1,4 @@
-name: Release CI/CD pipeline
+name: CI pipeline
 
 on:
   push:
@@ -162,7 +162,7 @@ jobs:
           release_name: Release ${{ steps.create_tag.outputs.new_tag }}
           body: ${{ steps.create_tag.outputs.changelog }}
 
-  Compose-Build-And-Push :
+  Compose-Build-And-Push:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: [Make-Tag-And-Release, Test-And-Build]
@@ -192,59 +192,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name : Push Docker Compose
+      - name: Push Docker Compose
         run: |
           docker compose -f docker-compose-cd.yml push app
-
-  Deploy-Compose:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    needs: [Compose-Build-And-Push, Make-Tag-And-Release]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Copy docker-compose-cd.yml to EC2
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.AWS_SSH_HOST }}
-          username: ${{ secrets.AWS_SSH_USERNAME }}
-          key: ${{ secrets.AWS_SSH_KEY }}
-          port: ${{ secrets.AWS_SSH_PORT }}
-          source: docker-compose-cd.yml
-          target: /home/ubuntu/jobda/
-          overwrite: true
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.AWS_SSH_HOST }}
-          username: ${{ secrets.AWS_SSH_USERNAME }}
-          key: ${{ secrets.AWS_SSH_KEY }}
-          port: ${{ secrets.AWS_SSH_PORT }}
-          script: |
-            set -e
-            cd /home/ubuntu/jobda
-            
-            cat > .env << EOF
-            OWNER_NAME=${{ github.repository_owner }}
-            IMAGE_TAG=${{ needs.Make-Tag-And-Release.outputs.tag_name }}
-            AWS_RDS_URL=${{ secrets.AWS_RDS_URL }}
-            MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
-            AWS_RDS_ROOT_PASSWORD=${{ secrets.AWS_RDS_ROOT_PASSWORD }}
-            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            OPENAI_API_KEY_AI=${{ secrets.OPENAI_API_KEY_AI }}
-            AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
-            AWS_ACCESS_SECRET_KEY=${{ secrets.AWS_ACCESS_SECRET_KEY }}
-            AWS_REGION=${{ secrets.AWS_REGION }}
-            AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
-            EOF
-
-            echo "=== 배포 시작 ==="
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-
-            docker compose -f docker-compose-cd.yml pull app
-            docker compose -f docker-compose-cd.yml up -d
-            echo "=== 배포 완료 ==="

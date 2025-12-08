@@ -23,6 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -30,11 +34,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 @SpringBootTest
 @Transactional
+@Import(InterviewServiceTest.TestConfig.class)
 class InterviewServiceTest {
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        ApplicationEventPublisher applicationEventPublisher() {
+            return mock(ApplicationEventPublisher.class);
+        }
+
+        @Bean
+        ApplicationEventPublisher eventPublisher() {
+            return mock(ApplicationEventPublisher.class);
+        }
+    }
 
     @Autowired
     private InterviewService interviewService;
@@ -86,7 +105,7 @@ class InterviewServiceTest {
     }
 
     @Test
-    @DisplayName("면접 생성 성공 integration test - Interview/Participant/Note 모두 저장")
+    @DisplayName("면접 생성 성공 - Interview/Participant/Note 모두 저장")
     void createInterview_success() {
         // Given
         User user1 = User.of(
@@ -137,7 +156,7 @@ class InterviewServiceTest {
         InterviewCreateRequestDto request = new InterviewCreateRequestDto(
                 jd.getId(),
                 resume.getId(),
-                List.of(user1.getId(), user2.getId(), organizer.getId()),
+                List.of(user1.getId(), user2.getId(), organizer.getId()), // organizer 포함 → 제외되어야 함
                 LocalDateTime.now().plusDays(1)
         );
 
@@ -153,8 +172,9 @@ class InterviewServiceTest {
         assertThat(interview.getOrganizer().getId()).isEqualTo(organizer.getId());
 
         // 참여자 : organizer + observer 2명 = 총 3명
-        List<Long> ids = interviewParticipantRepository.findUserIdsByInterviewId(interview.getId());
-        assertThat(ids).hasSize(3);
+        List<Long> parts =
+                interviewParticipantRepository.findUserIdsByInterviewId(interview.getId());
+        assertThat(parts).hasSize(3);
 
         // 노트 생성 검증
         assertThat(interviewNoteRepository.findByInterviewId(interview.getId())).isNotNull();

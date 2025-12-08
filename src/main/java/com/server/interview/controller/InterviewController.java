@@ -87,4 +87,12 @@ public class InterviewController {
         interviewService.updateResult(interviewId, request);
         return CommonResponse.success("결과 변경 완료");
     }
+
+    @GetMapping("/{interviewId}")
+    @Operation(summary = "인터뷰 단건 조회", description = "인터뷰 단건을 조회합니다.")
+    public CommonResponse<InterviewSummaryDto> getInterview(@PathVariable Long interviewId) {
+        InterviewSummaryDto dto = interviewService.getInterview(interviewId);
+        return CommonResponse.success(dto);
+    }
+
 }

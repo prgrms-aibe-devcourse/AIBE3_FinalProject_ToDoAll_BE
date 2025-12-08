@@ -286,17 +286,28 @@ public class JobDescriptionService {
                 ));
 
         List<JobDescriptionListResponseDto> content = page.stream()
-                .map(e -> JobDescriptionListResponseDto.builder()
-                        .id(e.getId())
-                        .title(e.getTitle())
-                        .location(e.getLocation())
-                        .applicantCount(Optional.ofNullable(e.getApplicantCount()).orElse(0L))
-                        .status(e.getStatus())
-                        .requiredSkills(requiredMap.getOrDefault(e.getId(), List.of())
-                                .stream().distinct().limit(skillLimit).toList())
-                        .startDate(e.getStartDate())
-                        .deadline(e.getDeadline())
-                        .build())
+                .map(e -> {
+                    // 💡 썸네일 URL 변환 로직 추가
+                    String finalThumbnailUrl = null;
+                    String dbFileKey = e.getThumbnailUrl(); // JobDescription 엔티티에서 File Key를 가져옴
+
+                    if (dbFileKey != null) {
+                        finalThumbnailUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
+                    }
+
+                    return JobDescriptionListResponseDto.builder()
+                            .id(e.getId())
+                            .title(e.getTitle())
+                            .location(e.getLocation())
+                            .applicantCount(Optional.ofNullable(e.getApplicantCount()).orElse(0L))
+                            .status(e.getStatus())
+                            .requiredSkills(requiredMap.getOrDefault(e.getId(), List.of())
+                                    .stream().distinct().limit(skillLimit).toList())
+                            .startDate(e.getStartDate())
+                            .deadline(e.getDeadline())
+                            .thumbnailUrl(finalThumbnailUrl)
+                            .build();
+                })
                 .toList();
 
         return new PageImpl<>(content, page.getPageable(), page.getTotalElements());

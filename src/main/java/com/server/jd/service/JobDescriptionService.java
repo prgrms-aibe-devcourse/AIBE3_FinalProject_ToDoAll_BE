@@ -10,6 +10,9 @@ import com.server.jd.repository.JobPreferredSkillRepository;
 import com.server.jd.repository.JobRequiredSkillRepository;
 import com.server.jd.repository.SkillRepository;
 import com.server.jd.repository.projection.SkillByJobProjection;
+import com.server.s3.domain.Partition;
+import com.server.s3.service.PresignedUrlProvider;
+import com.server.s3.service.S3Uploader;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +37,8 @@ public class JobDescriptionService {
     private final SkillRepository skillRepository;
     private final JobRequiredSkillRepository jobRequiredSkillRepository;
     private final JobPreferredSkillRepository jobPreferredSkillRepository;
+    private final S3Uploader s3Uploader;
+    private final PresignedUrlProvider presignedUrlProvider;
 
     // JD 초안 생성 서비스 로직 (지원자 수 0 초기화 및 공고 생성 (본인이 원하는대로 수정)
     @Transactional
@@ -126,6 +132,13 @@ public class JobDescriptionService {
         List<String> preferred = jobPreferredSkillRepository
                 .findPreferredSkillNamesByJobId(id).stream().distinct().toList();
 
+        String finalThumbnailUrl = null;
+        String dbFileKey = jd.getThumbnailUrl();
+
+        if (dbFileKey != null) {
+            finalThumbnailUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
+        }
+
         return JobDescriptionDetailResponseDto.builder()
                 .id(jd.getId())
                 .title(jd.getTitle())
@@ -135,7 +148,7 @@ public class JobDescriptionService {
                 .skills(required)
                 .startDate(jd.getStartDate())
                 .deadline(jd.getDeadline())
-                .thumbnailUrl(jd.getThumbnailUrl())
+                .thumbnailUrl(finalThumbnailUrl)
                 .description(jd.getDescription())
                 .preferredSkills(preferred)
                 .benefits(jd.getWelfare())
@@ -220,6 +233,38 @@ public class JobDescriptionService {
                 .salary(jd.getSalary())
                 .department(jd.getDepartment())
                 .build();
+    }
+
+    @Transactional
+    public String updateThumbnail(Long id, MultipartFile thumbnailFile) {
+        JobDescription jd = jobRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+
+        if (thumbnailFile == null || thumbnailFile.isEmpty()) {
+            // 파일이 없으면 기존 썸네일 URL을 null로 업데이트하고 반환 (선택 사항)
+            if (jd.getThumbnailUrl() != null) {
+                s3Uploader.deleteFile(jd.getThumbnailUrl());
+            }
+            jd.updateThumbnailUrl(null);
+            return null;
+        }
+
+        String currentFileKey = jd.getThumbnailUrl();
+        String relativeId = String.valueOf(id);
+        String newFileKey;
+
+        if (currentFileKey != null && !currentFileKey.isBlank()) {
+            // 기존 파일이 있으면, updateFile로 교체 (기존 파일 삭제 포함)
+            newFileKey = s3Uploader.updateFile(thumbnailFile, currentFileKey);
+        } else {
+            // 기존 파일이 없으면, 새로 업로드
+            newFileKey = s3Uploader.uploadFile(thumbnailFile, Partition.JOB, relativeId, "thumbnail");
+        }
+
+        // 엔티티에 최종 File Key 업데이트
+        jd.updateThumbnailUrl(newFileKey);
+
+        return newFileKey;
     }
 
     @Transactional(readOnly = true)

@@ -24,6 +24,7 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
     @Query(value= """
         select
             iv.id as interview_id,
+            rs.id as resume_id,
             iv.scheduled_at as scheduled_time,
             jd.title as job_title,
             rs.name as applicant_name,

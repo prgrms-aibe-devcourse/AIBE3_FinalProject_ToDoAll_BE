@@ -69,7 +69,7 @@ public class DashboardService {
             try {
                 E status = Enum.valueOf(enumType, r.getStatus());
                 map.put(status, r.getCount());
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | NullPointerException e) {
                 throw ApplicationException.from(DashboardErrorCase.DASHBOARD_INVALID_STATUS_VALUE);
             }
         }

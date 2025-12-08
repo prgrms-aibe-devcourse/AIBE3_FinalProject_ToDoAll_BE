@@ -21,6 +21,7 @@ public class InterviewSummaryAiService {
 
             var response = chatClient.prompt()
                     .system(systemPrompt)
+                    .tools()
                     .call()
                     .content();
 

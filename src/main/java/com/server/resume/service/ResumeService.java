@@ -11,14 +11,18 @@ import com.server.resume.domain.*;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
+import com.server.s3.domain.Partition;
+import com.server.s3.service.S3Uploader;
 import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -32,6 +36,8 @@ public class ResumeService {
     private final ResumeSearchRepository resumeSearchRepository;
     private final MatchRepository matchRepository;
 
+    private final S3Uploader s3Uploader;
+
     @Transactional(readOnly = true)
     public ResumeResponseDto getResumeById(Long resumeId) {
         Resume resume = resumeRepository.findByIdWithDetails(resumeId)
@@ -41,7 +47,9 @@ public class ResumeService {
     }
 
     @Transactional
-    public ResumeResponseDto createResume(ResumeCreateRequestDto request) {
+    public ResumeResponseDto createResume(ResumeCreateRequestDto request,
+                                          MultipartFile resumeFile,
+                                          MultipartFile portfolioFile) {
         if (request.jobDescriptionId() == null) {
             throw new ApplicationException(ResumeErrorCase.JD_NOT_FOUND);
         }
@@ -59,8 +67,8 @@ public class ResumeService {
                 request.phone(),
                 request.address(),
                 request.detailAddress(),
-                request.resumeFileUrl(),
-                request.portfolioFileUrl(),
+                null,
+                null,
                 ResumeStatus.NEW
         );
         Resume savedResume = resumeRepository.save(resume);
@@ -79,7 +87,32 @@ public class ResumeService {
 
         resumeSearchService.index(savedResume);
 
+        if (resumeFile != null && !resumeFile.isEmpty()) {
+            String resumeKey = s3Uploader.uploadFile(
+                    resumeFile,
+                    Partition.RESUME,
+                    String.valueOf(savedResume.getId()),
+                    "resume"
+            );
+            savedResume.updateResumeFileKey(resumeKey); // resumeFileUrl에 fileKey 저장
+        }
+
+        if (portfolioFile != null && !portfolioFile.isEmpty()) {
+            String portfolioKey = s3Uploader.uploadFile(
+                    portfolioFile,
+                    Partition.RESUME,
+                    String.valueOf(savedResume.getId()),
+                    "portfolio"
+            );
+            savedResume.updatePortfolioFileKey(portfolioKey); // portfolioFileUrl에 fileKey 저장
+        }
+
         return ResumeResponseDto.fromEntity(savedResume);
+    }
+
+    @Transactional
+    public ResumeResponseDto createResume(ResumeCreateRequestDto request) {
+        return createResume(request, null, null);
     }
 
     @Transactional

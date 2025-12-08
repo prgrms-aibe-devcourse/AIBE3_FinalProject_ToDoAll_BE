@@ -12,11 +12,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Get latest release tag
         id: get_latest_tag
         uses: actions-ecosystem/action-get-latest-tag@v1
-
-      - uses: actions/checkout@v4
 
       - name: Copy docker-compose-cd.yml to EC2
         uses: appleboy/scp-action@v1

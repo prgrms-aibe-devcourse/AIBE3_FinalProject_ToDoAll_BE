@@ -24,7 +24,7 @@ public class DashboardController {
 
     @GetMapping("/summary/actives")
     @Operation(summary = "요약카드 - 활성 공고", description = "모집 중인 채용 공고 수")
-    public CommonResponse<Integer> showActiveJobs (
+    public CommonResponse<Long> showActiveJobs (
             @AuthenticationPrincipal Long userId
     ) {
         return CommonResponse.success(dashboardService.getActiveJobsCount(userId));
@@ -40,7 +40,7 @@ public class DashboardController {
 
     @GetMapping("/summary/interviews")
     @Operation(summary = "요약카드 - 예정된 면접", description = "7일 내 다가오는 면접")
-    public CommonResponse<Integer> showScheduledInterviews (
+    public CommonResponse<Long> showScheduledInterviews (
             @AuthenticationPrincipal Long userId
     ) {
         return CommonResponse.success(dashboardService.getScheduledInterviewsCount(userId));

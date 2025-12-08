@@ -15,6 +15,8 @@ import java.util.List;
 public interface DashboardJobRepository extends JpaRepository<JobDescription,Long> {
     List<JobDescription> findByAuthor_IdAndStatus(Long id, JobStatus status);
 
+    Long countByAuthor_IdAndStatus(Long userId, JobStatus jobStatus);
+
     @Query(value = """
         select label.status, count(jd.id) as count
         from (

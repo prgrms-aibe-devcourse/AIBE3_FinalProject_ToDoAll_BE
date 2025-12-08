@@ -17,7 +17,7 @@ import java.util.List;
 
 @Repository
 public interface DashboardInterviewRepository extends JpaRepository<Interview, Long> {
-    List<Interview> findByOrganizer_IdAndScheduledAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
+    Long countByOrganizer_IdAndScheduledAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
 
     List<Interview> findByOrganizer_IdAndResultAndScheduledAtBetween(Long userId, InterviewResult result, LocalDateTime startDate, LocalDateTime endDate);
 

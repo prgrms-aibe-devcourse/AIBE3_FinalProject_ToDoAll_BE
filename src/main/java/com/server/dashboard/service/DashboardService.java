@@ -46,14 +46,11 @@ public class DashboardService {
         }
     }
 
-    private List<Interview> findScheduledInterviews(Long userId) {
+    private Long countActiveJobs(Long userId) {
         validateUserExists(userId);
 
-        LocalDateTime startDay = LocalDateTime.now();
-        LocalDateTime endDay = startDay.plusDays(7);
-
         try {
-            return dashboardInterviewRepository.findByOrganizer_IdAndScheduledAtBetween(userId, startDay, endDay);
+            return dashboardJobRepository.countByAuthor_IdAndStatus(userId, JobStatus.OPEN);
         } catch (Exception e) {
             throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
@@ -86,8 +83,8 @@ public class DashboardService {
         }
     }
 
-    public int getActiveJobsCount(Long userId) {
-        return findActiveJobs(userId).size();
+    public Long getActiveJobsCount(Long userId) {
+        return countActiveJobs(userId);
     }
 
     public long getApplicantsCountOfActiveJobs(Long userId) {
@@ -96,9 +93,17 @@ public class DashboardService {
                 .mapToLong(JobDescription::getApplicantCount).sum();
     }
 
-    public int getScheduledInterviewsCount(Long userId) {
-        return findScheduledInterviews(userId).size();
-    }
+    public Long getScheduledInterviewsCount(Long userId) {
+        validateUserExists(userId);
+
+        LocalDateTime startDay = LocalDateTime.now();
+        LocalDateTime endDay = startDay.plusDays(7);
+
+        try {
+            return dashboardInterviewRepository.countByOrganizer_IdAndScheduledAtBetween(userId, startDay, endDay);
+        } catch (Exception e) {
+            throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
+        }    }
 
     public long getMonthHiredCount(Long userId) {
         validateUserExists(userId);

@@ -4,6 +4,7 @@ import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.notification.domain.Notification;
 import com.server.notification.domain.NotificationType;
 import com.server.notification.dto.NotificationRequestDto;
+import com.server.notification.dto.NotificationResponseDto;
 import com.server.notification.payload.InterviewPayload;
 import com.server.notification.service.NotificationService;
 import com.server.notification.service.SseService;
@@ -45,7 +46,8 @@ public class InterviewEventListener {
                         null
                 ));
                 // 저장 성공한 경우에만 SSE 발송
-                sseService.sendNotification(notification);
+                NotificationResponseDto notificationResponseDto = NotificationResponseDto.from(notification);
+                sseService.sendNotification(notificationResponseDto, userId);
 
                 // D-1 예약 알림
                 notificationService.saveNotification(new NotificationRequestDto(

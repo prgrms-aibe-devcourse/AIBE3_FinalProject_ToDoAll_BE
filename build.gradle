@@ -101,7 +101,7 @@ dependencies {
     // Thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
-
+    testImplementation 'com.h2database:h2'
 }
 
 tasks.named('test') {

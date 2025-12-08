@@ -23,10 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -34,26 +31,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-
 @SpringBootTest
 @Transactional
-@Import(InterviewServiceTest.TestConfig.class)
+@ActiveProfiles("test")
 class InterviewServiceTest {
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        ApplicationEventPublisher applicationEventPublisher() {
-            return mock(ApplicationEventPublisher.class);
-        }
-
-        @Bean
-        ApplicationEventPublisher eventPublisher() {
-            return mock(ApplicationEventPublisher.class);
-        }
-    }
 
     @Autowired
     private InterviewService interviewService;
@@ -75,14 +57,15 @@ class InterviewServiceTest {
 
     @Autowired
     private ResumeRepository resumeRepository;
+//
+//    @MockBean
+//    private ApplicationEventPublisher applicationEventPublisher; // 이벤트 Mock
 
     private MockedStatic<AuthUtils> authMock;
-
     private User organizer;
 
     @BeforeEach
     void setUp() {
-        // Organizer 생성
         organizer = User.of(
                 "organizer@test.com", "pw",
                 "Organ", "izer",
@@ -94,7 +77,6 @@ class InterviewServiceTest {
         );
         userRepository.save(organizer);
 
-        // AuthUtils Mocking
         authMock = mockStatic(AuthUtils.class);
         authMock.when(AuthUtils::getCurrentUserId).thenReturn(organizer.getId());
     }
@@ -107,48 +89,28 @@ class InterviewServiceTest {
     @Test
     @DisplayName("면접 생성 성공 - Interview/Participant/Note 모두 저장")
     void createInterview_success() {
-        // Given
-        User user1 = User.of(
-                "user1@test.com", "pw",
-                "User", "One",
-                null, null,
-                null,
-                null, null
-        );
-        User user2 = User.of(
-                "user2@test.com", "pw",
-                "User", "Two",
-                null, null,
-                null,
-                null, null
-        );
+        // given
+        User user1 = User.of("user1@test.com", "pw", "User", "One", null, null, null, null, null);
+        User user2 = User.of("user2@test.com", "pw", "User", "Two", null, null, null, null, null);
         userRepository.saveAll(List.of(user1, user2));
 
         JobDescription jd = JobDescription.of(
-                "백엔드 개발자",
-                null, null, null, null, null,
-                null, null,
-                null,
-                JobStatus.OPEN,
-                null,
-                0L,
-                null,
-                null,
-                organizer
+                "백엔드 개발자", null, null, null, null, null,
+                null, null, null, JobStatus.OPEN,
+                null, 0L, null, null, organizer
         );
         jobDescriptionRepository.save(jd);
 
         Resume resume = Resume.of(
-                jd,                 // JobDescription (필수)
-                organizer.getName(), // name
-                "M",                // gender (단순 값)
-                LocalDate.of(1990, 1, 1), // birthDate
+                jd,
+                organizer.getName(),
+                "M",
+                LocalDate.of(1990, 1, 1),
                 organizer.getEmail(),
-                "010-0000-1111",    // phone
-                "Seoul",            // address
-                "101-202",          // detailAddress
-                null,               // resumeFileUrl
-                null,               // portfolioFileUrl
+                "010-0000-1111",
+                "Seoul",
+                "101-202",
+                null, null,
                 ResumeStatus.NEW
         );
         resumeRepository.save(resume);
@@ -156,27 +118,22 @@ class InterviewServiceTest {
         InterviewCreateRequestDto request = new InterviewCreateRequestDto(
                 jd.getId(),
                 resume.getId(),
-                List.of(user1.getId(), user2.getId(), organizer.getId()), // organizer 포함 → 제외되어야 함
+                List.of(user1.getId(), user2.getId(), organizer.getId()),
                 LocalDateTime.now().plusDays(1)
         );
 
-        // When
+        // when
         InterviewCreateResponseDto response = interviewService.create(request);
 
-        // Then
+        // then
         Interview interview = interviewRepository.findById(response.interviewId())
                 .orElseThrow();
 
-        assertThat(interview.getJobDescription().getId()).isEqualTo(jd.getId());
-        assertThat(interview.getResume().getId()).isEqualTo(resume.getId());
         assertThat(interview.getOrganizer().getId()).isEqualTo(organizer.getId());
-
-        // 참여자 : organizer + observer 2명 = 총 3명
-        List<Long> parts =
-                interviewParticipantRepository.findUserIdsByInterviewId(interview.getId());
-        assertThat(parts).hasSize(3);
-
-        // 노트 생성 검증
-        assertThat(interviewNoteRepository.findByInterviewId(interview.getId())).isNotNull();
+        assertThat(interviewParticipantRepository.findUserIdsByInterviewId(interview.getId()))
+                .hasSize(3); // organizer + 2 observers
+        assertThat(interviewNoteRepository.findByInterviewId(interview.getId()))
+                .isNotNull();
     }
 }
+

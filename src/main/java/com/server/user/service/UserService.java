@@ -94,6 +94,17 @@ public class UserService {
         );
     }
 
+    public UserProfileSearchResponseDto getUserProfile(Long userId) {
+        validateAuthenticated(userId);
+        // 1) userId 로 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApplicationException.from(UserErrorCase.USER_NOT_FOUND));
+
+        // 2) 엔티티 -> DTO 변환 (기본 프로필 URL 적용)
+        String profileImageUrl = resolveProfileImageUrl(user);
+        return UserProfileSearchResponseDto.from(user, profileImageUrl
+        );
+    }
     // 마이페이지 - 내 정보 수정
 
     @Transactional

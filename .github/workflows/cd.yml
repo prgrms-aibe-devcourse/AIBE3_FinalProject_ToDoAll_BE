@@ -15,8 +15,6 @@ jobs:
       - name: Get latest release tag
         id: get_latest_tag
         uses: actions-ecosystem/action-get-latest-tag@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/checkout@v4
 

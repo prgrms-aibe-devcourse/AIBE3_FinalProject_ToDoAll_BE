@@ -28,6 +28,7 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
+        // CONNTECT 요청 처리
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String raw = accessor.getFirstNativeHeader("Authorization");
             String token = extractToken(raw);
@@ -36,15 +37,16 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
                 try {
                     Long userId = jwtTokenProvider.getUserId(token);
 
-                    // ✅ Principal 설정
                     accessor.setUser(new JwtAuthentication(userId));
 
-                    // ✅ sessionAttributes에 userId 저장 (SUBSCRIBE에서 쓰려고)
+                    // 세션에 userId 저장
                     Map<String, Object> attrs = accessor.getSessionAttributes();
                     if (attrs != null) attrs.put("userId", userId);
 
                     log.info("WS CONNECT - userId={}", userId);
                 } catch (Exception e) {
+
+                    // JWT 파싱 실패 시 익명 사용자로 처리
                     log.warn("JWT 파싱 실패 → 익명 처리", e);
                     accessor.setUser(new AnonymousPrincipal());
                 }
@@ -54,11 +56,11 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
             }
         }
 
+        // SUBSCRIBE 요청 처리
         if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String destination = accessor.getDestination();
             Long interviewId = extractInterviewIdFromDestination(destination);
 
-            // ✅ CONNECT 때 sessionAttributes에 넣어둔 userId를 꺼냄
             Long userId = null;
             Map<String, Object> attrs = accessor.getSessionAttributes();
             if (attrs != null && attrs.get("userId") != null) {
@@ -67,7 +69,6 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
                 else if (idObj instanceof String) userId = Long.valueOf((String) idObj);
             }
 
-            // NOTE는 면접관만
             if (destination.contains("/note")) {
                 boolean isInterviewer = sessionRegistry.isInterviewer(accessor.getSessionId());
                 if (userId == null) {
@@ -80,7 +81,6 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
                 }
             }
 
-            // chat/system은 참가자만 (로그인한 경우만 체크)
             if (destination.contains("/chat") || destination.contains("/system")) {
                 if (userId != null) {
                     boolean isParticipant =

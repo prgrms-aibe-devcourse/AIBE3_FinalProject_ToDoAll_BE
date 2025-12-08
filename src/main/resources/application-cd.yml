@@ -48,10 +48,15 @@ spring:
           auth: true
 
   ai:
+    chat:
+      options:
+        allow-tool-calls: true
     openai:
       api-key: ${OPENAI_API_KEY_AI}
       chat:
         model: gpt-4o-mini
+        options:
+          tool_choice: auto
     mcp:
       server:
         protocol: STREAMABLE

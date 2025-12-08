@@ -111,6 +111,11 @@ public class ResumeService {
     }
 
     @Transactional
+    public ResumeResponseDto createResume(ResumeCreateRequestDto request) {
+        return createResume(request, null, null);
+    }
+
+    @Transactional
     public void deleteResume(Long resumeId) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));

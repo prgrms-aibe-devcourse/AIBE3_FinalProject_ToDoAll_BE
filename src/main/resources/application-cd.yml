@@ -56,7 +56,6 @@ spring:
       chat:
         model: gpt-4o-mini
         options:
-          tool_choice: auto
     mcp:
       server:
         protocol: STREAMABLE

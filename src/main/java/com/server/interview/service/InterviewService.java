@@ -319,4 +319,44 @@ public class InterviewService {
         // 결과 업데이트
         interview.updateResult(newResult);
     }
+
+    public InterviewSummaryDto getInterview(Long interviewId) {
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // JD
+        JobDescription jd = interview.getJobDescription();
+        Long jdId = (jd != null) ? jd.getId() : null;
+        String jdTitle = (jd != null) ? jd.getTitle() : null; // getTitle()이 없으면 JD 필드명으로 변경
+
+        // Resume
+        Resume resume = interview.getResume();
+        Long resumeId = (resume != null) ? resume.getId() : null;
+
+        // 후보자 이름/아바타는 프로젝트마다 다름 → 일단 null로 두고 프론트에서 기본 이미지 처리
+        String candidateName = null;
+        String candidateAvatar = null;
+
+        // status/result
+        String status = (interview.getStatus() != null) ? interview.getStatus().name() : null;
+        String resultStatus = (interview.getResult() != null) ? interview.getResult().name() : null;
+
+        // 면접관 이름 리스트도 일단 빈 리스트(필요하면 아래 2번에서 채우는 법 제공)
+        List<String> interviewers = List.of();
+
+        return new InterviewSummaryDto(
+                interview.getId(),
+                jdId,
+                jdTitle,
+                resumeId,
+                candidateName,
+                status,
+                resultStatus,
+                candidateAvatar,
+                interviewers,
+                interview.getScheduledAt(),
+                interview.getCreatedAt()
+        );
+    }
+
 }

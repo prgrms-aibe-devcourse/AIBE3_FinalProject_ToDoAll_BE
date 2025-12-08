@@ -2,34 +2,9 @@ package com.server.dashboard.dto;
 
 import com.server.dashboard.type.CustomDayOfWeek;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.Collection;
 import java.util.List;
-
-record DashboardCalendarEventContainer(
-        DashboardDailyCalendarDto mon,
-        DashboardDailyCalendarDto tue,
-        DashboardDailyCalendarDto wed,
-        DashboardDailyCalendarDto thu,
-        DashboardDailyCalendarDto fri,
-        DashboardDailyCalendarDto sat,
-        DashboardDailyCalendarDto sun
-        ) {
-    public void add(CustomDayOfWeek customDayOfWeek, Collection<DashboardCalendarEventDto> _calendarEventDtos) {
-        switch (customDayOfWeek) {
-            case MON->mon.addCalendarEvents(_calendarEventDtos);
-            case TUE->tue.addCalendarEvents(_calendarEventDtos);
-            case WED->wed.addCalendarEvents(_calendarEventDtos);
-            case THU->thu.addCalendarEvents(_calendarEventDtos);
-            case FRI->fri.addCalendarEvents(_calendarEventDtos);
-            case SAT->sat.addCalendarEvents(_calendarEventDtos);
-            case SUN->sun.addCalendarEvents(_calendarEventDtos);
-        }
-    }
-}
-
 
 public record DashboardWeeklyCalendarResponseDto(
     LocalDate weekStart,
@@ -37,31 +12,23 @@ public record DashboardWeeklyCalendarResponseDto(
     DashboardCalendarEventContainer dailyCalendars
 ) {
 
-    public DashboardWeeklyCalendarResponseDto(LocalDate today) {
-        this(
-            getWeekStart(today),
-            getWeekEnd(today),
-            createCalendarEventContainer(getWeekStart(today))
-        );
-    }
-
-    private static LocalDate getWeekStart(LocalDate today) {
-        return today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-    }
-
-    private static LocalDate getWeekEnd(LocalDate today) {
-        return today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+    public DashboardWeeklyCalendarResponseDto(LocalDate mon, LocalDate sun) {
+        this(mon, sun, createCalendarEventContainer(mon));
     }
 
     private static DashboardCalendarEventContainer createCalendarEventContainer(LocalDate weekStart) {
+        var days = java.util.stream.IntStream.range(0, 7)
+                .mapToObj(i -> new DashboardDailyCalendarDto(weekStart.plusDays(i)))
+                .toList();
+
         return new DashboardCalendarEventContainer(
-            new DashboardDailyCalendarDto(weekStart),
-            new DashboardDailyCalendarDto(weekStart.plusDays(1)),
-            new DashboardDailyCalendarDto(weekStart.plusDays(2)),
-            new DashboardDailyCalendarDto(weekStart.plusDays(3)),
-            new DashboardDailyCalendarDto(weekStart.plusDays(4)),
-            new DashboardDailyCalendarDto(weekStart.plusDays(5)),
-            new DashboardDailyCalendarDto(weekStart.plusDays(6))
+                days.get(0),
+                days.get(1),
+                days.get(2),
+                days.get(3),
+                days.get(4),
+                days.get(5),
+                days.get(6)
         );
     }
 
@@ -69,7 +36,29 @@ public record DashboardWeeklyCalendarResponseDto(
         dailyCalendars.add(dayOfWeek, calendarEventDtos);
     }
 
-    public void addCalendarEvents(CustomDayOfWeek dayOfWeek, DashboardCalendarEventDto calendarEventDto) {
+    public void addCalendarEvent(CustomDayOfWeek dayOfWeek, DashboardCalendarEventDto calendarEventDto) {
         addCalendarEvents(dayOfWeek, List.of(calendarEventDto));
+    }
+
+    record DashboardCalendarEventContainer(
+            DashboardDailyCalendarDto mon,
+            DashboardDailyCalendarDto tue,
+            DashboardDailyCalendarDto wed,
+            DashboardDailyCalendarDto thu,
+            DashboardDailyCalendarDto fri,
+            DashboardDailyCalendarDto sat,
+            DashboardDailyCalendarDto sun
+    ) {
+        public void add(CustomDayOfWeek customDayOfWeek, Collection<DashboardCalendarEventDto> _calendarEventDtos) {
+            switch (customDayOfWeek) {
+                case MON->mon.addCalendarEvents(_calendarEventDtos);
+                case TUE->tue.addCalendarEvents(_calendarEventDtos);
+                case WED->wed.addCalendarEvents(_calendarEventDtos);
+                case THU->thu.addCalendarEvents(_calendarEventDtos);
+                case FRI->fri.addCalendarEvents(_calendarEventDtos);
+                case SAT->sat.addCalendarEvents(_calendarEventDtos);
+                case SUN->sun.addCalendarEvents(_calendarEventDtos);
+            }
+        }
     }
 }

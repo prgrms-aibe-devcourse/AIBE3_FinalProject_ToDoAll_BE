@@ -41,6 +41,8 @@ public class AiInterviewService {
                 네가 DB나 서버 데이터에 접근해야 할 때는 반드시 MCP tool을 사용해야 한다.
                 아래 MCP 도구들만 사용해서 데이터를 조회하고 저장해야 한다.
                 
+                이 도구들은 실제로 호출 가능한 함수이며, Assistant로서 너는 직접 호출할 수 있다. 꼭 호출해야 한다.
+                
                 [사용 가능한 MCP tool]
                 1. get_interview_context(interviewId)
                     - 채용 공고의 주요 업무, 요구 역량, 우대/필수 스킬 정보를 조회 / 이력서의 학력, 경력, 보유 스킬 정보를 조회한다.

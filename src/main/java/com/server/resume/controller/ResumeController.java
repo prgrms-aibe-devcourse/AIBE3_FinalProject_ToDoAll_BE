@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,9 +41,11 @@ public class ResumeController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터")
     })
     public ResponseEntity<CommonResponse<ResumeResponseDto>> createResume(
-            @RequestBody @Valid ResumeCreateRequestDto resume
+            @RequestPart("data") @Valid ResumeCreateRequestDto resume,
+            @RequestPart(value = "resumeFile", required = false) MultipartFile resumeFile,
+            @RequestPart(value = "portfolioFile", required = false) MultipartFile portfolioFile
     ) {
-        ResumeResponseDto createdResume = resumeService.createResume(resume);
+        ResumeResponseDto createdResume = resumeService.createResume(resume, resumeFile, portfolioFile);
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(createdResume));
     }
 

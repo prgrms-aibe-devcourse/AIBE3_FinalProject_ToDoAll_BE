@@ -15,6 +15,7 @@ public record JobDescriptionListResponseDto(
         JobStatus status,
         List<String> requiredSkills,
         LocalDate startDate,
-        LocalDate deadline
+        LocalDate deadline,
+        String thumbnailUrl
 ) {
 }

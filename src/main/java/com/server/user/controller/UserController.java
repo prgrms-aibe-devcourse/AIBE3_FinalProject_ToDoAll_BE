@@ -27,6 +27,7 @@ public class UserController {
     private final UserService userService;
 
     //회원가입
+    @Operation(summary = "회원가입")
     @PostMapping
     public ResponseEntity<CommonResponse<UserSignupResponseDto>> signup(
             @Valid @RequestBody UserSignupRequestDto request
@@ -38,7 +39,7 @@ public class UserController {
     }
 
      //로그인 후 마이페이지에서 비밀번호 변경
-
+    @Operation(summary = "마이페이지 비번 변경")
     @PatchMapping("/me/password")
     public CommonResponse<String> changePassword(
             @AuthenticationPrincipal Long userId,

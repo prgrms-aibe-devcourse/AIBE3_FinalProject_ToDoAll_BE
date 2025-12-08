@@ -156,4 +156,8 @@ public class JobDescription extends BaseEntity {
     public void applyApplicantCount(long count) {
         this.applicantCount = count;
     }
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        // null을 받아 기존 썸네일을 제거할 수도 있습니다.
+        this.thumbnailUrl = thumbnailUrl;
+    }
 }

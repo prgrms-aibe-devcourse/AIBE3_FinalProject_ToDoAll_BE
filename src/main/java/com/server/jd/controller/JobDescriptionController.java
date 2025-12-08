@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 import java.util.List;
@@ -51,6 +52,18 @@ public class JobDescriptionController {
         return ResponseEntity
                 .created(URI.create("/api/v1/jd/" + id))
                 .body(CommonResponse.success(id));
+    }
+
+    @PatchMapping(value = "/{id}/thumbnail", consumes = {"multipart/form-data"})
+    @Operation(summary = "특정 JD에 썸네일 이미지 업로드 및 연결 (S3 File Key 업데이트)")
+    public ResponseEntity<CommonResponse<String>> updateThumbnail(
+            @PathVariable Long id,
+            @RequestPart("thumbnailFile") MultipartFile thumbnailFile
+    ) {
+        // 서비스에서 파일 업로드 및 엔티티 업데이트 후, S3 File Key 반환
+        String newFileKey = jobService.updateThumbnail(id, thumbnailFile);
+        System.out.println("newFileKey : " + newFileKey);
+        return ResponseEntity.ok(CommonResponse.success(newFileKey));
     }
 
     @GetMapping("/skills")

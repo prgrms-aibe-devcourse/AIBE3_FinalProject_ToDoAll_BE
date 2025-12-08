@@ -1,6 +1,7 @@
 package com.server.notification.scheduler;
 
 import com.server.notification.domain.Notification;
+import com.server.notification.dto.NotificationResponseDto;
 import com.server.notification.repository.NotificationRepository;
 import com.server.notification.service.SseService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,8 @@ public class NotificationScheduler {
         for (Notification notification : notifications) {
             try {
                 // SSE 발송 시도
-                sseService.sendNotification(notification);
+                NotificationResponseDto responseDto = NotificationResponseDto.from(notification);
+                sseService.sendNotification(responseDto, notification.getUserId());
 
                 // 성공 시 sent 상태 갱신
                 notification.markSent();

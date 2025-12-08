@@ -1,6 +1,5 @@
 package com.server.notification.service;
 
-import com.server.notification.domain.Notification;
 import com.server.notification.dto.NotificationResponseDto;
 import com.server.notification.repository.EmitterRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,16 +34,12 @@ public class SseService {
         return emitter; // 리턴이 끝나야 emitter에 HTTP OutputStream이 저장됨
     }
 
-    public void sendNotification(Notification notification) {
-        Long userId = notification.getUserId();
-
+    public void sendNotification(NotificationResponseDto responseDto, Long userId) {
         if (!emitterRepository.hasEmitter(userId)) {
             return; // SSE 구독 안한 상태일 수도 있음
         }
 
         SseEmitter emitter = emitterRepository.get(userId);
-
-        NotificationResponseDto responseDto = NotificationResponseDto.from(notification);
 
         try {
             emitter.send(

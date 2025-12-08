@@ -14,7 +14,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class InterviewAiListener {
     private final AiInterviewService aiInterviewService;
-    private final AiInterviewSummaryService aiInterviewSummaryService;
+    private final InterviewSummaryAiService interviewSummaryAiService;
 
     //인터뷰 생성 -> 자동 질문 생성
     @Async
@@ -33,7 +33,7 @@ public class InterviewAiListener {
     public void handleInterviewFinished(InterviewFinishedAiEvent event) {
         log.info("[InterviewAiListener] InterviewFinishedAiEvent 수신 - interviewId={}", event.interviewId());
 
-        aiInterviewSummaryService.generateSummary(event.interviewId());
+        interviewSummaryAiService.generateSummary(event.interviewId());
 
         log.info("[AI-LISTENER] 요약 생성 요청 완료 - interviewId={}", event.interviewId());
     }

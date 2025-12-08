@@ -59,11 +59,6 @@ spring:
         annotation-scanner:
           enabled: true
 
-mcp:
-  base-url: http://3.39.210.5:8090
-  summary-path: /api/ai/interviews/generate-summary
-  generate-questions-path: /api/ai/interviews/generate-questions
-
 logging:
   level:
     org.hibernate.SQL: debug

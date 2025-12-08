@@ -1,6 +1,7 @@
 package com.server.user.dto;
 
 import com.server.user.domain.Gender;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -15,14 +16,17 @@ import java.time.LocalDate;
 public class UserProfileUpdateRequestDto {
 
     // 이름 (필수 여부는 정책에 따라, 일단 길이만 제한)
+    @NotBlank(message = "이름은 필수 항목입니다.")
     @Size(max = 50, message = "이름은 최대 50자까지 가능합니다.")
     private String name;
 
     // 닉네임
+    @NotBlank(message = "닉네임은 필수 항목입니다.")
     @Size(max = 50, message = "닉네임은 최대 50자까지 가능합니다.")
     private String nickname;
 
     // 직책/직무
+    @NotBlank(message = "직책은 필수 항목입니다.")
     @Size(max = 50, message = "직책은 최대 50자까지 가능합니다.")
     private String position;
 

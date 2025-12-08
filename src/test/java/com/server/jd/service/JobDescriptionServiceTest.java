@@ -49,6 +49,9 @@ class JobDescriptionServiceTest {
     @Mock
     private JobPreferredSkillRepository jobPreferredSkillRepository;
 
+    @Mock
+    private com.server.s3.service.PresignedUrlProvider presignedUrlProvider;
+
     private User testAuthor;
     private JobDescription testJob;
 
@@ -167,7 +170,8 @@ class JobDescriptionServiceTest {
         when(jobRepository.findById(jdId)).thenReturn(Optional.of(testJob));
         when(jobRequiredSkillRepository.findRequiredSkillNamesByJobId(jdId)).thenReturn(requiredSkills);
         when(jobPreferredSkillRepository.findPreferredSkillNamesByJobId(jdId)).thenReturn(preferredSkills);
-
+        when(presignedUrlProvider.createPresignedGetUrl(eq(testJob.getThumbnailUrl())))
+                .thenReturn("mocked_presigned_url");
         JobDescriptionDetailResponseDto result = jobDescriptionService.getDetail(jdId);
 
         assertThat(result.id()).isEqualTo(jdId);
@@ -268,7 +272,8 @@ class JobDescriptionServiceTest {
             mockedAuth.when(AuthUtils::getCurrentUserId).thenReturn(userId);
             when(jobRepository.findAllByAuthorId(userId, pageable)).thenReturn(page);
             when(jobRequiredSkillRepository.findRequiredSkillsByJobIds(List.of(10L))).thenReturn(projectionList);
-
+            when(presignedUrlProvider.createPresignedGetUrl(eq(testJob.getThumbnailUrl())))
+                    .thenReturn("mocked_presigned_url");
             Page<JobDescriptionListResponseDto> resultPage = jobDescriptionService.getMyList(pageable, 2);
 
             assertThat(resultPage.getTotalElements()).isEqualTo(1);

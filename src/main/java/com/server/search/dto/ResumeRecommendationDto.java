@@ -9,6 +9,7 @@ import java.util.List;
 public record ResumeRecommendationDto(
         Long resumeId,
         String name,
+        String profileImage,
         String gender,
         LocalDate birthDate,
         float matchScore,
@@ -41,6 +42,7 @@ public record ResumeRecommendationDto(
         return new ResumeRecommendationDto(
                 resume.getId(),
                 resume.getName(),
+                resume.getResumeFileUrl(),
                 resume.getGender(),
                 resume.getBirthDate(),
                 Math.round(score * 1000f) / 10f,

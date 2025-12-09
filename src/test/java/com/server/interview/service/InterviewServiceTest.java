@@ -63,6 +63,9 @@ class InterviewServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        //static 메서드는 인스턴스에 의존하지 않음
+        //AuthUtils.getCurrenUserId는 static 메서드라서 다른 방식으로 static mocking 해야함
         authUtilsMock = mockStatic(AuthUtils.class);
         authUtilsMock.when(AuthUtils::getCurrentUserId).thenReturn(1L);
     }
@@ -103,7 +106,7 @@ class InterviewServiceTest {
         when(interviewRepository.save(any(Interview.class))).thenAnswer(
                 (Answer<Interview>) invocation -> {
                     Interview saved = invocation.getArgument(0);
-                    ReflectionTestUtils.setField(saved, "id", 999L); // persist ID mock
+                    ReflectionTestUtils.setField(saved, "id", 999L); // 리플렉션을 이용해 private 필드에 강제로 값을 넣는 테스트용 API
                     return saved;
                 }
         );
@@ -122,7 +125,7 @@ class InterviewServiceTest {
         );
         ReflectionTestUtils.setField(observer, "id", 2L);
 
-        when(userRepository.findAllById(anySet()))
+        when(userRepository.findAllById(anySet())) //anySet() -> Null만 아니면 다 괜찮다~ Mockito 2.1.0부터 non-null set만 가능해서 테스트의 편의성을 위해 anySet()을 만들었다.
                 .thenReturn(List.of(observer));
 
         InterviewCreateRequestDto request = new InterviewCreateRequestDto(
@@ -138,6 +141,8 @@ class InterviewServiceTest {
         // then
         assertThat(response.interviewId()).isEqualTo(999L);
 
+
+        //메서드 호출 검증
         verify(interviewRepository).save(any());
         verify(interviewParticipantRepository, times(1)).save(any()); // organizer 1명
         verify(interviewParticipantRepository, times(1)).saveAll(any()); // observer 저장

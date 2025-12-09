@@ -80,6 +80,7 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             return new MatchListResponseDto(
                     resumeEntity.getId(),
                     resumeEntity.getName(),
+                    resumeEntity.getPortfolioFileUrl(),
                     m.getMatchScore(),
                     m.getStatus(),
                     matchRate,

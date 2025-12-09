@@ -34,7 +34,7 @@ class WebSocketJwtInterceptorSubscribeTest {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/topic/interview/1/note");
         accessor.setSessionId("s1");
-        accessor.setSessionAttributes(new HashMap<>()); 
+        accessor.setSessionAttributes(new HashMap<>());
 
         Message<byte[]> msg = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 

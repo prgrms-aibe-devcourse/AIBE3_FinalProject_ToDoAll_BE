@@ -54,8 +54,10 @@ spring:
         model: gpt-4o-mini
     mcp:
       server:
-        protocol: STREAMABLE
+        enabled: true
         name: jobda-interview-mcp
+        type: sync
+        protocol: STREAMABLE
         annotation-scanner:
           enabled: true
 
@@ -76,6 +78,9 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
+    com.server.mcp.tool: DEBUG         # InterviewMcpTools
+    org.springframework.ai.mcp: DEBUG
+    org.springaicommunity.mcp: DEBUG
 
 app:
   email:

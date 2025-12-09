@@ -55,26 +55,21 @@ public class PasswordResetService {
     public PasswordResetResponseDto sendPasswordResetEmail(PasswordResetRequestDto request) {
         String email = request.email();
 
-        // 1) 사용자 조회
+        // 1) 사용자 조회 - 없으면 예외 발생
         User user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    log.info("존재하지 않는 이메일로 비밀번호 재설정이 요청되었습니다.");
-                    return null; // 조용히 null 반환
+                .orElseThrow(() -> {
+                    log.warn("존재하지 않는 이메일로 비밀번호 재설정이 요청되었습니다: {}", email);
+                    return ApplicationException.from(AuthErrorCase.AUTH_USER_NOT_FOUND);
                 });
-
-        if (user == null) {
-            // 보안을 위해 성공 응답
-            return PasswordResetResponseDto.ofEmailSent();
-        }
 
         // 2) 기존 토큰 무효화
         tokenRepository.findLatestUnusedToken(
-                        user.getId(),
-                        LocalDateTime.now()
-                ).ifPresent(oldToken -> {
-                    oldToken.markAsUsed();
-                    log.info("이전 비밀번호 재설정 토큰이 무효화되었습니다.");
-                });
+                user.getId(),
+                LocalDateTime.now()
+        ).ifPresent(oldToken -> {
+            oldToken.markAsUsed();
+            log.info("이전 비밀번호 재설정 토큰이 무효화되었습니다.");
+        });
 
         // 3) 새 토큰 생성
         String plainToken = generateSecureToken();

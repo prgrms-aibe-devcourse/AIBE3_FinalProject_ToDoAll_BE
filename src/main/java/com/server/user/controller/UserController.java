@@ -27,6 +27,7 @@ public class UserController {
     private final UserService userService;
 
     //회원가입
+    @Operation(summary = "회원가입")
     @PostMapping
     public ResponseEntity<CommonResponse<UserSignupResponseDto>> signup(
             @Valid @RequestBody UserSignupRequestDto request
@@ -38,7 +39,7 @@ public class UserController {
     }
 
      //로그인 후 마이페이지에서 비밀번호 변경
-
+    @Operation(summary = "마이페이지 비번 변경")
     @PatchMapping("/me/password")
     public CommonResponse<String> changePassword(
             @AuthenticationPrincipal Long userId,
@@ -115,6 +116,20 @@ public class UserController {
     {
         List<UsersByEmailDomainResponseDto> response = userService.getUsersByEmailDomain();
         return CommonResponse.success(response);
+    }
+
+    @Operation(summary = "아이디로 조회", description = "아이디로 프로필을 조회합니다.")
+    @GetMapping("/{userId}")
+    public CommonResponse<UserProfileSearchResponseDto> getUserProfile(
+            @PathVariable Long userId
+    ) {
+        log.info("getMe principal: {}", userId);
+
+        // 1) 서비스 호출해서 프로필 조회
+        UserProfileSearchResponseDto profile = userService.getUserProfile(userId);
+
+        // 2) 공통 응답 래퍼로 감싸서 반환
+        return CommonResponse.success(profile);
     }
 
 }

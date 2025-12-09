@@ -59,6 +59,13 @@ spring:
         annotation-scanner:
           enabled: true
 
+  doc:
+    swagger-ui:
+      path: /swagger-ui/index.html
+      url: /v3/api-docs
+    api-docs:
+      path: /v3/api-docs
+
 mcp:
   base-url: http://3.39.210.5:8090
   summary-path: /api/ai/interviews/generate-summary

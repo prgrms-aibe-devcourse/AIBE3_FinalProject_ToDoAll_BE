@@ -19,6 +19,7 @@ import com.server.resume.domain.ResumeSkill;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.User;
+import com.server.user.exception.UserErrorCase;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -61,7 +62,9 @@ public class InterviewService {
 
         Long userId = AuthUtils.getCurrentUserId();
 
-        User organizer = userRepository.findById(userId).orElse(null); // 토큰을 통해 user_id를 가져오는 로직 필요
+        User organizer = userRepository.findById(userId).orElseThrow(
+                () -> new ApplicationException(UserErrorCase.USER_NOT_FOUND)
+        );
 
         LocalDateTime scheduledAt =  interviewCreateRequestDto.scheduledAt();
         InterviewStatus status = InterviewStatus.WAITING;
@@ -85,7 +88,7 @@ public class InterviewService {
                 .filter(id -> !Objects.equals(id, organizer.getId())) //Objects.equals(a, b) -> 절대 NPE가 발생하지 않는 equals 비교
                 .collect(Collectors.toSet()); //Collectors.toSet() → 실제 구현은 HashSet
 
-        // observer가 존재 하지 않으면 생성 X
+        // observer가 존재 하지 않으면 참여자 생성 X
         if (!uniqueIds.isEmpty()) {
             List<User> participants = userRepository.findAllById(uniqueIds);
 
@@ -319,4 +322,44 @@ public class InterviewService {
         // 결과 업데이트
         interview.updateResult(newResult);
     }
+
+    public InterviewSummaryDto getInterview(Long interviewId) {
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        // JD
+        JobDescription jd = interview.getJobDescription();
+        Long jdId = (jd != null) ? jd.getId() : null;
+        String jdTitle = (jd != null) ? jd.getTitle() : null; // getTitle()이 없으면 JD 필드명으로 변경
+
+        // Resume
+        Resume resume = interview.getResume();
+        Long resumeId = (resume != null) ? resume.getId() : null;
+
+        // 후보자 이름/아바타는 프로젝트마다 다름 → 일단 null로 두고 프론트에서 기본 이미지 처리
+        String candidateName = null;
+        String candidateAvatar = null;
+
+        // status/result
+        String status = (interview.getStatus() != null) ? interview.getStatus().name() : null;
+        String resultStatus = (interview.getResult() != null) ? interview.getResult().name() : null;
+
+        // 면접관 이름 리스트도 일단 빈 리스트(필요하면 아래 2번에서 채우는 법 제공)
+        List<String> interviewers = List.of();
+
+        return new InterviewSummaryDto(
+                interview.getId(),
+                jdId,
+                jdTitle,
+                resumeId,
+                candidateName,
+                status,
+                resultStatus,
+                candidateAvatar,
+                interviewers,
+                interview.getScheduledAt(),
+                interview.getCreatedAt()
+        );
+    }
+
 }

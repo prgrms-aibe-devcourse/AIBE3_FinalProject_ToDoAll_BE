@@ -118,4 +118,18 @@ public class UserController {
         return CommonResponse.success(response);
     }
 
+    @Operation(summary = "아이디로 조회", description = "아이디로 프로필을 조회합니다.")
+    @GetMapping("/{userId}")
+    public CommonResponse<UserProfileSearchResponseDto> getUserProfile(
+            @PathVariable Long userId
+    ) {
+        log.info("getMe principal: {}", userId);
+
+        // 1) 서비스 호출해서 프로필 조회
+        UserProfileSearchResponseDto profile = userService.getUserProfile(userId);
+
+        // 2) 공통 응답 래퍼로 감싸서 반환
+        return CommonResponse.success(profile);
+    }
+
 }

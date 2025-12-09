@@ -48,21 +48,22 @@ spring:
           auth: true
 
   ai:
-    chat:
-      options:
-        allow-tool-calls: true
-
     openai:
       api-key: ${OPENAI_API_KEY_AI}
       chat:
         model: gpt-4o-mini
-
     mcp:
       server:
         protocol: STREAMABLE
         name: jobda-interview-mcp
         annotation-scanner:
           enabled: true
+
+mcp:
+  base-url: http://3.39.210.5:8090
+  summary-path: /api/ai/interviews/generate-summary
+  generate-questions-path: /api/ai/interviews/generate-questions
+
 
 logging:
   level:

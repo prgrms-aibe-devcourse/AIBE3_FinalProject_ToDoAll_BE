@@ -64,6 +64,7 @@ mcp:
   summary-path: /api/ai/interviews/generate-summary
   generate-questions-path: /api/ai/interviews/generate-questions
 
+
 logging:
   level:
     org.hibernate.SQL: debug

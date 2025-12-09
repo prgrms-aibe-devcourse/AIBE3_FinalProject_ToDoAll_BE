@@ -122,24 +122,66 @@ public class InterviewMcpTools {
                 () -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND)
         );
 
-        var items = questionList.stream()
-                .map(q -> new InterviewQuestionUpdateRequestDto.QuestionUpdateItem(
-                        null,
-                        QuestionType.valueOf(q.questionType().toUpperCase()),
-                        q.content()
-                )).toList();
-        var requestDto = new InterviewQuestionUpdateRequestDto(
-                items,
-                List.of()
-        );
+        log.info("[MCP] saveInterviewQuestions called interviewId={}, rawSize={}", interviewId,
+                questionList != null ? questionList.size() : -1);
 
-        interviewQuestionService.updateQuestionsBySystem(interviewId, requestDto);
-        log.info("saveInterviewQuestions {}", interviewId);
-        return Map.of(
-                "status", "success",
-                "savedCount", items.size()
-        );
+        try {
+            var items = questionList.stream()
+                    .map(q -> {
+                        QuestionType type = safeQuestionType(q.questionType());
+                        return new InterviewQuestionUpdateRequestDto.QuestionUpdateItem(
+                                null,
+                                type,
+                                q.content()
+                        );
+                    })
+                    .toList();
+
+            var requestDto = new InterviewQuestionUpdateRequestDto(
+                    items,
+                    List.of()
+            );
+
+            interviewQuestionService.updateQuestionsBySystem(interviewId, requestDto);
+
+            log.info("[MCP] saveInterviewQuestions success interviewId={}, savedCount={}",
+                    interviewId, items.size());
+
+            return Map.of(
+                    "status", "success",
+                    "savedCount", items.size()
+            );
+        } catch (Exception e) {
+            log.error("[MCP] saveInterviewQuestions FAILED interviewId={}, reason={}",
+                    interviewId, e.getMessage(), e);
+            throw e;
+        }
     }
+
+    private QuestionType safeQuestionType(String raw) {
+        if (raw == null) {
+            log.warn("[MCP] questionType is null, fallback to DEFAULT");
+            return QuestionType.CORE;
+        }
+
+        String key = raw.trim().toUpperCase();
+        try {
+            return QuestionType.valueOf(key);
+        } catch (IllegalArgumentException e) {
+            if (key.contains("TECH")) {
+                log.warn("[MCP] Unknown QuestionType '{}', mapped to TECH", raw);
+                return QuestionType.TECH;
+            }
+            if (key.contains("BEHAV")) {
+                log.warn("[MCP] Unknown QuestionType '{}', mapped to BEHAVIOR", raw);
+                return QuestionType.BEHAVIOR;
+            }
+
+            log.warn("[MCP] Unknown QuestionType '{}', fallback to CORE", raw);
+            return QuestionType.CORE;
+        }
+    }
+
     //인터뷰 메시지 조회
     @Transactional(readOnly = true)
     @McpTool(

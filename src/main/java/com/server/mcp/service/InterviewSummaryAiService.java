@@ -65,7 +65,7 @@ public class InterviewSummaryAiService {
                     ex.getMessage(),
                     ex
             );
-            }
+        }
 
     }
 }

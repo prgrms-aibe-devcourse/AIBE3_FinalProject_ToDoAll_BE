@@ -26,7 +26,7 @@ public class InterviewSummaryController {
             @PathVariable Long interviewId
             // @AuthenticationPrincipal CustomUserDetails user   // 권한 체크 필요 시 추가
     ) {
-        interviewSummaryAiService.generateSummary(interviewId);
+        interviewSummaryAiService.requestAutoSummary(interviewId);
         return CommonResponse.success(null);
     }
 

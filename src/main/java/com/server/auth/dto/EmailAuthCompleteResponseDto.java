@@ -13,7 +13,7 @@ public class EmailAuthCompleteResponseDto {
     private String email;
     private LocalDateTime verifiedAt;
 
-    private EmailAuthCompleteResponseDto(String email, LocalDateTime verifiedAt) {
+    public EmailAuthCompleteResponseDto(String email, LocalDateTime verifiedAt) {
         this.email = email;
         this.verifiedAt = verifiedAt;
     }

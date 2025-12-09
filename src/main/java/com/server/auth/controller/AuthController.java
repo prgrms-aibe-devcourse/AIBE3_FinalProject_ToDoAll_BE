@@ -44,7 +44,6 @@ public class AuthController {
     }
 
     //비밀번호 재설정 실행
-
     @Operation(
             summary = "비밀번호 재설정 실행",
             description = "이메일로 받은 토큰과 새 비밀번호로 비밀번호를 변경합니다."
@@ -60,6 +59,8 @@ public class AuthController {
 
 
      //로그인
+     @Operation(
+             summary = "로그인 및 토큰 발급")
     @PostMapping("/token")
     public CommonResponse<UserLoginResponseDto> login(
             @Valid @RequestBody UserLoginRequestDto request,
@@ -89,7 +90,8 @@ public class AuthController {
 
         return CommonResponse.success(response);
     }
-
+    @Operation(
+            summary = "Access Token 재발급")
     @PostMapping("/token/refresh")
     public CommonResponse<UserLoginResponseDto> refresh(
             @Valid @RequestBody TokenRefreshRequestDto request
@@ -101,6 +103,8 @@ public class AuthController {
     }
 
     //로그아웃
+    @Operation(
+            summary = "로그아웃")
     @PostMapping("/logout")
     public CommonResponse<String> logout(
             HttpServletRequest request,

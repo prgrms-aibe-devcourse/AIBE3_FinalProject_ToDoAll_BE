@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Interview WebSocket + REST Test</title>
 
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
@@ -22,6 +22,7 @@
         .you { color: blue; }
         textarea { width: 97%; height: 140px; }
         input, button { margin: 5px; }
+        .btn-row button { margin-right: 8px; }
     </style>
 </head>
 <body>
@@ -32,7 +33,7 @@
     <legend>접속 정보</legend>
 
     <label>인터뷰 ID:</label>
-    <input id="interviewId" value="1">
+    <input id="interviewId" value="1" />
 
     <label>역할:</label>
     <select id="role" onchange="switchRole()">
@@ -40,24 +41,30 @@
         <option value="INTERVIEWER">면접관</option>
     </select>
 
-    <br>
+    <br />
 
     <label>Access Token (순수 JWT):</label>
-    <input id="token" placeholder="eyJhbGciOi..." disabled style="width:350px">
+    <input id="token" placeholder="eyJhbGciOi..." disabled style="width:350px" />
 
-    <br><br>
+    <br /><br />
 
-    <button onclick="loadHistory()">📥 기존 메시지 불러오기</button>
-    <button onclick="connectWS()">🔌 CONNECT</button>
-    <button onclick="disconnectWS()">❌ DISCONNECT</button>
+    <div class="btn-row">
+        <button onclick="loadHistory()">📥 기존 메시지 불러오기</button>
+        <button onclick="connectWS()">🔌 CONNECT</button>
+        <button onclick="disconnectWS()">❌ DISCONNECT</button>
+    </div>
+
+    <div style="margin-top:8px;">
+        <small>WS 상태: <b id="wsState">DISCONNECTED</b></small>
+    </div>
 </fieldset>
 
 <h3>💬 채팅</h3>
 <div id="chatPanel" class="panel"></div>
 
 <div>
-    <input id="chatContent" placeholder="채팅 메시지" style="width:300px">
-    <button onclick="sendChat()">채팅 보내기</button>
+    <input id="chatContent" placeholder="채팅 메시지" style="width:300px" />
+    <button id="chatSendBtn" onclick="sendChat()" disabled>채팅 보내기</button>
 </div>
 
 <h3>📝 노트 (면접관 전용)</h3>
@@ -69,136 +76,244 @@
 
 <script>
     let stompClient = null;
+    let sock = null;
 
-    function append(panelId, msg, cls="") {
-        const box = document.getElementById(panelId);
+    function $(id) { return document.getElementById(id); }
+
+    function append(panelId, msg, cls = "") {
+        const box = $(panelId);
         const now = new Date().toLocaleTimeString();
         box.innerHTML += `<div class="${cls}">[${now}] ${msg}</div>`;
         box.scrollTop = box.scrollHeight;
     }
 
-    function switchRole() {
-        const role = document.getElementById("role").value;
-        const enable = role === "INTERVIEWER";
-
-        document.getElementById("token").disabled = !enable;
-        document.getElementById("noteArea").disabled = !enable;
-        document.getElementById("noteSendBtn").disabled = !enable;
+    function setWsState(state) {
+        $("wsState").textContent = state;
     }
 
-    // 📌 기존 메시지 불러오기 (REST)
-    async function loadHistory() {
-        const id = document.getElementById("interviewId").value;
-        append("systemPanel", "기존 메시지 불러오는 중...");
+    function logSys(msg) {
+        append("systemPanel", msg, "system-msg");
+        console.log("[SYS]", msg);
+    }
 
-        // 🔵 채팅 불러오기
+    function setUiByRole() {
+        const role = $("role").value;
+        const isInterviewer = role === "INTERVIEWER";
+
+        $("token").disabled = !isInterviewer;
+
+        // 연결 전에는 send 버튼 무조건 비활성
+        $("chatSendBtn").disabled = true;
+        $("noteSendBtn").disabled = true;
+
+        $("noteArea").disabled = !isInterviewer; // 면접관이면 입력 가능(연결 전이라도 작성은 가능)
+        if (!isInterviewer) $("noteArea").value = "";
+    }
+
+    function setUiConnected(connected) {
+        const role = $("role").value;
+        $("chatSendBtn").disabled = !connected;
+        $("noteSendBtn").disabled = !(connected && role === "INTERVIEWER");
+    }
+
+    function switchRole() {
+        setUiByRole();
+        logSys("역할 변경: " + $("role").value);
+    }
+
+    function ensureConnected() {
+        if (!stompClient) {
+            logSys("전송 실패: stompClient=null (CONNECT 먼저 누르기)");
+            return false;
+        }
+        if (!stompClient.connected) {
+            logSys("전송 실패: STOMP connected=false (연결 중/실패)");
+            return false;
+        }
+        return true;
+    }
+
+    async function loadHistory() {
+        const id = $("interviewId").value;
+        logSys("기존 메시지 불러오는 중...");
+
+
         try {
             const res = await fetch(`/api/v1/interviews/${id}/chat`);
             const body = await res.json();
             const chats = body.data ?? [];
-
-            chats.forEach(msg =>
-                append("chatPanel", `${msg.sender}: ${msg.content}`, "chat-msg")
-            );
+            chats.forEach(msg => append("chatPanel", `${msg.sender}: ${msg.content}`, "chat-msg"));
+            logSys(`채팅 ${chats.length}개 로드 완료`);
         } catch (e) {
-            append("systemPanel", "채팅 불러오기 실패", "system-msg");
+            console.error(e);
+            logSys("채팅 불러오기 실패 (콘솔 확인)");
         }
 
-        // 🟢 노트 불러오기
         try {
             const res = await fetch(`/api/v1/interviews/${id}/memos`);
             const body = await res.json();
             const memos = body.data ?? [];
-
             if (memos.length > 0) {
                 const latest = memos[memos.length - 1];
-                document.getElementById("noteArea").value = latest.content;
+                $("noteArea").value = latest.content;
             }
+            logSys(`노트 ${memos.length}개 로드 완료`);
         } catch (e) {
-            append("systemPanel", "노트 불러오기 실패", "system-msg");
+            console.error(e);
+            logSys("노트 불러오기 실패 (콘솔 확인)");
         }
-
-        append("systemPanel", "기존 메시지 불러오기 완료");
     }
 
-    // 🔌 웹소켓 연결
     function connectWS() {
-        const id = document.getElementById("interviewId").value;
-        const token = document.getElementById("token").value.trim();
-        const role = document.getElementById("role").value;
+        const id = $("interviewId").value.trim();
+        const token = $("token").value.trim();
+        const role = $("role").value;
+
+        if (stompClient && stompClient.connected) {
+            logSys("이미 CONNECTED 상태라 DISCONNECT 후 재연결합니다.");
+            disconnectWS();
+        }
 
         const headers = { interviewId: id };
 
         if (role === "INTERVIEWER") {
             if (!token) {
-                append("systemPanel", "면접관은 Access Token이 필요합니다!", "system-msg");
+                logSys("면접관은 Access Token이 필요합니다!");
                 return;
             }
             headers.Authorization = "Bearer " + token;
         }
 
-        const socket = new SockJS("/ws/interview");
-        stompClient = Stomp.over(socket);
-        stompClient.debug = null;
+        logSys(`CONNECT 시도: interviewId=${id}, role=${role}`);
+        console.log("[CONNECT headers]", headers);
 
-        stompClient.connect(headers, () => {
-            append("systemPanel", `CONNECTED (role=${role})`, "system-msg");
 
-            // 채팅 구독
-            stompClient.subscribe(`/topic/interview/${id}/chat`, msg => {
-                const data = JSON.parse(msg.body);
-                append("chatPanel", `${data.sender}: ${data.content}`, "chat-msg");
-            });
+        sock = new SockJS("/ws/interview");
+        sock.onopen = () => logSys("SockJS OPEN");
+        sock.onclose = (e) => logSys(`SockJS CLOSE code=${e?.code ?? "?"} reason=${e?.reason ?? ""}`);
+        sock.onerror = (e) => logSys("SockJS ERROR (콘솔 확인)");
 
-            // 노트 구독
-            if (role === "INTERVIEWER") {
-                stompClient.subscribe(`/topic/interview/${id}/note`, msg => {
+        stompClient = Stomp.over(sock);
+
+        stompClient.debug = (str) => console.log("[STOMP]", str);
+
+        setWsState("CONNECTING");
+        setUiConnected(false);
+
+        stompClient.connect(
+            headers,
+            (frame) => {
+                logSys("STOMP CONNECTED");
+                console.log("[STOMP CONNECTED frame]", frame);
+
+                setWsState("CONNECTED");
+                setUiConnected(true);
+
+                safeSubscribe(`/topic/interview/${id}/chat`, (msg) => {
                     const data = JSON.parse(msg.body);
-                    document.getElementById("noteArea").value = data.content;
+                    append("chatPanel", `${data.sender}: ${data.content}`, "chat-msg");
                 });
-            }
 
-            // 시스템 메시지 구독
-            stompClient.subscribe(`/topic/interview/${id}/system`, msg => {
-                const data = JSON.parse(msg.body);
-                append("systemPanel", `[SYSTEM] ${data.content}`, "system-msg");
-            });
-        });
+                safeSubscribe(`/topic/interview/${id}/system`, (msg) => {
+                    const data = JSON.parse(msg.body);
+                    append("systemPanel", `[SYSTEM] ${data.content}`, "system-msg");
+                });
+
+                if (role === "INTERVIEWER") {
+                    safeSubscribe(`/topic/interview/${id}/note`, (msg) => {
+                        const data = JSON.parse(msg.body);
+                        $("noteArea").value = data.content;
+                    });
+                } else {
+                    logSys("지원자 역할: note 구독 스킵");
+                }
+            },
+            (err) => {
+                console.error("[STOMP CONNECT ERROR]", err);
+                logSys("STOMP CONNECT 실패  (콘솔/Network WS 확인)");
+                setWsState("DISCONNECTED");
+                setUiConnected(false);
+                stompClient = null;
+            }
+        );
     }
 
-    function disconnectWS() {
-        if (stompClient) {
-            stompClient.disconnect(() =>
-                append("systemPanel", "DISCONNECTED", "system-msg")
-            );
+    function safeSubscribe(dest, handler) {
+        try {
+            logSys("SUBSCRIBE -> " + dest);
+            const sub = stompClient.subscribe(dest, handler);
+            console.log("[SUBSCRIBED]", dest, sub);
+            return sub;
+        } catch (e) {
+            console.error("[SUBSCRIBE ERROR]", dest, e);
+            logSys("SUBSCRIBE 실패: " + dest + " (콘솔 확인)");
+            return null;
         }
     }
 
-    // 💬 채팅 보내기
-    function sendChat() {
-        const id = document.getElementById("interviewId").value;
-        const content = document.getElementById("chatContent").value.trim();
-        if (!content) return;
+    function disconnectWS() {
+        if (!stompClient) {
+            logSys("DISCONNECT: stompClient가 없습니다.");
+            setWsState("DISCONNECTED");
+            setUiConnected(false);
+            return;
+        }
 
-        stompClient.send(`/app/interview/${id}/chat`, {}, JSON.stringify({
+        try {
+            stompClient.disconnect(() => {
+                logSys("STOMP DISCONNECTED");
+                setWsState("DISCONNECTED");
+                setUiConnected(false);
+                stompClient = null;
+            });
+        } catch (e) {
+            console.error(e);
+            logSys("DISCONNECT 중 예외 (콘솔 확인)");
+            setWsState("DISCONNECTED");
+            setUiConnected(false);
+            stompClient = null;
+        }
+    }
+
+    function sendChat() {
+        const id = $("interviewId").value;
+        const content = $("chatContent").value.trim();
+        if (!content) return;
+        if (!ensureConnected()) return;
+
+        const dest = `/app/interview/${id}/chat`;
+        const payload = {
             content,
             sender: "사용자",
             senderId: 0
-        }));
+        };
+
+        console.log("[SEND chat]", dest, payload);
+        logSys("SEND chat -> " + dest);
+
+        stompClient.send(dest, {}, JSON.stringify(payload));
 
         append("chatPanel", "[YOU] " + content, "you");
-        document.getElementById("chatContent").value = "";
+        $("chatContent").value = "";
     }
 
-    // 📝 노트 보내기
     function sendNote() {
-        const id = document.getElementById("interviewId").value;
-        const content = document.getElementById("noteArea").value;
+        const id = $("interviewId").value;
+        const content = $("noteArea").value;
+        if (!ensureConnected()) return;
 
-        stompClient.send(`/app/interview/${id}/note`, {}, JSON.stringify({ content }));
+        const dest = `/app/interview/${id}/note`;
+        const payload = { content };
 
-        append("systemPanel", "노트 저장 요청 전송", "system-msg");
+        console.log("[SEND note]", dest, payload);
+        logSys("SEND note -> " + dest);
+
+        stompClient.send(dest, {}, JSON.stringify(payload));
+        logSys("노트 저장 요청 전송 완료");
     }
+
+    setUiByRole();
+    setWsState("DISCONNECTED");
 </script>
 
 </body>

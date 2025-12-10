@@ -195,7 +195,7 @@ class JobDescriptionControllerTest {
                 new JobDescriptionInterviewOptionDto(100L, "Interview JD 1")
         );
 
-        given(jobService.getMyInterviewOptionJdList(any())).willReturn(response);
+        given(jobService.getMyInterviewOptionJdList()).willReturn(response);
 
         mockMvc.perform(get("/api/v1/jd/interview/options")
                         .contentType(MediaType.APPLICATION_JSON))

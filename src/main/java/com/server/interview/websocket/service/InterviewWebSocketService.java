@@ -3,6 +3,7 @@ package com.server.interview.websocket.service;
 import com.server.interview.dto.InterviewNoteMemoCreateRequestDto;
 import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.interview.service.InterviewNoteMemoService;
+import com.server.interview.service.InterviewService;
 import com.server.interview.websocket.domain.ChatMessageEntity;
 import com.server.interview.websocket.dto.*;
 import com.server.interview.websocket.registry.SessionRegistry;
@@ -26,6 +27,7 @@ public class InterviewWebSocketService {
     private final InterviewNoteMemoService interviewNoteMemoService;
     private final UserService userService;
     private final InterviewParticipantRepository interviewParticipantRepository;
+    private final InterviewService interviewService;
 
 
 
@@ -55,6 +57,7 @@ public class InterviewWebSocketService {
 
         if(sessionRegistry.getSessionCount(interviewId) == 0) {
             log.info("INTERVIEW END: interviewId={} 모든 사용자가 퇴장했습니다.", interviewId);
+            interviewService.finishInterview(interviewId);
         }
     }
 

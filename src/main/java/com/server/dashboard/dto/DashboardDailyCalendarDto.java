@@ -7,7 +7,7 @@ import java.util.List;
 
 import static com.server.dashboard.util.Formatter.formatterDate;
 
-record DashboardDailyCalendarDto(
+public record DashboardDailyCalendarDto(
         String date,
         List<DashboardCalendarEventDto> events
 ) {

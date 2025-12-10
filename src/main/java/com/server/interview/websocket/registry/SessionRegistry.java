@@ -1,10 +1,12 @@
 package com.server.interview.websocket.registry;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 public class SessionRegistry {
 
@@ -17,6 +19,8 @@ public class SessionRegistry {
 
     // 세션 등록
     public void addSession(Long interviewId, Long userId, String sessionId, boolean isInterviewer) {
+        log.info("REGISTRY addSession interviewId={} sessionId={} userId={} isInterviewer={}",
+                interviewId, sessionId, userId, isInterviewer);
 
         Objects.requireNonNull(userId, "userId는 필수입니다.");
 

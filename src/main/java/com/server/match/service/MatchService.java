@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -64,7 +65,7 @@ public class MatchService {
 
     // JD 기반 추천 이력서 자동 매칭
     @Transactional
-    public List<ResumeRecommendationDto> recommendResumes(Long jdId, Integer limit) throws IOException {
+    public List<ResumeRecommendationDto> recommendResumes(Long jdId, Integer limit, String sortType) throws IOException {
         // 유효한 limit 값만 허용 (3, 5, 10, 20, 30) → 잘못 들어오면 기본값 10
         List<Integer> allowedLimits = List.of(3, 5, 10, 20, 30);
         if (!allowedLimits.contains(limit)) {
@@ -86,10 +87,21 @@ public class MatchService {
             recommendationAsyncService.warmUpRecommendation(jdId);
         }
 
-        // 상위 N개만 잘라서 리턴 (필터링 로직 추가)
-        return fullList.stream()
+        // 상위 limit 개수만 추려냄
+        List<ResumeRecommendationDto> limitedList = fullList.stream()
                 .limit(limit)
                 .toList();
+        
+        //정렬
+        if(sortType.equals("LATEST")) {
+            return limitedList.stream()
+                    .sorted(Comparator.comparing(ResumeRecommendationDto::resumeCreateTime).reversed())
+                    .toList();
+        } else {
+            return limitedList.stream()
+                    .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())
+                    .toList();
+        }
     }
 
     @Transactional(readOnly = true)

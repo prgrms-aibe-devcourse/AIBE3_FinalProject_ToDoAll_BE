@@ -126,10 +126,11 @@ public class MatchController {
                     description = "추천 인원 수 (기본값: 10). 허용 값: 3, 5, 10, 20, 30",
                     example = "5"
             )
-            @RequestParam(defaultValue = "10") Integer limit
+            @RequestParam(defaultValue = "10") Integer limit,
+            @RequestParam String sortType
     ) {
         try {
-            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId, limit);
+            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId, limit, sortType);
             return CommonResponse.success(recommendations);
         } catch (IOException e) {
             throw new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND, e);

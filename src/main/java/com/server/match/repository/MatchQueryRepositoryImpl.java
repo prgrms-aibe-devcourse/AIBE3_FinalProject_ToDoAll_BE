@@ -1,5 +1,6 @@
 package com.server.match.repository;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.server.ai.service.AiRecommendationService;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -46,10 +48,28 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             query.where(match.status.eq(condition.status()));
         }
 
-        query.orderBy(match.appliedAt.desc());  // 지원 최신순 정렬
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                query.orderBy(
+                        toOrderSpecifier(order.getProperty(), order.getDirection(), match)
+                );
+            }
+        } else {
+            query.orderBy(match.appliedAt.desc());
+        }
 
         List<Match> matches = query.fetch();
-        long total = query.fetchCount();
+        //long total = query.fetchCount();
+        Long total = queryFactory
+                .select(match.count())
+                .from(match)
+                .where(
+                        match.jobDescription.id.eq(condition.jdId()),
+                        condition.status() != null ? match.status.eq(condition.status()) : null
+                )
+                .fetchOne();
+
+        long totalCount = total != null ? total : 0L;
 
         JobDescription jd = matches.isEmpty() ? null : matches.get(0).getJobDescription();
         List<String> jdKeywords = jd != null
@@ -90,6 +110,17 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             );
         }).toList();
 
-        return new PageImpl<>(content, pageable, total);
+        return new PageImpl<>(content, pageable, totalCount);
+    }
+
+    private OrderSpecifier<?> toOrderSpecifier(String property, Sort.Direction direction, QMatch match) {
+        return switch (property) {
+            case "createdAt" ->
+                    direction.isAscending() ? match.appliedAt.asc() : match.appliedAt.desc();
+            case "matchScore" ->
+                    direction.isAscending() ? match.matchScore.asc() : match.matchScore.desc();
+            default ->
+                    match.appliedAt.desc(); // 기본 정렬
+        };
     }
 }

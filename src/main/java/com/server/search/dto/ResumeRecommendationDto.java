@@ -4,6 +4,7 @@ import com.server.resume.domain.Resume;
 import com.server.search.document.ResumeDocument;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ResumeRecommendationDto(
@@ -18,7 +19,8 @@ public record ResumeRecommendationDto(
         String summary,
         List<String> skills,
         String status,
-        String recommendationReason
+        String recommendationReason,
+        LocalDateTime resumeCreateTime
 ) {
     public static ResumeRecommendationDto from(
             Resume resume,
@@ -51,7 +53,8 @@ public record ResumeRecommendationDto(
                 summary,
                 doc.getSkills(),
                 "RECOMMENDED",
-                recommendationReason
+                recommendationReason,
+                resume.getCreatedAt()
         );
     }
 }

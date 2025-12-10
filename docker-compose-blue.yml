@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  jobda-app-blue:
+    image: ghcr.io/${OWNER_NAME}/jobda-app:${IMAGE_TAG}
+    container_name: jobda-app-blue
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: cd
+    restart: always
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 25s
+
+  redis:
+    extends:
+      file: docker-compose-base.yml
+      service: redis

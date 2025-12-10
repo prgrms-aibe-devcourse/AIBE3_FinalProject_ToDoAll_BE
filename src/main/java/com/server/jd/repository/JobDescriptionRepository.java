@@ -23,4 +23,6 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
     long countByStatus(JobStatus status);
     List<JobDescription> findTop5ByOrderByCreatedAtDesc();
     Page<JobDescription> findAllByAuthorId(Long authorId, Pageable pageable);
+
+    List<JobDescription> findByAuthorId(Long userId);
 }

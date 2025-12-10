@@ -268,9 +268,21 @@ public class JobDescriptionService {
     }
 
     @Transactional(readOnly = true)
-    public List<JobDescriptionInterviewOptionDto> getMyInterviewOptionJdList(Long userId) {
-        userId = 1L;
-        return jobRepository.findJdListByInterviewParticipant(userId);}
+    public List<JobDescriptionOptionDto> getMyOptionJdList() {
+        Long userId = AuthUtils.getCurrentUserId();
+
+        return jobRepository.findByAuthorId(userId)
+                .stream()
+                .map(JobDescriptionOptionDto::from)
+                .toList();
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<JobDescriptionInterviewOptionDto> getMyInterviewOptionJdList() {
+        Long userId = AuthUtils.getCurrentUserId();
+        return jobRepository.findJdListByInterviewParticipant(userId);
+    }
 
     @Transactional(readOnly = true)
     public Page<JobDescriptionListResponseDto> getMyList(Pageable pageable, int skillLimit) {
@@ -312,4 +324,6 @@ public class JobDescriptionService {
 
         return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
     }
+
+
 }

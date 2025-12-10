@@ -9,6 +9,7 @@ import java.util.List;
 public record MatchListResponseDto(
         Long resumeId,
         String resumeName,
+        String resumeProfileImage,
         Float matchScore,
         MatchStatus status,
         String skillMatchRate,

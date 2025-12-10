@@ -10,21 +10,23 @@ import com.server.match.exception.MatchErrorCase;
 import com.server.match.service.MatchService;
 import com.server.search.dto.ResumeRecommendationDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/v1/matches")
 public class MatchController {
 
@@ -59,7 +61,6 @@ public class MatchController {
         if (jdId <= 0) {
             throw new ApplicationException(MatchErrorCase.JD_INVALID_ID);
         }
-
         MatchSearchCondition condition = new MatchSearchCondition(jdId, status);
         Page<MatchListResponseDto> page = matchService.getMatchedResumesPaged(condition, pageable);
 
@@ -126,10 +127,11 @@ public class MatchController {
                     description = "추천 인원 수 (기본값: 10). 허용 값: 3, 5, 10, 20, 30",
                     example = "5"
             )
-            @RequestParam(defaultValue = "10") Integer limit
+            @RequestParam(defaultValue = "10") Integer limit,
+            @RequestParam String sortType
     ) {
         try {
-            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId, limit);
+            List<ResumeRecommendationDto> recommendations = matchService.recommendResumes(jdId, limit, sortType);
             return CommonResponse.success(recommendations);
         } catch (IOException e) {
             throw new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND, e);

@@ -4,11 +4,13 @@ import com.server.resume.domain.Resume;
 import com.server.search.document.ResumeDocument;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ResumeRecommendationDto(
         Long resumeId,
         String name,
+        String profileImage,
         String gender,
         LocalDate birthDate,
         float matchScore,
@@ -17,7 +19,8 @@ public record ResumeRecommendationDto(
         String summary,
         List<String> skills,
         String status,
-        String recommendationReason
+        String recommendationReason,
+        LocalDateTime resumeCreateTime
 ) {
     public static ResumeRecommendationDto from(
             Resume resume,
@@ -41,6 +44,7 @@ public record ResumeRecommendationDto(
         return new ResumeRecommendationDto(
                 resume.getId(),
                 resume.getName(),
+                resume.getResumeFileUrl(),
                 resume.getGender(),
                 resume.getBirthDate(),
                 Math.round(score * 1000f) / 10f,
@@ -49,7 +53,8 @@ public record ResumeRecommendationDto(
                 summary,
                 doc.getSkills(),
                 "RECOMMENDED",
-                recommendationReason
+                recommendationReason,
+                resume.getCreatedAt()
         );
     }
 }

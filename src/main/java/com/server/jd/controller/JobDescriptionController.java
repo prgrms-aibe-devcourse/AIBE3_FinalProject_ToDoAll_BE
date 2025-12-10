@@ -14,7 +14,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -93,8 +92,14 @@ public class JobDescriptionController {
     @GetMapping("/interview/options")
     @Operation(summary = "사용자가 참여한 인터뷰의 JD 목록 조회")
     public CommonResponse<List<JobDescriptionInterviewOptionDto>> getMyInterviewJdList(
-            @AuthenticationPrincipal Long userId
     ) {
-        return CommonResponse.success(jobService.getMyInterviewOptionJdList(userId));
+        return CommonResponse.success(jobService.getMyInterviewOptionJdList());
+    }
+
+    @GetMapping("/options")
+    @Operation(summary = "사용자가 만든 인터뷰의 JD 목록 조회")
+    public CommonResponse<List<JobDescriptionOptionDto>> getMyJdList(
+    ) {
+        return CommonResponse.success(jobService.getMyOptionJdList());
     }
 }

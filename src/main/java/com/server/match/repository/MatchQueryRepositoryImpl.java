@@ -1,5 +1,6 @@
 package com.server.match.repository;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.server.ai.service.AiRecommendationService;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -31,10 +33,10 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
 
     @Override
     public Page<MatchListResponseDto> searchMatches(MatchSearchCondition condition, Pageable pageable) {
+
         QMatch match = QMatch.match;
         QResume resume = QResume.resume;
 
-        // 1차 쿼리로 Match + Resume fetch
         JPAQuery<Match> query = queryFactory
                 .selectFrom(match)
                 .join(match.resume, resume).fetchJoin()
@@ -46,7 +48,14 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             query.where(match.status.eq(condition.status()));
         }
 
-        query.orderBy(match.appliedAt.desc());  // 지원 최신순 정렬
+        // 정렬 적용
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                query.orderBy(toOrderSpecifier(order.getProperty(), order.getDirection(), match));
+            }
+        } else {
+            query.orderBy(match.appliedAt.desc());
+        }
 
         List<Match> matches = query.fetch();
         long total = query.fetchCount();
@@ -56,22 +65,19 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
                 ? keywordExtractorService.extractKeywords(jd.getDescription())
                 : List.of();
 
-        // DTO 수동 매핑
+        // DTO 매핑
         List<MatchListResponseDto> content = matches.stream().map(m -> {
             Resume resumeEntity = m.getResume();
             ResumeDocument doc = resumeSearchService.find(resumeEntity.getId())
                     .orElseGet(() -> ResumeDocument.of(resumeEntity));
 
-            // 누락된 기술
             List<String> missingSkills = MatchScoreCalculator.getMissingSkills(jd, doc);
 
-            // 기술 매칭률
             int totalSkills = missingSkills.size() + doc.getSkills().size();
             String matchRate = totalSkills > 0
-                    ? Math.round(((float)(totalSkills - missingSkills.size()) / totalSkills) * 100) + "%"
+                    ? Math.round(((float) (totalSkills - missingSkills.size()) / totalSkills) * 100) + "%"
                     : "0%";
 
-            // 요약이 없을 경우 AI로 생성
             String summary = m.getResumeSummary();
             if (summary == null || summary.isBlank()) {
                 summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
@@ -80,6 +86,7 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             return new MatchListResponseDto(
                     resumeEntity.getId(),
                     resumeEntity.getName(),
+                    resumeEntity.getPortfolioFileUrl(),
                     m.getMatchScore(),
                     m.getStatus(),
                     matchRate,
@@ -90,5 +97,21 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
         }).toList();
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+    /** 정렬 필드 매핑 */
+    private OrderSpecifier<?> toOrderSpecifier(String property, Sort.Direction direction, QMatch match) {
+
+        // createdAt → appliedAt 매핑
+        String mapped = property.equals("createdAt") ? "appliedAt" : property;
+
+        return switch (mapped) {
+            case "appliedAt" ->
+                    direction.isAscending() ? match.appliedAt.asc() : match.appliedAt.desc();
+            case "matchScore" ->
+                    direction.isAscending() ? match.matchScore.asc() : match.matchScore.desc();
+            default ->
+                    match.appliedAt.desc();
+        };
     }
 }

@@ -143,4 +143,37 @@ public class InterviewNoteMemoService {
                 memo.getUpdatedAt()
         );
     }
+
+    @Transactional
+    public InterviewNoteMemoCreateResponseDto createByUser(
+            Long interviewId,
+            Long userId,
+            InterviewNoteMemoCreateRequestDto requestDto
+    ) {
+        // 공통 검증
+        getInterview(interviewId);
+        InterviewNote note = getInterviewNote(interviewId);
+        User user = getUserById(userId);
+        checkPermission(interviewId, user.getId());
+
+        // 생성
+        InterviewNoteMemo memo = InterviewNoteMemo.of(
+                note,
+                user,
+                requestDto.content()
+        );
+        memoRepository.save(memo);
+
+        return new InterviewNoteMemoCreateResponseDto(memo.getId());
+    }
+
+
+    private User getUserById(Long userId) {
+        if (userId == null || userId <= 0L) {
+            throw new ApplicationException(InterviewNoteMemoErrorCase.FORBIDDEN);
+        }
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ApplicationException(InterviewNoteMemoErrorCase.FORBIDDEN));
+    }
+
 }

@@ -74,7 +74,7 @@ public class DashboardService {
         return map;
     }
 
-    private void validateUserExists(Long userId) {
+    void validateUserExists(Long userId) {
         if (userId == null) {
             throw ApplicationException.from(UserErrorCase.UNAUTHORIZED);
         }
@@ -112,7 +112,7 @@ public class DashboardService {
         LocalDateTime oneMonthAgo = now.minusMonths(1);
 
         try {
-            return dashboardInterviewRepository.findByOrganizer_IdAndResultAndScheduledAtBetween(userId, InterviewResult.PASS, oneMonthAgo, now).size();
+            return dashboardInterviewRepository.countByOrganizer_IdAndResultAndScheduledAtBetween(userId, InterviewResult.PASS, oneMonthAgo, now);
         } catch (Exception e) {
             throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
@@ -159,39 +159,39 @@ public class DashboardService {
     public DashboardJobStatusResponseDto getCountByJobStatus(Long userId) {
         validateUserExists(userId);
 
+        List<CountByStatusInterface> list;
         try {
-            Map<JobStatus, Integer> map = toEnumCountMap(
-                    dashboardJobRepository.findCountByJobStatus(userId),
-                    JobStatus.class
-            );
-
-            return new DashboardJobStatusResponseDto(
-                    map.getOrDefault(JobStatus.OPEN, 0),
-                    map.getOrDefault(JobStatus.DRAFT, 0),
-                    map.getOrDefault(JobStatus.CLOSED, 0)
-            );
+            list = dashboardJobRepository.findCountByJobStatus(userId);
         } catch (Exception e) {
             throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
+
+        Map<JobStatus, Integer> map = toEnumCountMap(list, JobStatus.class);
+
+        return new DashboardJobStatusResponseDto(
+                map.getOrDefault(JobStatus.OPEN, 0),
+                map.getOrDefault(JobStatus.DRAFT, 0),
+                map.getOrDefault(JobStatus.CLOSED, 0)
+        );
     }
 
     public DashboardJobStatusResponseDto getCountByInterviewStatus(Long userId) {
         validateUserExists(userId);
 
+        List<CountByStatusInterface> list;
         try {
-            Map<InterviewStatus, Integer> map = toEnumCountMap(
-                    dashboardInterviewRepository.findCountByInterviewStatus(userId),
-                    InterviewStatus.class
-            );
-
-            return new DashboardJobStatusResponseDto(
-                    map.getOrDefault(InterviewStatus.IN_PROGRESS, 0),
-                    map.getOrDefault(InterviewStatus.WAITING, 0),
-                    map.getOrDefault(InterviewStatus.DONE, 0)
-            );
+            list = dashboardInterviewRepository.findCountByInterviewStatus(userId);
         } catch (Exception e) {
             throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
+
+        Map<InterviewStatus, Integer> map = toEnumCountMap(list, InterviewStatus.class);
+
+        return new DashboardJobStatusResponseDto(
+                map.getOrDefault(InterviewStatus.IN_PROGRESS, 0),
+                map.getOrDefault(InterviewStatus.WAITING, 0),
+                map.getOrDefault(InterviewStatus.DONE, 0)
+        );
     }
 
     public DashboardWeeklyCalendarResponseDto getWeekCalendarData(Long userId) {

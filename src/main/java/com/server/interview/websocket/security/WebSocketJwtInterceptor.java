@@ -36,6 +36,7 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
             if (token != null) {
                 try {
                     Long userId = jwtTokenProvider.getUserId(token);
+                    log.info("WS CONNECT - extracted userId={}", userId);
 
                     accessor.setUser(new JwtAuthentication(userId));
 
@@ -43,7 +44,8 @@ public class WebSocketJwtInterceptor implements ChannelInterceptor {
                     Map<String, Object> attrs = accessor.getSessionAttributes();
                     if (attrs != null) attrs.put("userId", userId);
 
-                    log.info("WS CONNECT - userId={}", userId);
+                    log.info("WS CONNECT rawAuth={} tokenExists={} parsedUserId={}",
+                            raw, token != null, token != null ? jwtTokenProvider.getUserId(token) : null);
                 } catch (Exception e) {
 
                     // JWT 파싱 실패 시 익명 사용자로 처리

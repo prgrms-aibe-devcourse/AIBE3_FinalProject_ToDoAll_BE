@@ -119,7 +119,7 @@ public class InterviewWebSocketService {
                 new InterviewNoteMemoCreateRequestDto(noteMessage.content());
 
         // DB 저장
-        var response = interviewNoteMemoService.create(interviewId, requestDto);
+        var response = interviewNoteMemoService.createByUser(interviewId, senderId, requestDto);
 
         Long noteId = response.memoId();
 

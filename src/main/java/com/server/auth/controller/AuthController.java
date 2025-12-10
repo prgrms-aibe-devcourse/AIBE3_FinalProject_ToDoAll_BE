@@ -74,6 +74,8 @@ public class AuthController {
         // Access Token 쿠키
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", response.getAccessToken())
                 .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
                 .path("/")
                 .maxAge(60 * 60) // 1시간
                 .build();
@@ -81,6 +83,8 @@ public class AuthController {
         // Refresh Token 쿠키
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", response.getRefreshToken())
                 .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
                 .path("/")
                 .maxAge(60L * 60 * 24 * 7) // 7일
                 .build();
@@ -119,12 +123,16 @@ public class AuthController {
         // 쿠키 삭제 (accessToken / refreshToken 둘 다 만료시킴)
         ResponseCookie clearAccess = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
                 .path("/")
-                .maxAge(0)          // 즉시 만료
+                .maxAge(0)// 즉시 만료
                 .build();
 
         ResponseCookie clearRefresh = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
                 .path("/")
                 .maxAge(0)
                 .build();

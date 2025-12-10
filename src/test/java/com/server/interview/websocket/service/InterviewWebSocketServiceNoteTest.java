@@ -52,11 +52,9 @@ class InterviewWebSocketServiceNoteTest {
                 "지원자의 커뮤니케이션 능력 좋음"
         );
 
-        // session mock
         when(sessionRegistry.isInterviewer(sessionId)).thenReturn(true);
         when(sessionRegistry.getUserIdBySession(sessionId)).thenReturn(10L);
 
-        // userProfile mock
         UserProfileResponseDto profile = new UserProfileResponseDto(
                 10L, "mail@test.com", "면접관A", "nick",
                 "company", "position",
@@ -64,16 +62,18 @@ class InterviewWebSocketServiceNoteTest {
         );
         when(userService.getMyProfile(10L)).thenReturn(profile);
 
-        // memoService mock
-        when(interviewNoteMemoService.create(eq(interviewId), any()))
-                .thenReturn(new InterviewNoteMemoCreateResponseDto(99L));
+        when(interviewNoteMemoService.createByUser(
+                eq(interviewId),
+                eq(10L),
+                any(InterviewNoteMemoCreateRequestDto.class)
+        )).thenReturn(new InterviewNoteMemoCreateResponseDto(99L));
 
         // WHEN
         interviewWebSocketService.broadcastNoteMessage(interviewId, sessionId, requestDto);
 
         // THEN — DB 저장 호출됨
         verify(interviewNoteMemoService, times(1))
-                .create(eq(interviewId), any(InterviewNoteMemoCreateRequestDto.class));
+                .createByUser(eq(interviewId), eq(10L), any(InterviewNoteMemoCreateRequestDto.class));
 
         // THEN — WebSocket broadcast 호출됨
         verify(messagingTemplate, times(1))

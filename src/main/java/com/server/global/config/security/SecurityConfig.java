@@ -75,7 +75,7 @@ public class SecurityConfig {
                                 "/api/v1/notifications/**",
                                 "/api/v1/files/**"
                         ).permitAll()
-                        
+
                         .requestMatchers("/api/v1/users/me").authenticated()
                         .anyRequest().authenticated()
                 )

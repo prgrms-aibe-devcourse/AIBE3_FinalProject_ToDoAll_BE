@@ -15,6 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Debug workspace
+        run: |
+          echo "=== Current Workspace Structure ==="
+          ls -R .
+
       - name: Get latest release tag
         id: get_latest_tag
         uses: actions-ecosystem/action-get-latest-tag@v1
@@ -27,9 +32,9 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           port: ${{ secrets.AWS_SSH_PORT }}
           source: |
-            server/docker-compose-base.yml
-            server/docker-compose-blue.yml
-            server/docker-compose-green.yml
+            jobda-back/docker-compose-base.yml
+            jobda-back/docker-compose-blue.yml
+            jobda-back/docker-compose-green.yml
           target: /home/ubuntu/jobda/
           overwrite: true
 

@@ -32,9 +32,9 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           port: ${{ secrets.AWS_SSH_PORT }}
           source: |
-            jobda-back/docker-compose-base.yml
-            jobda-back/docker-compose-blue.yml
-            jobda-back/docker-compose-green.yml
+            docker-compose-base.yml
+            docker-compose-blue.yml
+            docker-compose-green.yml
           target: /home/ubuntu/jobda/
           overwrite: true
 

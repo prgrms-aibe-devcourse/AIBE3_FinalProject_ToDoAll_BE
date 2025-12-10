@@ -31,10 +31,7 @@ jobs:
           username: ${{ secrets.AWS_SSH_USERNAME }}
           key: ${{ secrets.AWS_SSH_KEY }}
           port: ${{ secrets.AWS_SSH_PORT }}
-          source: |
-            docker-compose-base.yml
-            docker-compose-blue.yml
-            docker-compose-green.yml
+          source: "docker-compose-*.yml"
           target: /home/ubuntu/jobda/
           overwrite: true
 
@@ -53,26 +50,24 @@ jobs:
             LATEST_TAG="${{ steps.get_latest_tag.outputs.tag }}"
 
             echo "=== 환경변수 파일 생성 ==="
-            cat > .env << EOF
-            OWNER_NAME=${{ github.repository_owner }}
-            IMAGE_TAG=$LATEST_TAG
-            AWS_RDS_URL=${{ secrets.AWS_RDS_URL }}
-            MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
-            AWS_RDS_ROOT_PASSWORD=${{ secrets.AWS_RDS_ROOT_PASSWORD }}
-            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            OPENAI_API_KEY_AI=${{ secrets.OPENAI_API_KEY_AI }}
-            AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
-            AWS_ACCESS_SECRET_KEY=${{ secrets.AWS_ACCESS_SECRET_KEY }}
-            AWS_REGION=${{ secrets.AWS_REGION }}
-            AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
-            EOF
-            
+            echo "OWNER_NAME=${{ github.repository_owner }}" > .env
+            echo "IMAGE_TAG=$LATEST_TAG" >> .env
+            echo "AWS_RDS_URL=${{ secrets.AWS_RDS_URL }}" >> .env
+            echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+            echo "AWS_RDS_ROOT_PASSWORD=${{ secrets.AWS_RDS_ROOT_PASSWORD }}" >> .env
+            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "OPENAI_API_KEY_AI=${{ secrets.OPENAI_API_KEY_AI }}" >> .env
+            echo "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}" >> .env
+            echo "AWS_ACCESS_SECRET_KEY=${{ secrets.AWS_ACCESS_SECRET_KEY }}" >> .env
+            echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+            echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" >> .env
+
             echo "=== 배포 시작: 태그 $LATEST_TAG ==="
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-  
+
             echo "=== Blue/Green 무중단 배포 시작 ==="
-            /home/ubuntu/deploy/deploy.sh $LATEST_TAG
-  
+            /home/ubuntu/deploy/deploy.sh "$LATEST_TAG"
+
             echo "=== 배포 완료 ==="

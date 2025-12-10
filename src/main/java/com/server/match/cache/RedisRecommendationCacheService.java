@@ -1,10 +1,13 @@
 package com.server.match.cache;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.ai.service.AiRecommendationService;
 import com.server.ai.service.KeywordExtractorService;
 import com.server.match.util.RecommendationReasonBuilder;
 import com.server.search.document.ResumeDocument;
 import com.server.search.domain.JdKeyword;
+import com.server.search.dto.ResumeRecommendationDto;
 import com.server.search.repository.JdKeywordRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +27,7 @@ public class RedisRecommendationCacheService {
     private final KeywordExtractorService keywordExtractorService;
     private final AiRecommendationService aiRecommendationService;
     private final JdKeywordRepository jdKeywordRepository;
+    private final ObjectMapper objectMapper;
     private static final Duration TTL = Duration.ofDays(30);
 
     public boolean existsRecommendationFor(Long jdId) {
@@ -35,8 +39,15 @@ public class RedisRecommendationCacheService {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getRecommendations(Long jdId) {
-        return (T) redisTemplate.opsForValue().get("recommend:jd_" + jdId);
+    public List<ResumeRecommendationDto> getRecommendations(Long jdId) {
+        Object raw = redisTemplate.opsForValue().get("recommend:jd_" + jdId);
+
+        if (raw == null) return null;
+
+        return objectMapper.convertValue(
+                raw,
+                new TypeReference<List<ResumeRecommendationDto>>() {}
+        );
     }
 
     // JD 설명 기반 키워드 캐시 조회 또는 생성

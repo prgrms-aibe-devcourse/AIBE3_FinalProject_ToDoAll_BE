@@ -40,7 +40,7 @@ public record DashboardWeeklyCalendarResponseDto(
         addCalendarEvents(dayOfWeek, List.of(calendarEventDto));
     }
 
-    record DashboardCalendarEventContainer(
+    public record DashboardCalendarEventContainer(
             DashboardDailyCalendarDto mon,
             DashboardDailyCalendarDto tue,
             DashboardDailyCalendarDto wed,

@@ -19,7 +19,7 @@ import java.util.List;
 public interface DashboardInterviewRepository extends JpaRepository<Interview, Long> {
     Long countByOrganizer_IdAndScheduledAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
 
-    List<Interview> findByOrganizer_IdAndResultAndScheduledAtBetween(Long userId, InterviewResult result, LocalDateTime startDate, LocalDateTime endDate);
+    Long countByOrganizer_IdAndResultAndScheduledAtBetween(Long userId, InterviewResult result, LocalDateTime startDate, LocalDateTime endDate);
 
     @Query(value= """
         select

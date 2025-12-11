@@ -17,7 +17,7 @@ services:
     depends_on:
       - redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 3s
       retries: 5

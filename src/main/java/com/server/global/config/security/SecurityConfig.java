@@ -63,6 +63,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/password/**",
                                 "/api/v1/auth/token"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/resumes").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

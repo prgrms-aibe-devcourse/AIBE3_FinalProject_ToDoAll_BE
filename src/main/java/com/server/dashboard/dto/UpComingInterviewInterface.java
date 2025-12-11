@@ -3,6 +3,7 @@ package com.server.dashboard.dto;
 import java.time.LocalDateTime;
 
 public interface UpComingInterviewInterface {
+    boolean getIsOrganizer();
     long getInterviewId();
     long getResumeId();
     LocalDateTime getScheduledTime();

@@ -96,7 +96,7 @@ public class DashboardService {
     public Long getScheduledInterviewsCount(Long userId) {
         validateUserExists(userId);
 
-        LocalDateTime startDay = LocalDateTime.now();
+        LocalDateTime startDay = LocalDate.now().atStartOfDay();
         LocalDateTime endDay = startDay.plusDays(7);
 
         try {
@@ -109,10 +109,10 @@ public class DashboardService {
         validateUserExists(userId);
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneMonthAgo = now.minusMonths(1);
+        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
 
         try {
-            return dashboardInterviewRepository.countByOrganizer_IdAndResultAndScheduledAtBetween(userId, InterviewResult.PASS, oneMonthAgo, now);
+            return dashboardInterviewRepository.countByOrganizer_IdAndResultAndScheduledAtBetween(userId, InterviewResult.PASS, startOfMonth, now);
         } catch (Exception e) {
             throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }
@@ -142,10 +142,11 @@ public class DashboardService {
         validateUserExists(userId);
 
         try {
-            LocalDateTime startDay = LocalDateTime.now();
+            LocalDateTime startDay = LocalDate.now().atStartOfDay();
             LocalDateTime endDay = startDay.plusDays(7);
             return dashboardInterviewRepository.findByUpComingInterviews(userId, startDay, endDay).stream()
                     .map((interview)-> DashboardUpcomingInterviewsResponseDto.from(
+                            interview.getIsOrganizer(),
                             interview.getScheduledTime(),
                             interview.getApplicantName(),
                             interview.getJobTitle(),
@@ -203,7 +204,7 @@ public class DashboardService {
 
         List<WeekCalendarInterface> calendarDatas;
         try {
-            calendarDatas =  dashboardInterviewRepository.findWeekCalendarData(userId, mon, sun);
+            calendarDatas =  dashboardInterviewRepository.findWeekCalendarData(userId, mon, sun.plusDays(1));
         } catch (Exception e) {
             throw ApplicationException.from(DashboardErrorCase.DASHBOARD_QUERY_FAIL);
         }

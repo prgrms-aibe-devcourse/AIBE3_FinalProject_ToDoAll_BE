@@ -117,3 +117,8 @@ management:
   endpoint:
     health:
       show-details: always
+      group:
+        readiness:
+          include: ping
+        liveness:
+          include: ping

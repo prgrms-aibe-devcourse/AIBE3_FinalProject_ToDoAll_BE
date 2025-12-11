@@ -11,6 +11,8 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: cd
+    networks:
+      - jobda-net
     restart: always
     depends_on:
       - redis
@@ -20,4 +22,8 @@ services:
       timeout: 3s
       retries: 5
       start_period: 25s
+
+networks:
+  jobda-net:
+    external: true
 

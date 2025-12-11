@@ -31,7 +31,7 @@ public class Notification extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String payload;
 
-    @Column(name = "is_read")
+    @Column(name = "is_read", nullable = false)
     private boolean read; // 읽음 여부
 
     //보내질 시간 (null → 즉시 알림)

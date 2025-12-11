@@ -142,17 +142,6 @@ public class JobDescription extends BaseEntity {
                 .toList();
     }
 
-    // 스킬 연관 관계 추가 메서드
-    public void addRequiredSkill(Skill skill) {
-        JobRequiredSkill jrs = JobRequiredSkill.of(this, skill);
-        requiredSkills.add(jrs);
-    }
-
-    public void addPreferredSkill(Skill skill) {
-        JobPreferredSkill jps = JobPreferredSkill.of(this, skill);
-        preferredSkills.add(jps);
-    }
-
     public void applyApplicantCount(long count) {
         this.applicantCount = count;
     }

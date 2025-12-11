@@ -11,12 +11,18 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: cd
+    networks:
+      - jobda-net
     restart: always
     depends_on:
       - redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness"]
       interval: 10s
       timeout: 3s
       retries: 5
-      start_period: 25s
+      start_period: 60s
+
+networks:
+  jobda-net:
+    external: true

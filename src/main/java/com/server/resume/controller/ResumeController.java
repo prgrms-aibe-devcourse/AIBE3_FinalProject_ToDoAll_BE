@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +35,7 @@ public class ResumeController {
         return ResponseEntity.ok(CommonResponse.success(resumeService.getResumeById(resumeId)));
     }
 
-    @PostMapping("")
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "이력서 생성", description = "새로운 이력서를 생성합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "이력서 생성 성공"),

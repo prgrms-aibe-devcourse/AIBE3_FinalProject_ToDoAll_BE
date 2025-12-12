@@ -64,6 +64,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/token"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/resumes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/resumes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/jd/**").permitAll()
                         .anyRequest().authenticated()
                 )

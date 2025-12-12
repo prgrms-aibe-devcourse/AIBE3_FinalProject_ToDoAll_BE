@@ -9,20 +9,16 @@ import com.server.interview.repository.InterviewParticipantRepository;
 import com.server.interview.repository.InterviewRepository;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.match.domain.Match;
+import com.server.match.repository.MatchRepository;
 import com.server.resume.domain.Resume;
 import com.server.resume.repository.ResumeRepository;
 import com.server.user.domain.Gender;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
-import org.mockito.stubbing.Answer;
+
+import org.junit.jupiter.api.*;
+import org.mockito.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -32,8 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class InterviewServiceTest {
@@ -41,22 +36,15 @@ class InterviewServiceTest {
     @InjectMocks
     private InterviewService interviewService;
 
-    @Mock
-    private JobDescriptionRepository jobDescriptionRepository;
-    @Mock
-    private ResumeRepository resumeRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private InterviewRepository interviewRepository;
-    @Mock
-    private InterviewParticipantRepository interviewParticipantRepository;
-    @Mock
-    private InterviewNoteRepository interviewNoteRepository;
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
-    @Mock
-    private ApplicationEventPublisher applicationEventPublisher;
+    @Mock private JobDescriptionRepository jobDescriptionRepository;
+    @Mock private ResumeRepository resumeRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private InterviewRepository interviewRepository;
+    @Mock private InterviewParticipantRepository interviewParticipantRepository;
+    @Mock private InterviewNoteRepository interviewNoteRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private ApplicationEventPublisher applicationEventPublisher;
+    @Mock private MatchRepository matchRepository;
 
     private MockedStatic<AuthUtils> authUtilsMock;
 
@@ -64,8 +52,6 @@ class InterviewServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        //static 메서드는 인스턴스에 의존하지 않음
-        //AuthUtils.getCurrenUserId는 static 메서드라서 다른 방식으로 static mocking 해야함
         authUtilsMock = mockStatic(AuthUtils.class);
         authUtilsMock.when(AuthUtils::getCurrentUserId).thenReturn(1L);
     }
@@ -79,13 +65,22 @@ class InterviewServiceTest {
     @DisplayName("면접 생성 성공 테스트")
     void createInterview_success() {
         // given
+
         Long jdId = 10L;
         Long resumeId = 20L;
 
         JobDescription jd = mock(JobDescription.class);
         Resume resume = mock(Resume.class);
+        Match match = mock(Match.class);
 
-        // organizer 사용자 생성
+        // mock 객체 getId() 스텁 (ReflectionTestUtils는 mock에서 작동 안 함!)
+        when(jd.getId()).thenReturn(jdId);
+        when(resume.getId()).thenReturn(resumeId);
+
+        when(jobDescriptionRepository.findById(jdId)).thenReturn(Optional.of(jd));
+        when(resumeRepository.findById(resumeId)).thenReturn(Optional.of(resume));
+
+        // organizer 설정
         User organizer = User.of(
                 "organizer@test.com",
                 "encodedPassword",
@@ -99,19 +94,21 @@ class InterviewServiceTest {
         );
         ReflectionTestUtils.setField(organizer, "id", 1L);
 
-        when(jobDescriptionRepository.findById(jdId)).thenReturn(Optional.of(jd));
-        when(resumeRepository.findById(resumeId)).thenReturn(Optional.of(resume));
         when(userRepository.findById(1L)).thenReturn(Optional.of(organizer));
 
-        when(interviewRepository.save(any(Interview.class))).thenAnswer(
-                (Answer<Interview>) invocation -> {
-                    Interview saved = invocation.getArgument(0);
-                    ReflectionTestUtils.setField(saved, "id", 999L); // 리플렉션을 이용해 private 필드에 강제로 값을 넣는 테스트용 API
-                    return saved;
-                }
-        );
+        // match 는 anyLong() 으로 처리하는 것이 가장 안전
+        when(matchRepository.findByJobDescription_IdAndResume_Id(anyLong(), anyLong()))
+                .thenReturn(Optional.of(match));
 
-        // Observer 사용자 생성
+        // Interview 저장 시 id 설정
+        when(interviewRepository.save(any(Interview.class)))
+                .thenAnswer(invocation -> {
+                    Interview saved = invocation.getArgument(0);
+                    ReflectionTestUtils.setField(saved, "id", 999L);
+                    return saved;
+                });
+
+        // Observer 생성
         User observer = User.of(
                 "observer@test.com",
                 "encodedPw",
@@ -125,15 +122,16 @@ class InterviewServiceTest {
         );
         ReflectionTestUtils.setField(observer, "id", 2L);
 
-        when(userRepository.findAllById(anySet())) //anySet() -> Null만 아니면 다 괜찮다~ Mockito 2.1.0부터 non-null set만 가능해서 테스트의 편의성을 위해 anySet()을 만들었다.
+        when(userRepository.findAllById(anySet()))
                 .thenReturn(List.of(observer));
 
-        InterviewCreateRequestDto request = new InterviewCreateRequestDto(
-                jdId,
-                resumeId,
-                List.of(1L, 2L, 2L),
-                LocalDateTime.now()
-        );
+        InterviewCreateRequestDto request =
+                new InterviewCreateRequestDto(
+                        jdId,
+                        resumeId,
+                        List.of(1L, 2L, 2L),
+                        LocalDateTime.now()
+                );
 
         // when
         InterviewCreateResponseDto response = interviewService.create(request);
@@ -141,11 +139,12 @@ class InterviewServiceTest {
         // then
         assertThat(response.interviewId()).isEqualTo(999L);
 
-
-        //메서드 호출 검증
         verify(interviewRepository).save(any());
-        verify(interviewParticipantRepository, times(1)).save(any()); // organizer 1명
-        verify(interviewParticipantRepository, times(1)).saveAll(any()); // observer 저장
+        verify(interviewParticipantRepository, times(1)).save(any()); // organizer
+        verify(interviewParticipantRepository, times(1)).saveAll(any()); // observers
         verify(interviewNoteRepository, times(1)).save(any());
+
+        // Match 상태 업데이트 호출 검증
+        verify(match).updateStatus(any());
     }
 }

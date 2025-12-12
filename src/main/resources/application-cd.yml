@@ -106,8 +106,6 @@ cloud:
       bucket: ${AWS_S3_BUCKET_NAME}
 
 management:
-  server:
-    port: 8081
   health:
     elasticsearch:
       enabled: false
@@ -119,3 +117,8 @@ management:
   endpoint:
     health:
       show-details: always
+      group:
+        readiness:
+          include: ping
+        liveness:
+          include: ping

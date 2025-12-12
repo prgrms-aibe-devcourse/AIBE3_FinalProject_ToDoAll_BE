@@ -23,6 +23,7 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
 
     @Query(value= """
         select
+            if(iv.organizer_id = :userId, 'true', 'false') as is_organizer,
             iv.id as interview_id,
             rs.id as resume_id,
             iv.scheduled_at as scheduled_time,
@@ -30,15 +31,18 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
             rs.name as applicant_name,
             coalesce(group_concat(users.name separator ', '), '미정') as interviewer_name
         from interview iv
-             left join job_descriptions jd on iv.jd_id = jd.id
-             left join resumes rs on iv.resume_id = rs.id
-             left join interview_participant ip on iv.id = ip.interview_id
-             left join users on ip.user_id = users.id
-        where iv.organizer_id = :userId
-            and iv.status = 'WAITING'
+                 left join job_descriptions jd on iv.jd_id = jd.id
+                 left join resumes rs on iv.resume_id = rs.id
+                 left join interview_participant ip on iv.id = ip.interview_id
+                 left join users on ip.user_id = users.id
+        where :userId in (
+            select user_id from interview_participant sub_ip
+            where sub_ip.interview_id=iv.id
+        )
+            and (iv.status = 'WAITING' or iv.status = 'IN_PROGRESS')
             and iv.scheduled_at >= :startDate
-            and iv.scheduled_at <= :endDate
-        group by iv.id, rs.id
+            and iv.scheduled_at < :endDate
+        group by iv.id, rs.id;
     """, nativeQuery = true)
     List<UpComingInterviewInterface> findByUpComingInterviews(
             @Param("userId") Long userId,
@@ -66,9 +70,12 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
             select iv.id as id, rs.name as title, iv.scheduled_at as time, 'INTERVIEW' as type
             from interview iv
             left join resumes rs on iv.resume_id = rs.id
-            where iv.organizer_id = :userId
+            where :userId in (
+                select user_id from interview_participant ip
+                where ip.interview_id=iv.id
+            )
               and iv.scheduled_at >= :startDate
-              and iv.scheduled_at <= :endDate
+              and iv.scheduled_at < :endDate
     
             union all
     
@@ -76,7 +83,7 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
             from job_descriptions jd
             where jd.author_id = :userId
               and jd.deadline >= :startDate
-              and jd.deadline <= :endDate
+              and jd.deadline < :endDate
         ) calendar
         order by time
     """, nativeQuery = true)

@@ -61,7 +61,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/**",
                                 "/api/v1/auth/email-verifications/**",
                                 "/api/v1/auth/password/**",
-                                "/api/v1/auth/token"
+                                "/api/v1/auth/token",
+                                "/api/v1/notifications/subscribe"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/resumes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/resumes").permitAll()

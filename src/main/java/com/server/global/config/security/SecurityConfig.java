@@ -65,6 +65,7 @@ public class SecurityConfig {
                                 "/api/v1/notifications/subscribe"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/resumes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/resumes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/jd/**").permitAll()
                         .anyRequest().authenticated()
                 )

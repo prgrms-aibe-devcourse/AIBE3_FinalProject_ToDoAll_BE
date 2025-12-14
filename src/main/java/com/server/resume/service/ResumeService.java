@@ -7,26 +7,29 @@ import com.server.jd.repository.JobDescriptionRepository;
 import com.server.jd.repository.SkillRepository;
 import com.server.match.domain.Match;
 import com.server.match.repository.MatchRepository;
-import com.server.resume.domain.*;
+import com.server.resume.domain.Resume;
+import com.server.resume.domain.ResumeStatus;
 import com.server.resume.dto.*;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
 import com.server.s3.domain.Partition;
+import com.server.s3.service.PresignedUrlProvider;
 import com.server.s3.service.S3Uploader;
 import com.server.search.repository.ResumeSearchRepository;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ResumeService {
 
     private final ResumeRepository resumeRepository;
@@ -35,6 +38,7 @@ public class ResumeService {
     private final ResumeSearchService resumeSearchService;
     private final ResumeSearchRepository resumeSearchRepository;
     private final MatchRepository matchRepository;
+    private final PresignedUrlProvider presignedUrlProvider;
 
     private final S3Uploader s3Uploader;
 
@@ -218,12 +222,24 @@ public class ResumeService {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
 
+        String finalUrl = null;
+        String dbFileKey = resume.getResumeFileUrl();
+
+        if (dbFileKey != null && dbFileKey.startsWith("resume")) {
+            try {
+                finalUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
+            } catch (Exception e) {
+                log.warn("Failed to create presigned url. fileKey={}", dbFileKey, e);
+                finalUrl = null; // 명시적으로
+            }
+        }
+
         return new ResumeInterviewInfoResponseDto(
                 resume.getName(),
                 resume.getEmail(),
                 resume.getPhone(),
                 resume.getBirthDate(),
-                resume.getPortfolioFileUrl(),
+                finalUrl,
                 resume.getJobDescription().getTitle()
         );
     }

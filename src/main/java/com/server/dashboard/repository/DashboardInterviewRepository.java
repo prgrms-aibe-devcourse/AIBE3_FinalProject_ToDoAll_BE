@@ -44,6 +44,7 @@ public interface DashboardInterviewRepository extends JpaRepository<Interview, L
             and iv.scheduled_at < :endDate
             group by iv.id, rs.id, iv.scheduled_at
             order by iv.scheduled_at
+            limit 6;
     """, nativeQuery = true)
     List<UpComingInterviewInterface> findByUpComingInterviews(
             @Param("userId") Long userId,

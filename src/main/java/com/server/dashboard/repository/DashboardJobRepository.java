@@ -52,6 +52,7 @@ public interface DashboardJobRepository extends JpaRepository<JobDescription,Lon
                           left join interview iv on jd.id = iv.jd_id and res.id = iv.resume_id
                  where jd.author_id = :userId and jd.status != 'DRAFT'
                  group by jd.id) as result
+                 limit 3
     """, nativeQuery = true)
     List<JobStatsInterface> findJobStatsForEachJobs(@Param("userId") Long userId);
 }

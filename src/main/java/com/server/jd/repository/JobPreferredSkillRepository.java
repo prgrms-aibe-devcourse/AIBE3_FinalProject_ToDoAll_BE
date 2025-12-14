@@ -10,13 +10,6 @@ import java.util.List;
 
 public interface JobPreferredSkillRepository extends JpaRepository<JobPreferredSkill, Long> {
     @Query("""
-        select jps.job.id as jobId, jps.skill.name as skillName
-        from JobPreferredSkill jps
-        where jps.job.id in :ids
-    """)
-    List<SkillByJobProjection> findPreferredSkillsByJobIds(Collection<Long> ids);
-
-    @Query("""
         select jps.skill.name
         from JobPreferredSkill jps
         where jps.job.id = :id

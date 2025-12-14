@@ -57,7 +57,8 @@ public class Notification extends BaseEntity {
             String title,
             String message,
             NotificationPayload payload,
-            LocalDateTime scheduledAt
+            LocalDateTime scheduledAt,
+            boolean sent
     ) {
         Notification n = new Notification();
         n.userId = userId;
@@ -75,7 +76,7 @@ public class Notification extends BaseEntity {
         n.read = false;
         n.scheduledAt = scheduledAt;
 
-        n.sent = scheduledAt == null;
+        n.sent = sent;
 
         return n;
     }

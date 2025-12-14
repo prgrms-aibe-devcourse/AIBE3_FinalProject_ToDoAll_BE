@@ -12,7 +12,7 @@ public record NotificationResponseDto (
         String message,
         String payload,
         boolean readFlag,
-        LocalDateTime createdAt
+        LocalDateTime scheduledAt
 ) {
     public static NotificationResponseDto from(Notification notification) {
         return new NotificationResponseDto(
@@ -22,7 +22,7 @@ public record NotificationResponseDto (
                 notification.getMessage(),
                 notification.getPayload(),   // String(JSON)
                 notification.isRead(),
-                notification.getCreatedAt()
+                notification.getScheduledAt()
         );
     }
 

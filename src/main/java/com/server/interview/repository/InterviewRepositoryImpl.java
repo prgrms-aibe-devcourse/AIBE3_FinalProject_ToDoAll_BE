@@ -82,9 +82,9 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
             String finalUrl = null;
             String dbFileKey = base.candidateAvatar();
             if(dbFileKey != null){
-                finalUrl = dbFileKey.startsWith("http")
-                        ? dbFileKey
-                        : presignedUrlProvider.createPresignedGetUrl(dbFileKey);
+                finalUrl = dbFileKey.startsWith("resume")
+                        ? presignedUrlProvider.createPresignedGetUrl(dbFileKey)
+                        : null;
             }
 
             interviews.set(idx, new InterviewSummaryDto(

@@ -4,6 +4,7 @@ import com.server.dashboard.dto.*;
 import com.server.dashboard.exception.DashboardErrorCase;
 import com.server.dashboard.repository.DashboardInterviewRepository;
 import com.server.dashboard.repository.DashboardJobRepository;
+import com.server.dashboard.type.CalendarEventType;
 import com.server.dashboard.type.CustomDayOfWeek;
 import com.server.global.exception.ApplicationException;
 import com.server.interview.domain.InterviewResult;
@@ -230,10 +231,12 @@ public class DashboardService {
 
         for (WeekCalendarInterface data : calendarDatas) {
             CustomDayOfWeek day = CustomDayOfWeek.from(data.getTime().getDayOfWeek());
+            LocalDateTime time = data.getTime();
+            if (data.getType() == CalendarEventType.JOB_CLOSE) time = time.plusHours(9);
             weeklyCalendarDto.addCalendarEvent(day,
                     new DashboardCalendarEventDto(
                         data.getId(),
-                        data.getTime().format(formatterTimeWithAMPM),
+                        time.format(formatterTimeWithAMPM),
                         data.getTitle(),
                         data.getType()
                     )

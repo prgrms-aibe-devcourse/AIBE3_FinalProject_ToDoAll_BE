@@ -33,25 +33,31 @@ public interface DashboardJobRepository extends JpaRepository<JobDescription,Lon
 
     @Query(value= """
         select
-            result.title as title,
-            if(result.interview_count=0, 'DOCUMENT', if(result.PENDING_count>0, 'INTERVIEW', 'FINISHED')) as status,
-            result.applicant_count as applicant_count,
-            result.bookmark_count as bookmark_count,
-            result.interview_count as interview_count,
-            result.pass_count as pass_count
+          result.title,
+          if(result.interview_count=0, 'DOCUMENT',
+             if(result.pending_count>0, 'INTERVIEW', 'FINISHED')) as status,
+          result.applicant_count,
+          result.bookmark_count,
+          result.interview_count,
+          result.pass_count
         from (
-                 select
-                     jd.title as title,
-                     count(distinct res.id) as applicant_count,
-                     count(distinct if(res.status='BOOKMARK', res.id, null)) as bookmark_count,
-                     count(distinct iv.id) as interview_count,
-                     count(distinct if(iv.result='PASS', iv.id, null)) as pass_count,
-                     count(distinct if(iv.result='PENDING', iv.id, null)) as PENDING_count
-                 from job_descriptions jd
-                          left join resumes res on jd.id = res.jd_id
-                          left join interview iv on jd.id = iv.jd_id and res.id = iv.resume_id
-                 where jd.author_id = :userId and jd.status != 'DRAFT'
-                 group by jd.id) as result
+          select
+            jd.id,
+            jd.title,
+            jd.deadline,
+            count(distinct res.id) as applicant_count,
+            count(distinct if(res.status='BOOKMARK', res.id, null)) as bookmark_count,
+            count(distinct iv.id) as interview_count,
+            count(distinct if(iv.result='PASS', iv.id, null)) as pass_count,
+            count(distinct if(iv.result='PENDING', iv.id, null)) as pending_count
+          from job_descriptions jd
+          left join resumes res on jd.id = res.jd_id
+          left join interview iv on jd.id = iv.jd_id and res.id = iv.resume_id
+          where jd.author_id = :userId and jd.status != 'DRAFT'
+          group by jd.id, jd.title, jd.deadline
+        ) as result
+        order by result.deadline desc
+        limit 3;
     """, nativeQuery = true)
     List<JobStatsInterface> findJobStatsForEachJobs(@Param("userId") Long userId);
 }

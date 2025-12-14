@@ -6,7 +6,6 @@ import com.server.dashboard.repository.DashboardInterviewRepository;
 import com.server.dashboard.repository.DashboardJobRepository;
 import com.server.dashboard.type.CustomDayOfWeek;
 import com.server.global.exception.ApplicationException;
-import com.server.interview.domain.Interview;
 import com.server.interview.domain.InterviewResult;
 import com.server.interview.domain.InterviewStatus;
 import com.server.jd.domain.JobDescription;
@@ -14,12 +13,14 @@ import com.server.jd.domain.JobStatus;
 import com.server.user.exception.UserErrorCase;
 import com.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -28,6 +29,7 @@ import java.util.Map;
 
 import static com.server.dashboard.util.Formatter.formatterTimeWithAMPM;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -35,6 +37,12 @@ public class DashboardService {
     private final DashboardInterviewRepository dashboardInterviewRepository;
     private final DashboardJobRepository dashboardJobRepository;
     private final UserRepository userRepository;
+    private final ZoneId KST = ZoneId.of("Asia/Seoul");
+
+    private void printLog() {
+        log.info("[Check Time] system zone = {}", ZoneId.systemDefault());
+        log.info("[Check Time] now = {}", LocalDateTime.now(KST));
+    }
 
     private List<JobDescription> findActiveJobs(Long userId) {
         validateUserExists(userId);
@@ -96,8 +104,10 @@ public class DashboardService {
     public Long getScheduledInterviewsCount(Long userId) {
         validateUserExists(userId);
 
-        LocalDateTime startDay = LocalDate.now().atStartOfDay();
+        LocalDateTime startDay = LocalDate.now(KST).atStartOfDay();
         LocalDateTime endDay = startDay.plusDays(7);
+
+        printLog();
 
         try {
             return dashboardInterviewRepository.countByOrganizer_IdAndScheduledAtBetween(userId, startDay, endDay);
@@ -108,8 +118,10 @@ public class DashboardService {
     public long getMonthHiredCount(Long userId) {
         validateUserExists(userId);
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime now = LocalDateTime.now(KST);
+        LocalDateTime startOfMonth = LocalDate.now(KST).withDayOfMonth(1).atStartOfDay();
+
+        printLog();
 
         try {
             return dashboardInterviewRepository.countByOrganizer_IdAndResultAndScheduledAtBetween(userId, InterviewResult.PASS, startOfMonth, now);
@@ -142,8 +154,11 @@ public class DashboardService {
         validateUserExists(userId);
 
         try {
-            LocalDateTime startDay = LocalDate.now().atStartOfDay();
+            LocalDateTime startDay = LocalDate.now(KST).atStartOfDay();
             LocalDateTime endDay = startDay.plusDays(7);
+
+            printLog();
+
             return dashboardInterviewRepository.findByUpComingInterviews(userId, startDay, endDay).stream()
                     .map((interview)-> DashboardUpcomingInterviewsResponseDto.from(
                             interview.getIsOrganizer(),
@@ -198,9 +213,11 @@ public class DashboardService {
     public DashboardWeeklyCalendarResponseDto getWeekCalendarData(Long userId) {
         validateUserExists(userId);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(KST);
         LocalDate mon = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate sun = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
+        printLog();
 
         List<WeekCalendarInterface> calendarDatas;
         try {

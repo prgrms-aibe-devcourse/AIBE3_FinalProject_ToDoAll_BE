@@ -84,16 +84,14 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
             String finalUrl = null;
             String dbFileKey = base.candidateAvatar();
 
-//            if (dbFileKey != null && dbFileKey.startsWith("resume")) {
-//                try {
-//                    finalUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
-//                } catch (Exception e) {
-//                    log.warn("Failed to create presigned url. fileKey={}", dbFileKey, e);
-//                    finalUrl = null; // 명시적으로
-//                }
-//            }
-
-            finalUrl = base.candidateAvatar();
+            if (dbFileKey != null && dbFileKey.startsWith("resume")) {
+                try {
+                    finalUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
+                } catch (Exception e) {
+                    log.warn("Failed to create presigned url. fileKey={}", dbFileKey, e);
+                    finalUrl = null; // 명시적으로
+                }
+            }
 
             interviews.set(idx, new InterviewSummaryDto(
                     base.interviewId(),

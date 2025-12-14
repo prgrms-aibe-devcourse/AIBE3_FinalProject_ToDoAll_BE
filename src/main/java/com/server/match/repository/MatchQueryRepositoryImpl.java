@@ -86,11 +86,15 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
             }
 
             String profileImageUrl = null;
-            if (resumeEntity.getResumeFileUrl() != null) {
-                profileImageUrl =
-                        presignedUrlProvider.createPresignedGetUrl(
-                                resumeEntity.getResumeFileUrl()
-                        );
+            String resumeFileUrl = resumeEntity.getResumeFileUrl();
+
+            if (resumeFileUrl != null) {
+                if (resumeFileUrl.startsWith("http")) {
+                    profileImageUrl = resumeFileUrl;
+                } else {
+                    profileImageUrl =
+                            presignedUrlProvider.createPresignedGetUrl(resumeFileUrl);
+                }
             }
 
             return new MatchListResponseDto(

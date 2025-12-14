@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +53,8 @@ public class DashboardServiceTest {
 
     private final Long userId = 1L;
 
+    private final ZoneId KST = ZoneId.of("Asia/Seoul");
+
     @BeforeEach
     void setUp() {
         User testAuthor = User.of(
@@ -69,17 +72,17 @@ public class DashboardServiceTest {
         testJobs = new ArrayList<>();
         testJobs.addAll(List.of(JobDescription.of(
                         "테스트 JD 1", "개발팀", "정규직", "주니어", "학사", "5000",
-                        "상세 설명", null, LocalDate.now().plusDays(30),
+                        "상세 설명", null, LocalDate.now(KST).plusDays(30),
                         JobStatus.OPEN, "복지", 5L, "서울", "thumbnail.url", testAuthor
                 ),
                 JobDescription.of(
                         "테스트 JD 2", "운영팀", "이사", "주니어", "석사", "5000",
-                        "상세 설명", null, LocalDate.now().plusDays(30),
+                        "상세 설명", null, LocalDate.now(KST).plusDays(30),
                         JobStatus.OPEN, "복지", 1L, "서울", "thumbnail.url", testAuthor
                 ),
                 JobDescription.of(
                         "테스트 JD 3", "출장팀", "대표", "주니어", "학사", "5000",
-                        "상세 설명", null, LocalDate.now().plusDays(30),
+                        "상세 설명", null, LocalDate.now(KST).plusDays(30),
                         JobStatus.OPEN, "복지", 7L, "서울", "thumbnail.url", testAuthor
                 )));
 
@@ -181,7 +184,7 @@ public class DashboardServiceTest {
         List<UpComingInterviewInterface> uiis =  new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5)).stream().map(
                 num-> {
                     UpComingInterviewInterface uii = mock(UpComingInterviewInterface.class);
-                    given(uii.getScheduledTime()).willReturn(now());
+                    given(uii.getScheduledTime()).willReturn(now(KST));
                     given(uii.getJobTitle()).willReturn("Jobtitle"+num);
                     given(uii.getApplicantName()).willReturn("applicantName"+num);
                     given(uii.getInterviewerName()).willReturn("interviewerName"+num);
@@ -254,7 +257,7 @@ public class DashboardServiceTest {
 
     @Test
     public void getWeekCalendarData() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(KST);
         LocalDate mon = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate sun = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 

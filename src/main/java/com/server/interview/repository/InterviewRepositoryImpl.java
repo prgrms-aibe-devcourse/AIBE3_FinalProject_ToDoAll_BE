@@ -12,11 +12,13 @@ import com.server.resume.domain.QResume;
 import com.server.s3.service.PresignedUrlProvider;
 import com.server.user.domain.QUser;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
@@ -81,10 +83,14 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
 
             String finalUrl = null;
             String dbFileKey = base.candidateAvatar();
-            if(dbFileKey != null){
-                finalUrl = dbFileKey.startsWith("resume")
-                        ? presignedUrlProvider.createPresignedGetUrl(dbFileKey)
-                        : null;
+
+            if (dbFileKey != null && dbFileKey.startsWith("resume")) {
+                try {
+                    finalUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
+                } catch (Exception e) {
+                    log.warn("Failed to create presigned url. fileKey={}", dbFileKey, e);
+                    finalUrl = null; // 명시적으로
+                }
             }
 
             interviews.set(idx, new InterviewSummaryDto(

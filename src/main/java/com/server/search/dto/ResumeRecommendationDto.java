@@ -25,6 +25,7 @@ public record ResumeRecommendationDto(
     public static ResumeRecommendationDto from(
             Resume resume,
             ResumeDocument doc,
+            String profileImage,
             float score,
             List<String> missingSkills,
             String summary,
@@ -44,7 +45,7 @@ public record ResumeRecommendationDto(
         return new ResumeRecommendationDto(
                 resume.getId(),
                 resume.getName(),
-                resume.getResumeFileUrl(),
+                profileImage,
                 resume.getGender(),
                 resume.getBirthDate(),
                 Math.round(score * 1000f) / 10f,

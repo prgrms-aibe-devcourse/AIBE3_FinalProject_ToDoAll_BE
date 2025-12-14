@@ -6,6 +6,7 @@ import static com.server.dashboard.util.Formatter.formatterDateDividedSlash;
 import static com.server.dashboard.util.Formatter.formatterTime;
 
 public record DashboardUpcomingInterviewsResponseDto(
+        boolean isOrganizer,
         String interviewDate,
         String applicantName,
         String jobTitle,
@@ -13,12 +14,14 @@ public record DashboardUpcomingInterviewsResponseDto(
         String interviewers
 ) {
     public static DashboardUpcomingInterviewsResponseDto from(
+            boolean isOrganizer,
             LocalDateTime interviewDateTime,
             String applicantName,
             String jobTitle,
             String interviewers
     ) {
         return new DashboardUpcomingInterviewsResponseDto(
+                isOrganizer,
                 interviewDateTime.format(formatterDateDividedSlash),
                 applicantName,
                 jobTitle,

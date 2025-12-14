@@ -172,7 +172,7 @@ public class MatchService {
     }
 
     @Transactional
-    public Match confirmMatch(MatchRequestDto dto) {
+    public void checkMatch(MatchRequestDto dto) {
         JobDescription jd = jobDescriptionRepository.findById(dto.jdId())
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
@@ -191,8 +191,5 @@ public class MatchService {
         if (match.getStatus() == MatchStatus.REJECTED || match.getStatus() == MatchStatus.HOLD) {
             throw new ApplicationException(MatchErrorCase.MATCH_CANNOT_BE_CONFIRMED);
         }
-
-        match.updateStatus(MatchStatus.CONFIRMED);
-        return match;
     }
 }

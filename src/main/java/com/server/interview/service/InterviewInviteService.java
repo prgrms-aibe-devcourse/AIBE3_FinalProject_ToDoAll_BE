@@ -18,7 +18,7 @@ public class InterviewInviteService {
     @Value("${app.email.auth-expiry-minutes:30}")
     private int expiryMinutes;
 
-    @Value("${app.interview.frontend-base-url:http://localhost:5173}")
+    @Value("${app.interview.frontend-base-url:https://jobda.vercel.app}")
     private String guestChatBaseUrl;
 
     public InviteResponseDto inviteByResume(Long interviewId, Long resumeId) {

@@ -5,6 +5,7 @@ import com.server.jd.domain.JobStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,4 +25,10 @@ public interface JobDescriptionRepository extends JpaRepository<JobDescription, 
     Page<JobDescription> findAllByAuthorId(Long authorId, Pageable pageable);
 
     List<JobDescription> findByAuthorId(Long userId);
+
+    @Modifying
+    @Query("update JobDescription jd " +
+            "set jd.applicantCount = jd.applicantCount + 1 " +
+            "where jd.id = :id")
+    int increaseApplicantCount(@Param("id") Long id);
 }

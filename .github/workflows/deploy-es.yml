@@ -2,7 +2,7 @@ name: Deploy Elasticsearch to EC2
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -25,7 +25,9 @@ jobs:
         run: |
           ssh ubuntu@${{ secrets.EC2_ES_HOST }} << 'EOF'
             cd ~/AIBE3_FinalProject_ToDoAll_BE
-            git pull origin develop
+            git fetch origin
+            git checkout main
+            git pull origin main
 
             docker-compose -f docker-compose-es.yml down
             docker-compose -f docker-compose-es.yml up -d --build

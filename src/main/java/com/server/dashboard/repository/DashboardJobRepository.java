@@ -56,7 +56,7 @@ public interface DashboardJobRepository extends JpaRepository<JobDescription,Lon
           where jd.author_id = :userId and jd.status != 'DRAFT'
           group by jd.id, jd.title, jd.deadline
         ) as result
-        order by result.deadline desc
+        order by result.deadline
         limit 3;
     """, nativeQuery = true)
     List<JobStatsInterface> findJobStatsForEachJobs(@Param("userId") Long userId);

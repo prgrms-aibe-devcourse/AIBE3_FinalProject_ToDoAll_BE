@@ -29,7 +29,7 @@ public class InterviewScheduler {
     @Scheduled(fixedRate = 60000, initialDelay = 60000)
     @Transactional
     public void autoStartInterview(){
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now().plusHours(9);
         interviewRepository.updateInProgress(now);
     }
 

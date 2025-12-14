@@ -125,7 +125,9 @@ public class JobDescription extends BaseEntity {
         this.deadline = dto.deadline();
         this.welfare = dto.benefits();
         this.location = dto.location();
-        this.thumbnailUrl = dto.thumbnailUrl();
+        if (dto.thumbnailUrl() != null) {
+            this.thumbnailUrl = dto.thumbnailUrl().isBlank() ? null : dto.thumbnailUrl();
+        }
     }
 
     // 필수 스킬 이름 반환

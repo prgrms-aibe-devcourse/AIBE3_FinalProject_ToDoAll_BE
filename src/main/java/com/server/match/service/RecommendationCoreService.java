@@ -3,7 +3,6 @@ package com.server.match.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import com.server.ai.service.AiRecommendationService;
 import com.server.global.exception.ApplicationException;
 import com.server.jd.domain.JobDescription;
 import com.server.jd.repository.JobDescriptionRepository;
@@ -16,6 +15,7 @@ import com.server.match.util.MatchScoreCalculator;
 import com.server.resume.domain.Resume;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
+import com.server.s3.service.PresignedUrlProvider;
 import com.server.search.document.ResumeDocument;
 import com.server.search.domain.RecommendationResult;
 import com.server.search.dto.ResumeRecommendationDto;
@@ -41,8 +41,8 @@ public class RecommendationCoreService {
     private final MatchRepository matchRepository;
     private final RedisRecommendationCacheService redisRecommendationCacheService;
     private final ElasticsearchClient elasticsearchClient;
-    private final AiRecommendationService aiRecommendationService;
     private final RecommendationResultRepository recommendationResultRepository;
+    private final PresignedUrlProvider presignedUrlProvider;
 
     @Transactional
     public List<ResumeRecommendationDto> calculateRecommendations(Long jdId) throws IOException {
@@ -122,8 +122,23 @@ public class RecommendationCoreService {
                         reason = "이 JD와 관련된 경력 및 스킬을 보유하고 있습니다.";
                     }
 
+                    String profileImageUrl = null;
+                    String resumeFileUrl = resume.getResumeFileUrl();
+
+                    if (resumeFileUrl != null) {
+                        profileImageUrl = resumeFileUrl.startsWith("http")
+                                ? resumeFileUrl
+                                : presignedUrlProvider.createPresignedGetUrl(resumeFileUrl);
+                    }
+
                     ResumeRecommendationDto dto = ResumeRecommendationDto.from(
-                            resume, doc, finalScore, missingSkills, summary, reason
+                            resume,
+                            doc,
+                            profileImageUrl,
+                            finalScore,
+                            missingSkills,
+                            summary,
+                            reason
                     );
 
                     recommendationResultRepository.save(

@@ -1,5 +1,8 @@
 package com.server.notification.controller;
 
+import com.server.auth.exception.AuthErrorCase;
+import com.server.global.config.security.jwt.JwtTokenProvider;
+import com.server.global.exception.ApplicationException;
 import com.server.global.response.CommonResponse;
 import com.server.notification.dto.NotificationResponseDto;
 import com.server.notification.service.NotificationService;
@@ -22,6 +25,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final SseService sseService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // SSE 구독 API
     // SSE는 produces = "text/event-stream"
@@ -29,7 +33,13 @@ public class NotificationController {
     // 이걸 SSE로 인식하고 스트리밍 연결을 유지함.
     @GetMapping(value = "/subscribe", produces = "text/event-stream")
     @Operation(summary = "SSE 구독", description = "SSE를 구독하여 Emitter를 생성합니다.")
-    public SseEmitter subscribe(@RequestParam Long userId) {
+    public SseEmitter subscribe(@RequestParam("token") String token) {
+
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ApplicationException(AuthErrorCase.AUTH_INVALID_TOKEN);
+        }
+
+        Long userId = jwtTokenProvider.getUserId(token);
         return sseService.subscribe(userId);
     }
 

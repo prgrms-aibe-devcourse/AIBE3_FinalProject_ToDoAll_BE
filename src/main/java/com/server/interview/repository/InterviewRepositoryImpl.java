@@ -9,13 +9,16 @@ import com.server.interview.domain.QInterviewParticipant;
 import com.server.interview.dto.InterviewSummaryDto;
 import com.server.jd.domain.QJobDescription;
 import com.server.resume.domain.QResume;
+import com.server.s3.service.PresignedUrlProvider;
 import com.server.user.domain.QUser;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
@@ -24,6 +27,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
     private final QInterview i = QInterview.interview;
     private final QJobDescription jd = QJobDescription.jobDescription;
     private final QResume r = QResume.resume;
+    private final PresignedUrlProvider presignedUrlProvider;
 
     @Override
     public List<InterviewSummaryDto> searchInterviews(
@@ -45,7 +49,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                         r.name,                    // candidateName
                         i.status.stringValue(),    // status
                         i.result.stringValue(),     //resultStatus
-                        r.portfolioFileUrl,             // candidateAvatar
+                        r.resumeFileUrl,             // candidateAvatar
                         Expressions.constant(Collections.<String>emptyList()),
                         i.scheduledAt,
                         i.createdAt
@@ -77,6 +81,18 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                     .where(ip.interview.id.eq(base.interviewId()))
                     .fetch();
 
+            String finalUrl = null;
+            String dbFileKey = base.candidateAvatar();
+
+            if (dbFileKey != null && dbFileKey.startsWith("resume")) {
+                try {
+                    finalUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
+                } catch (Exception e) {
+                    log.warn("Failed to create presigned url. fileKey={}", dbFileKey, e);
+                    finalUrl = null; // 명시적으로
+                }
+            }
+
             interviews.set(idx, new InterviewSummaryDto(
                     base.interviewId(),
                     base.jdId(),
@@ -85,7 +101,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                     base.candidateName(),
                     base.status(),
                     base.resultStatus(),
-                    base.candidateAvatar(),
+                    finalUrl,
                     interviewerNames,
                     base.scheduledAt(),
                     base.createdAt()

@@ -12,6 +12,10 @@ import com.server.jd.domain.JobDescription;
 import com.server.jd.domain.Skill;
 import com.server.jd.exception.JobErrorCase;
 import com.server.jd.repository.JobDescriptionRepository;
+import com.server.match.domain.Match;
+import com.server.match.domain.MatchStatus;
+import com.server.match.exception.MatchErrorCase;
+import com.server.match.repository.MatchRepository;
 import com.server.mcp.dto.InterviewCreatedAiEvent;
 import com.server.mcp.dto.InterviewFinishedAiEvent;
 import com.server.resume.domain.Resume;
@@ -48,6 +52,7 @@ public class InterviewService {
     private final InterviewEvaluationRepository interviewEvaluationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ApplicationEventPublisher eventPublisher;
+    private final MatchRepository matchRepository;
 
     @Transactional
     public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
@@ -109,6 +114,21 @@ public class InterviewService {
                 interview
         );
         interviewNoteRepository.save(interviewNote);
+
+        Match match = matchRepository.findByJobDescription_IdAndResume_Id(jobDescription.getId(), resume.getId())
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
+
+        // 이미 확정된 지원자면 중복 확정 불가
+        if (match.getStatus() == MatchStatus.CONFIRMED) {
+            throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_CONFIRMED);
+        }
+
+        // 거절,보류된 경우 확정 불가
+        if (match.getStatus() == MatchStatus.REJECTED || match.getStatus() == MatchStatus.HOLD) {
+            throw new ApplicationException(MatchErrorCase.MATCH_CANNOT_BE_CONFIRMED);
+        }
+
+        match.updateStatus(MatchStatus.CONFIRMED);
 
         // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
         eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId(), interview.getScheduledAt()));

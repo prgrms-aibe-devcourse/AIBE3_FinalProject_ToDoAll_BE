@@ -11,6 +11,7 @@ public record NotificationRequestDto (
         String title,
         String message,
         NotificationPayload payload,
-        LocalDateTime scheduledAt       // 예약 전송 시간 (null = 예약 없음)
+        LocalDateTime scheduledAt,       // 예약 전송 시간 (null = 예약 없음)
+        boolean sent
 ) {
 }

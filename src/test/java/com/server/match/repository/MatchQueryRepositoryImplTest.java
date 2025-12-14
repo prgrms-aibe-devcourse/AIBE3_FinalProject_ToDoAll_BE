@@ -13,6 +13,7 @@ import com.server.match.dto.MatchSearchCondition;
 import com.server.resume.domain.Resume;
 import com.server.resume.domain.ResumeStatus;
 import com.server.resume.repository.ResumeRepository;
+import com.server.s3.service.PresignedUrlProvider;
 import com.server.search.service.ResumeSearchService;
 import com.server.user.domain.User;
 import jakarta.persistence.EntityManager;
@@ -86,6 +87,11 @@ class MatchQueryRepositoryImplTest {
         @Bean
         public AiRecommendationService aiRecommendationService() {
             return Mockito.mock(AiRecommendationService.class);
+        }
+
+        @Bean
+        public PresignedUrlProvider presignedUrlProvider() {
+            return Mockito.mock(PresignedUrlProvider.class);
         }
     }
 

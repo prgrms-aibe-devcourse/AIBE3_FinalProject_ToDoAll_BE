@@ -13,6 +13,7 @@ import com.server.match.dto.MatchSearchCondition;
 import com.server.match.util.MatchScoreCalculator;
 import com.server.resume.domain.QResume;
 import com.server.resume.domain.Resume;
+import com.server.s3.service.PresignedUrlProvider;
 import com.server.search.document.ResumeDocument;
 import com.server.search.service.ResumeSearchService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
     private final ResumeSearchService resumeSearchService;
     private final KeywordExtractorService keywordExtractorService;
     private final AiRecommendationService aiRecommendationService;
+    private final PresignedUrlProvider presignedUrlProvider;
 
     @Override
     public Page<MatchListResponseDto> searchMatches(MatchSearchCondition condition, Pageable pageable) {
@@ -83,10 +85,22 @@ public class MatchQueryRepositoryImpl implements MatchQueryRepository {
                 summary = aiRecommendationService.generateResumeSummary(doc.getFullText());
             }
 
+            String profileImageUrl = null;
+            String resumeFileUrl = resumeEntity.getResumeFileUrl();
+
+            if (resumeFileUrl != null) {
+                if (resumeFileUrl.startsWith("http")) {
+                    profileImageUrl = resumeFileUrl;
+                } else {
+                    profileImageUrl =
+                            presignedUrlProvider.createPresignedGetUrl(resumeFileUrl);
+                }
+            }
+
             return new MatchListResponseDto(
                     resumeEntity.getId(),
                     resumeEntity.getName(),
-                    resumeEntity.getPortfolioFileUrl(),
+                    profileImageUrl,
                     m.getMatchScore(),
                     m.getStatus(),
                     matchRate,

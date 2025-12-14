@@ -125,7 +125,9 @@ public class JobDescription extends BaseEntity {
         this.deadline = dto.deadline();
         this.welfare = dto.benefits();
         this.location = dto.location();
-        this.thumbnailUrl = dto.thumbnailUrl();
+        if (dto.thumbnailUrl() != null) {
+            this.thumbnailUrl = dto.thumbnailUrl().isBlank() ? null : dto.thumbnailUrl();
+        }
     }
 
     // 필수 스킬 이름 반환
@@ -140,17 +142,6 @@ public class JobDescription extends BaseEntity {
         return preferredSkills.stream()
                 .map(p -> p.getSkill().getName().toLowerCase())
                 .toList();
-    }
-
-    // 스킬 연관 관계 추가 메서드
-    public void addRequiredSkill(Skill skill) {
-        JobRequiredSkill jrs = JobRequiredSkill.of(this, skill);
-        requiredSkills.add(jrs);
-    }
-
-    public void addPreferredSkill(Skill skill) {
-        JobPreferredSkill jps = JobPreferredSkill.of(this, skill);
-        preferredSkills.add(jps);
     }
 
     public void applyApplicantCount(long count) {

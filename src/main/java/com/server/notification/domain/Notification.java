@@ -31,7 +31,7 @@ public class Notification extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String payload;
 
-    @Column(name = "is_read")
+    @Column(name = "is_read", nullable = false)
     private boolean read; // 읽음 여부
 
     //보내질 시간 (null → 즉시 알림)
@@ -57,7 +57,8 @@ public class Notification extends BaseEntity {
             String title,
             String message,
             NotificationPayload payload,
-            LocalDateTime scheduledAt
+            LocalDateTime scheduledAt,
+            boolean sent
     ) {
         Notification n = new Notification();
         n.userId = userId;
@@ -75,7 +76,7 @@ public class Notification extends BaseEntity {
         n.read = false;
         n.scheduledAt = scheduledAt;
 
-        n.sent = scheduledAt == null;
+        n.sent = sent;
 
         return n;
     }

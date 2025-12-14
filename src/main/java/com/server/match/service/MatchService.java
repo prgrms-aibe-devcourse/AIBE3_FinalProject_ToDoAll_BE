@@ -8,6 +8,7 @@ import com.server.jd.repository.JobDescriptionRepository;
 import com.server.match.async.RecommendationAsyncService;
 import com.server.match.cache.RedisRecommendationCacheService;
 import com.server.match.domain.Match;
+import com.server.match.domain.MatchSortType;
 import com.server.match.domain.MatchStatus;
 import com.server.match.dto.*;
 import com.server.match.exception.MatchErrorCase;
@@ -92,16 +93,25 @@ public class MatchService {
                 .limit(limit)
                 .toList();
         
-        //정렬
-        if(sortType.equals("LATEST")) {
-            return limitedList.stream()
+        // 정렬 (점수 높은순 default)
+        MatchSortType resolvedSortType;
+        try {
+            resolvedSortType = MatchSortType.valueOf(
+                    sortType != null ? sortType : MatchSortType.SCORE_DESC.name()
+            );
+        } catch (IllegalArgumentException e) {
+            resolvedSortType = MatchSortType.SCORE_DESC;
+        }
+
+        return switch (resolvedSortType) {
+            case LATEST -> limitedList.stream()
                     .sorted(Comparator.comparing(ResumeRecommendationDto::resumeCreateTime).reversed())
                     .toList();
-        } else {
-            return limitedList.stream()
+
+            case SCORE_DESC -> limitedList.stream()
                     .sorted(Comparator.comparing(ResumeRecommendationDto::matchScore).reversed())
                     .toList();
-        }
+        };
     }
 
     @Transactional(readOnly = true)
@@ -172,7 +182,7 @@ public class MatchService {
     }
 
     @Transactional
-    public Match confirmMatch(MatchRequestDto dto) {
+    public void checkMatch(MatchRequestDto dto) {
         JobDescription jd = jobDescriptionRepository.findById(dto.jdId())
                 .orElseThrow(() -> new ApplicationException(MatchErrorCase.JD_NOT_FOUND));
 
@@ -191,8 +201,5 @@ public class MatchService {
         if (match.getStatus() == MatchStatus.REJECTED || match.getStatus() == MatchStatus.HOLD) {
             throw new ApplicationException(MatchErrorCase.MATCH_CANNOT_BE_CONFIRMED);
         }
-
-        match.updateStatus(MatchStatus.CONFIRMED);
-        return match;
     }
 }

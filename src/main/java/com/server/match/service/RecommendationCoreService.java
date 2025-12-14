@@ -123,11 +123,12 @@ public class RecommendationCoreService {
                     }
 
                     String profileImageUrl = null;
-                    if (resume.getResumeFileUrl() != null) {
-                        profileImageUrl =
-                                presignedUrlProvider.createPresignedGetUrl(
-                                        resume.getResumeFileUrl()
-                                );
+                    String resumeFileUrl = resume.getResumeFileUrl();
+
+                    if (resumeFileUrl != null) {
+                        profileImageUrl = resumeFileUrl.startsWith("http")
+                                ? resumeFileUrl
+                                : presignedUrlProvider.createPresignedGetUrl(resumeFileUrl);
                     }
 
                     ResumeRecommendationDto dto = ResumeRecommendationDto.from(

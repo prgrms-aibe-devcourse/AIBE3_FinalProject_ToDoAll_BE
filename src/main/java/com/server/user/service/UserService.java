@@ -268,18 +268,7 @@ public class UserService {
 
     private UsersByEmailDomainResponseDto toUsersByEmailDomainDto(User user) {
 
-        String avatarUrl = null;
-        String dbFileKey = user.getProfileUrl();
-
-        if (dbFileKey != null && dbFileKey.startsWith("user")) {
-            try {
-                avatarUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
-            } catch (Exception e) {
-                log.warn("Failed to create presigned url. userId={}, fileKey={}",
-                        user.getId(), dbFileKey, e);
-            }
-        }
-
+        String avatarUrl = resolveProfileImageUrl(user);
         return UsersByEmailDomainResponseDto.of(user, avatarUrl);
     }
 }

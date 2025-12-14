@@ -43,7 +43,7 @@ public class InterviewEventListener {
                         "면접 생성 알림",
                         "새로운 면접이 생성되었습니다!\n\uD83D\uDC49 질문 노트 바로가기",
                         new InterviewPayload(event.interviewId()),
-                        LocalDateTime.now(),
+                        LocalDateTime.now().plusHours(9),
                         true
                 ));
                 // 저장 성공한 경우에만 SSE 발송

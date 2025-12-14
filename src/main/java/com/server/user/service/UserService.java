@@ -14,6 +14,7 @@ import com.server.user.exception.UserErrorCase;
 import com.server.user.repository.UserRepository;
 import com.server.user.util.PasswordValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -33,10 +34,6 @@ public class UserService {
     private final UserProperties userProperties;        // 기본 프로필 이미지 설정값
     private final S3Uploader s3Uploader;                  // S3 업로드
     private final PresignedUrlProvider presignedUrlProvider; // S3 파일 URL 생성
-
-
-
-
 
     //회원가입
     @Transactional
@@ -252,7 +249,9 @@ public class UserService {
         }
     }
 
+
     public List<UsersByEmailDomainResponseDto> getUsersByEmailDomain() {
+
         Long userId = AuthUtils.getCurrentUserId();
 
         User user = userRepository.findById(userId)
@@ -261,8 +260,15 @@ public class UserService {
         String emailDomain = user.getEmailDomain();
 
         List<User> users = userRepository.findByEmailDomain(emailDomain);
+
         return users.stream()
-                .map(UsersByEmailDomainResponseDto::from)
+                .map(this::toUsersByEmailDomainDto)
                 .toList();
+    }
+
+    private UsersByEmailDomainResponseDto toUsersByEmailDomainDto(User user) {
+
+        String avatarUrl = resolveProfileImageUrl(user);
+        return UsersByEmailDomainResponseDto.of(user, avatarUrl);
     }
 }

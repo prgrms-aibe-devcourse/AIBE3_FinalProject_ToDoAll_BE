@@ -9,6 +9,7 @@ import com.server.interview.domain.QInterviewParticipant;
 import com.server.interview.dto.InterviewSummaryDto;
 import com.server.jd.domain.QJobDescription;
 import com.server.resume.domain.QResume;
+import com.server.s3.service.PresignedUrlProvider;
 import com.server.user.domain.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -24,6 +25,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
     private final QInterview i = QInterview.interview;
     private final QJobDescription jd = QJobDescription.jobDescription;
     private final QResume r = QResume.resume;
+    private final PresignedUrlProvider presignedUrlProvider;
 
     @Override
     public List<InterviewSummaryDto> searchInterviews(
@@ -77,6 +79,12 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                     .where(ip.interview.id.eq(base.interviewId()))
                     .fetch();
 
+            String finalUrl = null;
+            String dbFileKey = base.candidateAvatar();
+            if(dbFileKey != null){
+                finalUrl = presignedUrlProvider.createPresignedGetUrl(dbFileKey);
+            }
+
             interviews.set(idx, new InterviewSummaryDto(
                     base.interviewId(),
                     base.jdId(),
@@ -85,7 +93,7 @@ public class InterviewRepositoryImpl implements InterviewRepositoryCustom {
                     base.candidateName(),
                     base.status(),
                     base.resultStatus(),
-                    base.candidateAvatar(),
+                    finalUrl,
                     interviewerNames,
                     base.scheduledAt(),
                     base.createdAt()

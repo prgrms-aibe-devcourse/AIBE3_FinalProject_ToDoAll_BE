@@ -230,9 +230,9 @@ public class DashboardService {
         DashboardWeeklyCalendarResponseDto weeklyCalendarDto = new DashboardWeeklyCalendarResponseDto(mon, sun);
 
         for (WeekCalendarInterface data : calendarDatas) {
-            CustomDayOfWeek day = CustomDayOfWeek.from(data.getTime().getDayOfWeek());
             LocalDateTime time = data.getTime();
             if (data.getType() == CalendarEventType.JOB_CLOSE) time = time.plusHours(9);
+            CustomDayOfWeek day = CustomDayOfWeek.from(time.getDayOfWeek());
             weeklyCalendarDto.addCalendarEvent(day,
                     new DashboardCalendarEventDto(
                         data.getId(),

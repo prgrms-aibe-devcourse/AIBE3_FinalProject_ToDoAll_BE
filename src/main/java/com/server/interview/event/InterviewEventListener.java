@@ -43,11 +43,15 @@ public class InterviewEventListener {
                         "면접 생성 알림",
                         "새로운 면접이 생성되었습니다!\n\uD83D\uDC49 질문 노트 바로가기",
                         new InterviewPayload(event.interviewId()),
-                        null
+                        LocalDateTime.now(),
+                        true
                 ));
                 // 저장 성공한 경우에만 SSE 발송
                 NotificationResponseDto notificationResponseDto = NotificationResponseDto.from(notification);
                 sseService.sendNotification(notificationResponseDto, userId);
+
+                // 성공 시 sent 상태 갱신
+                notification.markSent();
 
                 // D-1 예약 알림
                 notificationService.saveNotification(new NotificationRequestDto(
@@ -56,7 +60,8 @@ public class InterviewEventListener {
                         "면접 하루 전 알림",
                         "내일 면접이 예정되어 있어요!\n\uD83D\uDC49 질문 노트 바로가기",
                         new InterviewPayload(event.interviewId()),
-                        interviewAt.minusDays(1)
+                        interviewAt.minusDays(1),
+                        false
                 ));
 
                 // D-Day 1시간 전 예약 알림
@@ -66,7 +71,8 @@ public class InterviewEventListener {
                         "면접 준비 알림",
                         "면접이 곧 시작됩니다. 준비해주세요!\n\uD83D\uDC49 질문 노트 바로가기",
                         new InterviewPayload(event.interviewId()),
-                        interviewAt.minusHours(1)
+                        interviewAt.minusHours(1),
+                        false
                 ));
 
             } catch (Exception e) {

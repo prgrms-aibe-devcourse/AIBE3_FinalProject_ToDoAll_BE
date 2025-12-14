@@ -32,7 +32,8 @@ public class NotificationService {
             dto.title(),
             dto.message(),
             dto.payload(),
-            dto.scheduledAt()
+            dto.scheduledAt(),
+                dto.sent()
         );
         notificationRepository.save(notification);
         return notification;

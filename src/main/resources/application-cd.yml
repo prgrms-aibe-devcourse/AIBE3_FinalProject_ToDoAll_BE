@@ -109,6 +109,8 @@ management:
   health:
     elasticsearch:
       enabled: false
+    redis:
+      enabled: false
   endpoints:
     web:
       base-path: /actuator

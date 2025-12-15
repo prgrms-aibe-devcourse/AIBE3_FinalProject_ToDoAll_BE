@@ -14,8 +14,6 @@ services:
     networks:
       - jobda-net
     restart: always
-    depends_on:
-      - redis
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness"]
       interval: 10s

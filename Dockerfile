@@ -1,7 +1,7 @@
 FROM eclipse-temurin:21-jdk-jammy
 
 RUN apt-get update && \
-    apt-get install -y wget netcat mysql-client curl && \
+    apt-get install -y wget netcat mysql-client redis-tools curl && \
     wget -O /usr/local/bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && \
     chmod +x /usr/local/bin/wait-for-it.sh
 

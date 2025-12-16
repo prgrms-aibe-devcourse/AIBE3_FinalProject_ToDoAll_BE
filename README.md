@@ -2,6 +2,8 @@
 <p align="center">
   <strong>채용공고와 이력서를 표준화해, AI가 가장 ‘잘 맞는 인재’를 찾아주는 채용 코파일럿</strong>
 <br />
+  <br />
+<br />
 <img width="800" alt="대문이미지" src="https://github.com/user-attachments/assets/4cf05102-fe5e-4c45-a419-5b4826633bbd" />
 </p>
 <div align=start>

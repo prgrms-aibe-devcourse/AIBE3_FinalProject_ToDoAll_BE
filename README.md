@@ -87,7 +87,6 @@
 
 ---
 
----
 <a id="erd"></a>
 ## 🧩 ERD
 <img width="1410" alt="ERD image" src="https://github.com/user-attachments/assets/fc0415df-3918-4890-9ad9-4d4a9a59081e" />
@@ -96,16 +95,12 @@
 <a id="기술-스택-및-도입-이유"></a>
 ## 🛠 기술 스택 및 도입 이유 
 
-### Frontend
 | Category | Stack | 도입 이유 |
 |--------|------|----------|
 | Framework | ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | 컴포넌트 기반 구조로 복잡한 화면 상태를 효율적으로 관리하기 위해 사용 |
 | Build Tool | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) | 빠른 개발 서버와 빌드 속도를 통해 개발 생산성을 높이기 위해 선택 |
 | Styling | ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white) | 디자인 시스템을 일관되게 유지하고 빠른 UI 개발을 위해 도입 |
 
----
-
-### Backend
 | Category | Stack | 도입 이유 |
 |--------|------|----------|
 | Web Framework | ![Spring MVC](https://img.shields.io/badge/Spring%20MVC-6DB33F?style=for-the-badge&logo=spring&logoColor=white) | REST API 기반 서비스 구조를 설계하고 확장하기 위해 사용 |
@@ -114,9 +109,6 @@
 | Real-time Communication | ![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=for-the-badge) | 면접관과 지원자간의 채팅 등 실시간 이벤트를 즉시 전달하기 위해 사용 |
 | Real-time Communication | ![SSE](https://img.shields.io/badge/SSE-010101?style=for-the-badge) | 실시간 알림 등 이벤트를 즉시 전달하기 위해 사용 |
 
----
-
-### Search & AI
 | Category | Stack | 도입 이유 |
 |--------|------|----------|
 | Search Engine | ![Elasticsearch](https://img.shields.io/badge/Elasticsearch-005571?style=for-the-badge&logo=elasticsearch&logoColor=white) | 이력서와 채용공고를 단순 조회가 아닌 키워드 기반 점수 계산 및 유사도 검색으로 처리하기 위해 도입하여 대량 데이터에서도 빠른 추천 조회가 가능하도록 설계 |
@@ -125,9 +117,6 @@
 | LLM Tool Layer | ![MCP](https://img.shields.io/badge/MCP%20Client-000000?style=for-the-badge) | LLM이 필요한 시점에만 내부 데이터를 Tool로 조회하도록 하여, 프롬프트 복잡도와 응답 비용을 줄이기 위해 도입 |
 | AI Framework | ![Spring AI](https://img.shields.io/badge/Spring%20AI-6DB33F?style=for-the-badge&logo=spring&logoColor=white) | 채용공고 키워드 추출, 이력서 요약, 추천 사유 생성을 서버 로직과 자연스럽게 결합하기 위해 사용 |
 
----
-
-### Infrastructure
 | Category | Stack | 도입 이유 |
 |--------|------|----------|
 | Compute | ![AWS EC2](https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white) | WAS와 검색/AI 역할을 분리 배포하여 트래픽과 리소스를 독립적으로 관리하도록 사용 |
@@ -135,9 +124,6 @@
 | RDBMS | ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white) | 채용공고, 이력서, 매칭 결과 등 정형 데이터를 안정적으로 관리하기 위해 사용 |
 | Object Storage | ![AWS S3](https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white) | 이력서 파일 저장 및 Presigned URL 제공을 위해 도입 |
 
----
-
-### DevOps & Monitoring
 | Category | Stack | 도입 이유 |
 |--------|------|----------|
 | Reverse Proxy | ![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white) | HTTPS 처리 및 트래픽 라우팅을 안정적으로 수행하기 위해 사용 |
@@ -223,6 +209,7 @@ redisTemplate.opsForValue().set("recommend:jd_" + jdId, data, TTL);
 👉 캐시 효과는 명확했지만, 첫 호출이 여전히 느림
 
 **2️⃣ 2차 개선 — N+1 문제 해결 시도 (Fetch Join)**
+
 **✔️ 시도**
 
 연관 엔티티를 한 번에 로딩하기 위해 Fetch Join 적용
@@ -293,6 +280,7 @@ public void warmUpRecommendation(Long jdId) {
 
 
 **4️⃣ 추가 리팩토링 — AI 결과 영속성 개선** 
+
 **🧠 문제 인식**
 - JD 키워드, 이력서 요약, 추천 사유는 영속성이 높은 데이터로, Redis에만 저장하는 구조는 적절하지 않음
 
@@ -432,9 +420,10 @@ location /api/v1/sse/subscribe {
 
 **📌 문제 상황**
 
-로컬에서는 면접 생성/종료 시 AI가 MCP tool을 호출해 질문/요약을 저장하는 흐름이 정상인데, 배포 환경에서 간헐적으로 흐름이 깨졌다.
+로컬에서는 면접 생성/종료 시 AI가 MCP tool을 호출해 질문/요약을 저장하는 흐름이 정상인데, 배포 환경에서 간헐적으로 흐름이 깨짐.
 
-- LLM이 get_interview_context, save_interview_questions 같은 tool을 안 부르고 텍스트로만 답함(실제론 tool 호출 실패/미적용으로 보임)
+- LLM이 get_interview_context, save_interview_questions 같은 tool을 안 부르고 텍스트로만 답함
+  (실제론 tool 호출 실패/미적용으로 보임)
 - 로컬은 정상인데 배포에서만 간헐 실패
 - tool calling은 왕복이 많아 체감 지연이 커짐
 - 어디서 막히는지 추적이 어려움(프론트/프록시/백엔드/LLM/원격 MCP)
@@ -491,7 +480,7 @@ tool calling은 일반 LLM 호출 대비 **왕복이 크게 늘어난다.**
 
 배포 환경에서 “도구가 실제로 로딩/주입되는지”를 먼저 확인하기 위해,
 원격 MCP Tool 목록을 로깅하고 ChatClient 기본 ToolCallbacks로 세팅했다.
-```
+```java
 @Bean
 public ChatClient chatClient(ChatClient.Builder builder,
                              SyncMcpToolCallbackProvider mcpToolCallbackProvider) {
@@ -510,7 +499,7 @@ public ChatClient chatClient(ChatClient.Builder builder,
 ```
 추가로 tool endpoint에서 “진입/성공/실패” 로그를 고정해
 LLM이 도구를 안 부른 건지 vs 불렀는데 실패한 건지를 분리했다.
-```
+```java
 log.info("[MCP] saveInterviewQuestions called interviewId={}, rawSize={}",
         interviewId, questionList != null ? questionList.size() : -1);
 

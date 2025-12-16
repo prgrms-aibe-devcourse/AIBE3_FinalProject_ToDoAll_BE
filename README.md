@@ -33,9 +33,33 @@
 
 ---
 
+## 📃관련 문서 링크
+
+---
+
+## 🖼️시스템 아키텍처
+
+---
+
 ## 📌 팀원 구성
 
 |<img src="https://avatars.githubusercontent.com/u/144124353?s=400&u=9bda70cb07b771d6301ac64df65acb931406b09e&v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/82808715?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/217855127?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/99888873?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/96305452?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/121555686?v=4" width="125" />|
 |:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
 |[유승인 (팀장)](https://github.com/seung-in-Yoo)|[김정호](https://github.com/Unoguna)|[김지윤](https://github.com/jiyoon-00)|[심수민](https://github.com/SWWWin)|[유승재](https://github.com/JaeSeungJae)|[정다솔](https://github.com/dbjoung)|
 |FE, BE|FE, BE|FE, BE|FE, BE|FE, BE|FE, BE|
+
+---
+
+## ✨핵심 기능 소개
+### 알림
+### 채팅
+### ELS
+### MCP
+
+---
+
+## 💡기술 스택
+
+---
+
+## 🤔트러블 슈팅

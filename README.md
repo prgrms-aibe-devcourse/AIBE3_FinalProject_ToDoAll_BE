@@ -426,6 +426,130 @@ location /api/v1/sse/subscribe {
 * 실시간 시스템 설계 시 **인프라까지 포함한 관점의 중요성 체감**
 
 ---
+
+
+### 3. MCP Tool Calling 배포 환경 불안정 이슈 해결
+
+**📌 문제 상황**
+
+로컬에서는 면접 생성/종료 시 AI가 MCP tool을 호출해 질문/요약을 저장하는 흐름이 정상인데, 배포 환경에서 간헐적으로 흐름이 깨졌다.
+
+- LLM이 get_interview_context, save_interview_questions 같은 tool을 안 부르고 텍스트로만 답함(실제론 tool 호출 실패/미적용으로 보임)
+- 로컬은 정상인데 배포에서만 간헐 실패
+- tool calling은 왕복이 많아 체감 지연이 커짐
+- 어디서 막히는지 추적이 어려움(프론트/프록시/백엔드/LLM/원격 MCP)
+
+<br>
+
+
+**🔍 원인 분석**
+
+**1️⃣ 인증/세션 전달 단절 (CORS + Cookie/SameSite + 프록시 헤더)**
+
+**배포 환경에서는 요청이 **크로스 사이트 + 프록시 경유**가 되면서, 로컬에선 문제 없던 인증 전달이 tool 구간에서만 끊겼다.**
+
+대표 패턴:
+- `credentials`가 포함된 CORS 설정 미흡(Origin/Allow-Credentials 불일치)
+- Cookie가 `SameSite`/`Secure` 조건 때문에 브라우저에서 전송되지 않음
+- Nginx가 `Authorization`, `Cookie`, `X-Forwarded-*` 같은 헤더를 제대로 전달하지 않아 백엔드에서 인증 실패
+→ tool endpoint 진입 시 401/403 에러 → LLM은 tool 결과를 못 받아 fallback 답변 생성
+
+**2️⃣ 추가 HTTP 왕복으로 인한 지연/타임아웃 (tool calling 구조적 특성)**
+
+tool calling은 일반 LLM 호출 대비 **왕복이 크게 늘어난다.**
+
+로컬에선 네트워크/프록시가 없으니 버텼지만, 배포에선 아래가 동시에 터졌다.
+
+- LLM 응답 → tool 호출 → 내부 API/DB 조회 → 다시 LLM로 결과 전달
+    
+    이 체인에서 한 군데만 느려도 전체가 timeout 되는 현상
+    
+- Nginx 기본 timeout(proxy_read_timeout 등) / upstream timeout이 tool 왕복 시간을 못 버팀
+- 로그가 분산되어 “어디서 느려졌는지” 한 번에 안 보임
+→ timeout/재시도/간헐 실패 → “배포에서만 흐름이 깨짐”으로 체감
+
+<br>
+
+**🛠 해결 방법**
+
+**1️⃣ 인증 전달 안정화 (배포 기준으로 고정)**
+
+- CORS: 특정 Origin 명시 + `allowCredentials(true)` 정리
+- Cookie 정책: 크로스 사이트 요구사항에 맞게 `SameSite=None; Secure` 등 정리(사용 구조에 맞춰)
+- Nginx 프록시 헤더 전달 강화
+    - `Authorization`, `Cookie`, `X-Forwarded-Proto`, `X-Forwarded-For`, `Host` 등 전달 누락 방지
+- tool endpoint에서 인증 실패 시 즉시 식별되게 에러/로그 보강
+
+**2️⃣ 타임아웃/왕복 대응 (tool route 중심으로)**
+
+- Nginx / 백엔드 timeout 상향(특히 tool 호출 경로)
+- keep-alive 및 upstream 설정 정리
+- 로그 추적 장치 추가
+    - 요청 단위 Correlation ID
+    - tool 호출 시작/종료/소요시간 로그
+    - 외부 호출(OpenAI/내부 API) 소요시간 분리 로깅
+
+배포 환경에서 “도구가 실제로 로딩/주입되는지”를 먼저 확인하기 위해,
+원격 MCP Tool 목록을 로깅하고 ChatClient 기본 ToolCallbacks로 세팅했다.
+```
+@Bean
+public ChatClient chatClient(ChatClient.Builder builder,
+                             SyncMcpToolCallbackProvider mcpToolCallbackProvider) {
+
+    ToolCallback[] callbacks = mcpToolCallbackProvider.getToolCallbacks();
+    log.info("[MCP] 원격 MCP Tool 개수 = {}", callbacks.length);
+    for (ToolCallback cb : callbacks) {
+        log.info("[MCP] ToolCallback = {}", cb);
+    }
+
+    return builder
+            .defaultToolCallbacks(callbacks)
+            .defaultAdvisors(new SimpleLoggerAdvisor())
+            .build();
+}
+```
+추가로 tool endpoint에서 “진입/성공/실패” 로그를 고정해
+LLM이 도구를 안 부른 건지 vs 불렀는데 실패한 건지를 분리했다.
+```
+log.info("[MCP] saveInterviewQuestions called interviewId={}, rawSize={}",
+        interviewId, questionList != null ? questionList.size() : -1);
+
+try {
+    ...
+    interviewQuestionService.updateQuestionsBySystem(interviewId, requestDto);
+    log.info("[MCP] saveInterviewQuestions success interviewId={}, savedCount={}",
+            interviewId, items.size());
+} catch (Exception e) {
+    log.error("[MCP] saveInterviewQuestions FAILED interviewId={}, reason={}",
+            interviewId, e.getMessage(), e);
+    throw e;
+}
+```
+
+<br>
+
+**✅ 결과**
+
+- 배포 환경에서 tool calling 포함 요청의 401/403/timeout 빈도 감소
+- LLM이 tool 결과를 정상 수신하면서 “임의 답변 생성” 현상 해소
+- 병목 구간이 로그로 분해되어, 이후 성능/안정화 작업이 가능해짐
+
+<br>
+
+**💡 배운 점**
+
+- tool calling은 “모델 기능”이 아니라 “분산 요청 체인”이다
+- 로컬 성공은 의미가 약하고, 배포 환경(CORS/쿠키/프록시/timeout)이 실제 정답이다
+- tool 기반 기능은 **관측(로그/시간측정/ID 추적)** 없으면 디버깅이 거의 불가능하다
+
+### **✅ 최종 정리**
+
+* 배포 환경에서 끊기던 인증/세션 전달(CORS, Cookie SameSite/Secure, 프록시 헤더)을 정리해 tool endpoint의 401/403을 제거
+* 원격 MCP ToolCallback 로딩 여부를 로깅해 “도구가 붙었는지”를 배포에서 즉시 검증 가능하게 함
+* 결과적으로 배포 환경에서도 tool calling 흐름이 안정화되어 질문/요약 자동 생성 파이프라인을 일관되게 유지
+
+
+---
 <a id="팀원-구성"></a>
 ## 📌 팀원 구성
 
@@ -433,4 +557,5 @@ location /api/v1/sse/subscribe {
 |:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
 |[유승인 (팀장)](https://github.com/seung-in-Yoo)|[김정호](https://github.com/Unoguna)|[김지윤](https://github.com/jiyoon-00)|[심수민](https://github.com/SWWWin)|[유승재](https://github.com/JaeSeungJae)|[정다솔](https://github.com/dbjoung)|
 |FE, BE|FE, BE|FE, BE|FE, BE|FE, BE|FE, BE|
+
 

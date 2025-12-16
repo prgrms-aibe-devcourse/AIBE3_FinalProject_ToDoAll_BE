@@ -133,22 +133,33 @@
 | Metrics | ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white) | 애플리케이션 메트릭을 수집하여 성능 이상 여부를 조기에 파악하기 위해 도입 |
 ---
 
-
----
 <a id="핵심-기능-소개"></a>
 ## ✨ 핵심 기능 소개
 ### 🔔 SSE
+
+- 면접이 생성 될 때, 면접에 참여하는 면접관들에게 면접 생성 알림이 실시간으로 전송됩니다.
+- Spring Scheduler를 이용하여 면접 하루전, 한시간 전에 예약 알림이 면접관들에게 전송됩니다.
 
 | 실시간 알림 |
 |----------|
 |![EC958CEBA6BC-2](https://github.com/user-attachments/assets/a9db26b1-5c20-4394-a90e-a00bde29a520)|
 
 ### 💬 채팅
+
+- 면접이 시작되면  webSocket을 사용해 지원자와 면접관들 간에 실시간 채팅이 가능합니다.
+- 면접관과 면접관 사이에는 실시간으로 지원자에 대한 평가를 나눌 수 있는 메모를 공유할 수 있습니다.
+- 면접 질문 우측에 있는 체크 버튼을 통해 질문을 했는지 체크할 수 있습니다.
+  
 | 실시간 채팅 |
 |----------|
 |![KakaoTalk_Photo_2025-12-16-12-08-03](https://github.com/user-attachments/assets/da107a71-0c2e-44d3-8b73-5242cd7c5ef0)|
 
 ### 🔎 ELS
+
+- 채용공고(JD) 기준으로 적합한 지원자를 자동 추천합니다.
+- Spring AI로 JD 설명에서 핵심 키워드를 추출하고, Elasticsearch에서 이력서 문서에 대해 유사도 검색을 수행해 후보군을 생성합니다.
+- 이후 스킬/경력/학력/자격/활동 정보를 종합한 matchScore를 계산해 추천 순위를 산출합니다.
+- 최종적으로 ES 점수와 matchScore를 함께 반영해 Top N 지원자를 추천합니다.
 
 | 추천 지원자 조회 |
 |----------|
@@ -156,9 +167,16 @@
 
 
 ### 🤖 MCP
+
+- MCP를 통해 JD·Resume 정보를 AI 서버로 전달하고, 직무·경력 맥락을 반영한 질문을 자동 생성합니다.
+- 질문 생성 요청 시, Backend는 요청을 수신한 뒤 MCP Tool Layer에 비동기 작업으로 위임하고 즉시 응답을 반환합니다
+
 | 면접 질문 생성 |
 |----------|
 |![KakaoTalk_Video_2025-12-16-10-58-56](https://github.com/user-attachments/assets/391cb11a-01b7-403f-b50e-5bac5973cd48)|
+
+- 면접 진행 중 누적되는 질문,답변 메세지를 수직하여 면접 종료 후 MCP로 전달하여 AI기반 요약을 수행합니다.
+- 면접 메시지 요약 역시 면접 종료 후 비동기로 처리되어, 요약이 생성되는 동안에도 서비스 사용 흐름이 끊기지 않습니다.
 
 | AI 면접 요약 |
 |----------|

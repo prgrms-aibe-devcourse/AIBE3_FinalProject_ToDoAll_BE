@@ -1,0 +1,42 @@
+{
+  "index_patterns": ["resume*"],
+  "template": {
+    "settings": {
+      "analysis": {
+        "analyzer": {
+          "korean": {
+            "type": "custom",
+            "tokenizer": "nori_tokenizer",
+            "filter": [
+              "lowercase"
+            ]
+          }
+        }
+      }
+    },
+    "mappings": {
+      "properties": {
+        "id": { "type": "long" },
+        "name": { "type": "keyword" },
+        "gender": { "type": "keyword" },
+        "birthDate": { "type": "date", "format": "yyyy-MM-dd" },
+        "jdId": { "type": "long" },
+        "email": { "type": "keyword" },
+        "phone": { "type": "keyword" },
+        "address": { "type": "text" },
+        "detailAddress": { "type": "text" },
+        "resumeFileUrl": { "type": "keyword" },
+        "portfolioFileUrl": { "type": "keyword" },
+        "educationSummary": { "type": "text", "analyzer": "korean" },
+        "experienceSummary": { "type": "text", "analyzer": "korean" },
+        "skills": { "type": "keyword" },
+        "certificationSummary": { "type": "text", "analyzer": "korean" },
+        "activitySummary": { "type": "text", "analyzer": "korean" },
+        "fullText": {
+          "type": "text",
+          "analyzer": "korean"
+        }
+      }
+    }
+  }
+}

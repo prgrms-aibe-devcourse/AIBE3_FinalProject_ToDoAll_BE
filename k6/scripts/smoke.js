@@ -9,9 +9,9 @@ export const options = {
 };
 
 export default function () {
-    const res = http.get(`${BASE_URL}/swagger-ui/index.html`);
+    const res = http.get(`${BASE_URL}/actuator/health`);
     check(res, {
-        'swagger reachable': (r) => r.status === 200 || r.status === 302,
+        'actuator reachable': (r) => r.status === 200,
     });
     sleep(1);
 }

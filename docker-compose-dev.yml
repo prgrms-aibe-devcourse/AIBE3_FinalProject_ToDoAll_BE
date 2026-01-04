@@ -71,7 +71,7 @@ services:
   elasticsearch:
     build:
       context: .
-      dockerfile: elasticsearch-nori.Dockerfile
+      dockerfile: elasticsearch/elasticsearch-nori.Dockerfile
     container_name: jobda-elasticsearch
     environment:
       - discovery.type=single-node

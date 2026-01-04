@@ -29,6 +29,8 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    networks:
+      - jobda-net
 
   db:
     image: mysql:8
@@ -47,6 +49,8 @@ services:
       timeout: 5s
       retries: 10
       start_period: 60s
+    networks:
+      - jobda-net
 
   redis:
     image: redis:7.2
@@ -61,6 +65,8 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    networks:
+      - jobda-net
 
   elasticsearch:
     build:
@@ -81,6 +87,8 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+    networks:
+      - jobda-net
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.13.4
@@ -92,8 +100,14 @@ services:
     depends_on:
       - elasticsearch
     restart: unless-stopped
+    networks:
+      - jobda-net
 
 volumes:
   redis-data:
   mysql-data:
   esdata:
+
+networks:
+  jobda-net:
+    external: true

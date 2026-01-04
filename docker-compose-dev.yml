@@ -1,5 +1,5 @@
 services:
-  app:
+  jobda-app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,12 +12,12 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
-      WAIT_FOR_DB : true
+      WAIT_FOR_DB: true
       SPRING_PROFILES_ACTIVE: docker
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MAIL_USERNAME: ${MAIL_USERNAME}    #  메일 계정
-      MAIL_PASSWORD: ${MAIL_PASSWORD}    #  메일 앱 비밀번호
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       OPENAI_API_KEY_AI: ${OPENAI_API_KEY_AI}
       TZ: Asia/Seoul
@@ -25,7 +25,7 @@ services:
     volumes:
       - ./logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 3s
       retries: 5

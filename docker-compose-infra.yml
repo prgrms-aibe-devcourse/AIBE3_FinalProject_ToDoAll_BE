@@ -26,7 +26,7 @@ services:
       # prometheus.yml은 환경별로 교체해서 사용
       # 로컬: prometheus-local.yml → prometheus-prod.yml
       # 배포: prometheus-prod.yml  → prometheus-prod.yml
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - jobda-net
     restart: unless-stopped

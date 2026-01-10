@@ -20,10 +20,15 @@ services:
   prometheus:
     image: prom/prometheus:v2.52.0
     container_name: jobda-prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      # prometheus.yml은 환경별로 교체해서 사용
+      # 로컬: prometheus-local.yml → prometheus-prod.yml
+      # 배포: prometheus-prod.yml  → prometheus-prod.yml
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - jobda-net
     restart: unless-stopped

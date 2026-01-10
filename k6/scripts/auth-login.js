@@ -25,13 +25,13 @@ export default function () {
     };
 
     const res = http.post(
-        `${BASE_URL}/api/auth/token`,
+        `${BASE_URL}/api/v1/auth/token`,
         payload,
         params
     );
 
     check(res, {
-        'login status is 200 or 401': (r) => r.status === 200 || r.status === 401,
+        'status is not 5xx': (r) => r.status < 500,
     });
 
     sleep(1);

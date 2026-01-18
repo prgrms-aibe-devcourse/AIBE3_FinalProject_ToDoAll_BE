@@ -85,40 +85,20 @@ public class InterviewService {
 
     @Transactional
     public void deleteInterview(Long interviewId) {
-
         Long userId = AuthUtils.getCurrentUserId();
 
-        Interview interview = interviewRepository.findById(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+        Interview interview = getInterviewOrThrow(interviewId);
+        User currentUser = getUserOrThrow(userId);
 
-        // 주최자(organizer)만 삭제 가능
-        User organizer = userRepository.findById(userId).orElse(null);
+        validateDeletePermission(interview, currentUser);
 
-        if (!interview.getOrganizer().getId().equals(organizer.getId())) {
-            throw new ApplicationException(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN);
-        }
+        deleteInterviewNote(interviewId);        // note + (cascade로 memo)
+        deleteInterviewQuestions(interviewId);
+        deleteInterviewEvaluations(interviewId);
 
-        // 면접 노트 삭제 (쿼리 삭제는 cascade가 발동되지 않음)
-        // 노트와 메모가 cascade 설정이 되어있지만 밑에처럼 쿼리로 노트를 삭제하면 cascade가 반영되지 않는다..!
-        // interviewNoteRepository.deleteByInterviewId(interviewId);
-
-        // 인터뷰 노트 조회
-        InterviewNote note = interviewNoteRepository.findByInterviewId(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND));
-
-        // 엔티티 삭제 → cascade 로 memo 자동 삭제됨
-        if (note != null) {
-            interviewNoteRepository.delete(note);
-        }
-
-        // 면접 질문 삭제
-        interviewQuestionRepository.deleteByInterviewId(interviewId);
-
-        //면접 평가 삭제
-        interviewEvaluationRepository.deleteByInterviewId(interviewId);
-
-        interviewRepository.delete(interview);
+        deleteInterviewEntity(interview);
     }
+
 
     // 면접을 종료(DONE) 상태로 변경하고, 면접 종료 이벤트를 발행해서 AI 요약을 비동기로 실행한다.
     @Transactional
@@ -424,5 +404,42 @@ public class InterviewService {
     }
 
     private record SearchParams(String status, Long cursor, String sort, int limit) {}
+
+
+    private Interview getInterviewOrThrow(Long interviewId) {
+        return interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+    }
+
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ApplicationException(UserErrorCase.USER_NOT_FOUND));
+    }
+
+    private void validateDeletePermission(Interview interview, User currentUser) {
+        if (!interview.getOrganizer().getId().equals(currentUser.getId())) {
+            throw new ApplicationException(InterviewErrorCase.INTERVIEW_DELETE_FORBIDDEN);
+        }
+    }
+
+    private void deleteInterviewNote(Long interviewId) {
+        InterviewNote note = interviewNoteRepository.findByInterviewId(interviewId)
+                .orElseThrow(() -> new ApplicationException(InterviewNoteErrorCase.INTERVIEW_NOTE_NOT_FOUND));
+
+        // orElseThrow라 null 체크 불필요
+        interviewNoteRepository.delete(note);
+    }
+
+    private void deleteInterviewQuestions(Long interviewId) {
+        interviewQuestionRepository.deleteByInterviewId(interviewId);
+    }
+
+    private void deleteInterviewEvaluations(Long interviewId) {
+        interviewEvaluationRepository.deleteByInterviewId(interviewId);
+    }
+
+    private void deleteInterviewEntity(Interview interview) {
+        interviewRepository.delete(interview);
+    }
 
 }

@@ -74,43 +74,14 @@ public class InterviewService {
     }
 
     public InterviewListResponseDto getInterviews(InterviewSearchConditionDto condition) {
-
         Long userId = AuthUtils.getCurrentUserId();
-        Long jdId = condition.jdId();
-        String status = condition.status();
 
-        // status 값 검증
-        validateStatus(status);
+        SearchParams params = normalizeCondition(condition);
 
-        // "ALL" → null 처리
-        status = "ALL".equals(status) ? null : status;
+        List<InterviewSummaryDto> fetched = searchInterviews(userId, params, condition.jdId());
 
-        int limit = condition.limit() == null ? 6 : condition.limit();
-        Long cursor = condition.cursor();
-        String sort = condition.sort() == null ? "createdAt,desc" : condition.sort();
-
-        // 검색
-        List<InterviewSummaryDto> summaries = interviewRepository.searchInterviews(
-                userId,
-                jdId,
-                status,
-                cursor,
-                sort,
-                limit + 1
-        );
-
-        boolean hasNext = summaries.size() > limit;
-        Long nextCursor = null;
-
-        if (hasNext) {
-            nextCursor = summaries.get(limit - 1).interviewId();
-        }
-
-        summaries = summaries.stream().limit(limit).toList();
-
-        return new InterviewListResponseDto(summaries, nextCursor, hasNext);
+        return toCursorResponse(fetched, params.limit());
     }
-
 
     @Transactional
     public void deleteInterview(Long interviewId) {
@@ -413,5 +384,45 @@ public class InterviewService {
         // MCP 면접 질문 자동 생성 및 저장 로직
         eventPublisher.publishEvent(new InterviewCreatedAiEvent(interview.getId()));
     }
+
+    private SearchParams normalizeCondition(InterviewSearchConditionDto condition) {
+        String status = condition.status();
+        validateStatus(status);
+
+        String normalizedStatus = "ALL".equals(status) ? null : status;
+
+        int limit = condition.limit() == null ? 6 : condition.limit();
+        Long cursor = condition.cursor();
+        String sort = condition.sort() == null ? "createdAt,desc" : condition.sort();
+
+        return new SearchParams(normalizedStatus, cursor, sort, limit);
+    }
+
+    private List<InterviewSummaryDto> searchInterviews(Long userId, SearchParams params, Long jdId) {
+        return interviewRepository.searchInterviews(
+                userId,
+                jdId,
+                params.status(),
+                params.cursor(),
+                params.sort(),
+                params.limit() + 1
+        );
+    }
+
+    private InterviewListResponseDto toCursorResponse(List<InterviewSummaryDto> fetched, int limit) {
+        boolean hasNext = fetched.size() > limit;
+
+        List<InterviewSummaryDto> page = fetched.stream()
+                .limit(limit)
+                .toList();
+
+        Long nextCursor = hasNext
+                ? page.get(page.size() - 1).interviewId()
+                : null;
+
+        return new InterviewListResponseDto(page, nextCursor, hasNext);
+    }
+
+    private record SearchParams(String status, Long cursor, String sort, int limit) {}
 
 }

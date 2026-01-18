@@ -134,67 +134,44 @@ public class InterviewService {
     }
 
     @Transactional
-    public void updateResult(
-            Long interviewId,
-            InterviewResultUpdateRequestDto request
-    ) {
-        if (!interviewRepository.existsById(interviewId)) {
-            throw new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND);
-        }
-        // result 필수 값 검증
-        if (request.result() == null) {
-            throw new ApplicationException(InterviewErrorCase.RESULT_REQUIRED);
-        }
+    public void updateResult(Long interviewId, InterviewResultUpdateRequestDto request) {
 
-        // 문자열 → Enum 변환 + 유효성 체크
-        InterviewResult newResult;
-        try {
-            newResult = InterviewResult.valueOf(request.result().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new ApplicationException(InterviewErrorCase.INVALID_RESULT);
-        }
+        InterviewResult newResult = validateAndParseResult(request);
 
-        // PENDING 은 이 API에서 허용하지 않음
-        if (newResult == InterviewResult.PENDING) {
-            throw new ApplicationException(InterviewErrorCase.INVALID_RESULT);
-        }
+        Interview interview = getInterviewOrThrow(interviewId);
 
-        Interview interview = interviewRepository.findById(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
-
-        // 결과 업데이트
         interview.updateResult(newResult);
     }
 
+
     public InterviewSummaryDto getInterview(Long interviewId) {
-        Interview interview = interviewRepository.findById(interviewId)
+        Interview interview = getInterviewOrThrow(interviewId);
+        return toInterviewSummaryDto(interview);
+    }
+
+    private Interview getInterviewOrThrow(Long interviewId) {
+        return interviewRepository.findById(interviewId)
                 .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+    }
 
-        // JD
-        JobDescription jd = interview.getJobDescription();
-        Long jdId = (jd != null) ? jd.getId() : null;
-        String jdTitle = (jd != null) ? jd.getTitle() : null; // getTitle()이 없으면 JD 필드명으로 변경
+    private InterviewSummaryDto toInterviewSummaryDto(Interview interview) {
 
-        // Resume
-        Resume resume = interview.getResume();
-        Long resumeId = (resume != null) ? resume.getId() : null;
+        JdInfo jdInfo = extractJdInfo(interview);
+        ResumeInfo resumeInfo = extractResumeInfo(interview);
+
+        String status = toEnumNameOrNull(interview.getStatus());
+        String resultStatus = toEnumNameOrNull(interview.getResult());
 
         // 후보자 이름/아바타는 프로젝트마다 다름 → 일단 null로 두고 프론트에서 기본 이미지 처리
         String candidateName = null;
         String candidateAvatar = null;
-
-        // status/result
-        String status = (interview.getStatus() != null) ? interview.getStatus().name() : null;
-        String resultStatus = (interview.getResult() != null) ? interview.getResult().name() : null;
-
-        // 면접관 이름 리스트도 일단 빈 리스트(필요하면 아래 2번에서 채우는 법 제공)
         List<String> interviewers = List.of();
 
         return new InterviewSummaryDto(
                 interview.getId(),
-                jdId,
-                jdTitle,
-                resumeId,
+                jdInfo.jdId(),
+                jdInfo.jdTitle(),
+                resumeInfo.resumeId(),
                 candidateName,
                 status,
                 resultStatus,
@@ -204,6 +181,26 @@ public class InterviewService {
                 interview.getCreatedAt()
         );
     }
+
+    private JdInfo extractJdInfo(Interview interview) {
+        JobDescription jd = interview.getJobDescription();
+        if (jd == null) return new JdInfo(null, null);
+        return new JdInfo(jd.getId(), jd.getTitle());
+    }
+
+    private ResumeInfo extractResumeInfo(Interview interview) {
+        Resume resume = interview.getResume();
+        if (resume == null) return new ResumeInfo(null);
+        return new ResumeInfo(resume.getId());
+    }
+
+    private String toEnumNameOrNull(Enum<?> e) {
+        return e == null ? null : e.name();
+    }
+
+    private record JdInfo(Long jdId, String jdTitle) {}
+    private record ResumeInfo(Long resumeId) {}
+
 
 
     private JobDescription getJobDescription(Long jdId) {
@@ -358,11 +355,6 @@ public class InterviewService {
     private record SearchParams(String status, Long cursor, String sort, int limit) {}
 
 
-    private Interview getInterviewOrThrow(Long interviewId) {
-        return interviewRepository.findById(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
-    }
-
     private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ApplicationException(UserErrorCase.USER_NOT_FOUND));
@@ -462,5 +454,24 @@ public class InterviewService {
         return s == null ? "" : s;
     }
 
+    private InterviewResult validateAndParseResult(InterviewResultUpdateRequestDto request) {
+
+        if (request.result() == null) {
+            throw new ApplicationException(InterviewErrorCase.RESULT_REQUIRED);
+        }
+
+        InterviewResult result;
+        try {
+            result = InterviewResult.valueOf(request.result().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ApplicationException(InterviewErrorCase.INVALID_RESULT);
+        }
+
+        if (result == InterviewResult.PENDING) {
+            throw new ApplicationException(InterviewErrorCase.INVALID_RESULT);
+        }
+
+        return result;
+    }
 
 }

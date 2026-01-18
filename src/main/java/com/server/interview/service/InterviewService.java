@@ -50,96 +50,26 @@ public class InterviewService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final InterviewEvaluationRepository interviewEvaluationRepository;
-    //private final ApplicationEventPublisher applicationEventPublisher;
     private final ApplicationEventPublisher eventPublisher;
     private final MatchRepository matchRepository;
 
     @Transactional
-    public InterviewCreateResponseDto create(InterviewCreateRequestDto interviewCreateRequestDto) {
+    public InterviewCreateResponseDto create(InterviewCreateRequestDto req) {
 
-        // 인터뷰 생성 로직
-        JobDescription jobDescription = jobDescriptionRepository.findById(interviewCreateRequestDto.jdId()).orElseThrow(
-                () -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND)
-        );
-        Resume resume = resumeRepository.findById(interviewCreateRequestDto.resumeId()).orElseThrow(
-                ()->new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND)
-        );
+        JobDescription jd = getJobDescription(req.jdId());
+        Resume resume = getResume(req.resumeId());
+        User organizer = getCurrentUser();
 
-        Long userId = AuthUtils.getCurrentUserId();
+        Interview interview = createInterview(jd, resume, organizer, req.scheduledAt());
 
-        User organizer = userRepository.findById(userId).orElseThrow(
-                () -> new ApplicationException(UserErrorCase.USER_NOT_FOUND)
-        );
+        registerParticipants(interview, organizer, req.participantIds());
 
-        LocalDateTime scheduledAt =  interviewCreateRequestDto.scheduledAt();
-        InterviewStatus status = InterviewStatus.WAITING;
-        InterviewResult result = InterviewResult.PENDING;
+        createInterviewNote(interview);
 
-        Interview interview = Interview.of(jobDescription, resume, organizer, scheduledAt, status, result);
+        confirmMatch(jd.getId(), resume.getId());
 
-        interviewRepository.save(interview);
+        publishCreatedEvents(interview);
 
-        // 인터뷰 참여자 생성 로직
-        // organizer 먼저 등록
-        InterviewParticipant organizerPart =
-                InterviewParticipant.of(interview, organizer, InterviewRole.INTERVIEWER, LocalDateTime.now());
-        interviewParticipantRepository.save(organizerPart);
-
-        // observer 준비
-        List<Long> ids = interviewCreateRequestDto.participantIds();
-
-        // filter로 organizer 제외 + HashSet으로 중복 참여자 제외
-        Set<Long> uniqueIds = ids.stream()
-                .filter(id -> !Objects.equals(id, organizer.getId())) //Objects.equals(a, b) -> 절대 NPE가 발생하지 않는 equals 비교
-                .collect(Collectors.toSet()); //Collectors.toSet() → 실제 구현은 HashSet
-
-        // observer가 존재 하지 않으면 참여자 생성 X
-        if (!uniqueIds.isEmpty()) {
-            List<User> participants = userRepository.findAllById(uniqueIds);
-
-            List<InterviewParticipant> observers = participants.stream()
-                    .map(user -> InterviewParticipant.of(
-                            interview,
-                            user,
-                            InterviewRole.OBSERVER,
-                            LocalDateTime.now()
-                    ))
-                    .toList();
-
-            interviewParticipantRepository.saveAll(observers);
-        }
-
-        // 인터뷰 노트 생성 로직
-        InterviewNote interviewNote = InterviewNote.of(
-                interview
-        );
-        interviewNoteRepository.save(interviewNote);
-
-        Match match = matchRepository.findByJobDescription_IdAndResume_Id(jobDescription.getId(), resume.getId())
-                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
-
-        // 이미 확정된 지원자면 중복 확정 불가
-        if (match.getStatus() == MatchStatus.CONFIRMED) {
-            throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_CONFIRMED);
-        }
-
-        // 거절,보류된 경우 확정 불가
-        if (match.getStatus() == MatchStatus.REJECTED || match.getStatus() == MatchStatus.HOLD) {
-            throw new ApplicationException(MatchErrorCase.MATCH_CANNOT_BE_CONFIRMED);
-        }
-
-        match.updateStatus(MatchStatus.CONFIRMED);
-
-        // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
-        eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId(), interview.getScheduledAt()));
-
-
-        //MCP 면접 질문 자동 생성 및 저장 로직
-        eventPublisher.publishEvent(
-                new InterviewCreatedAiEvent(
-                        interview.getId()
-                )
-        );
         return new InterviewCreateResponseDto(interview.getId());
     }
 
@@ -380,6 +310,108 @@ public class InterviewService {
                 interview.getScheduledAt(),
                 interview.getCreatedAt()
         );
+    }
+
+
+    private JobDescription getJobDescription(Long jdId) {
+        return jobDescriptionRepository.findById(jdId)
+                .orElseThrow(() -> new ApplicationException(JobErrorCase.JOB_NOT_FOUND));
+    }
+
+    private Resume getResume(Long resumeId) {
+        return resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ApplicationException(ResumeErrorCase.RESUME_NOT_FOUND));
+    }
+
+    private User getCurrentUser() {
+        Long userId = AuthUtils.getCurrentUserId();
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ApplicationException(UserErrorCase.USER_NOT_FOUND));
+    }
+
+    private Interview createInterview(
+            JobDescription jd,
+            Resume resume,
+            User organizer,
+            LocalDateTime scheduledAt
+    ) {
+        Interview interview = Interview.of(
+                jd,
+                resume,
+                organizer,
+                scheduledAt,
+                InterviewStatus.WAITING,
+                InterviewResult.PENDING
+        );
+        return interviewRepository.save(interview);
+    }
+
+    private void registerParticipants(Interview interview, User organizer, List<Long> participantIds) {
+
+        // organizer 먼저 등록
+        InterviewParticipant organizerPart = InterviewParticipant.of(
+                interview,
+                organizer,
+                InterviewRole.INTERVIEWER,
+                LocalDateTime.now()
+        );
+        interviewParticipantRepository.save(organizerPart);
+
+        // participantIds가 null/empty면 바로 종료 (원래 코드에 없던 안전장치)
+        if (participantIds == null || participantIds.isEmpty()) {
+            return;
+        }
+
+        // organizer 제외 + 중복 제거
+        Set<Long> uniqueIds = participantIds.stream()
+                .filter(id -> !Objects.equals(id, organizer.getId()))
+                .collect(Collectors.toSet());
+
+        if (uniqueIds.isEmpty()) {
+            return;
+        }
+
+        List<User> participants = userRepository.findAllById(uniqueIds);
+
+        List<InterviewParticipant> observers = participants.stream()
+                .map(user -> InterviewParticipant.of(
+                        interview,
+                        user,
+                        InterviewRole.OBSERVER,
+                        LocalDateTime.now()
+                ))
+                .toList();
+
+        interviewParticipantRepository.saveAll(observers);
+    }
+
+    private void createInterviewNote(Interview interview) {
+        interviewNoteRepository.save(InterviewNote.of(interview));
+    }
+
+    private void confirmMatch(Long jdId, Long resumeId) {
+        Match match = matchRepository.findByJobDescription_IdAndResume_Id(jdId, resumeId)
+                .orElseThrow(() -> new ApplicationException(MatchErrorCase.MATCH_NOT_FOUND));
+
+        // 이미 확정된 지원자면 중복 확정 불가
+        if (match.getStatus() == MatchStatus.CONFIRMED) {
+            throw new ApplicationException(MatchErrorCase.MATCH_ALREADY_CONFIRMED);
+        }
+
+        // 거절,보류된 경우 확정 불가
+        if (match.getStatus() == MatchStatus.REJECTED || match.getStatus() == MatchStatus.HOLD) {
+            throw new ApplicationException(MatchErrorCase.MATCH_CANNOT_BE_CONFIRMED);
+        }
+
+        match.updateStatus(MatchStatus.CONFIRMED);
+    }
+
+    private void publishCreatedEvents(Interview interview) {
+        // 이벤트 발행 (AFTER COMMIT 리스너에서 처리됨)
+        eventPublisher.publishEvent(new InterviewCreatedEvent(interview.getId(), interview.getScheduledAt()));
+
+        // MCP 면접 질문 자동 생성 및 저장 로직
+        eventPublisher.publishEvent(new InterviewCreatedAiEvent(interview.getId()));
     }
 
 }

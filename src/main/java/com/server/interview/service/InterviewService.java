@@ -50,7 +50,7 @@ public class InterviewService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final InterviewEvaluationRepository interviewEvaluationRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    //private final ApplicationEventPublisher applicationEventPublisher;
     private final ApplicationEventPublisher eventPublisher;
     private final MatchRepository matchRepository;
 
@@ -230,7 +230,7 @@ public class InterviewService {
         interview.updateStatus(InterviewStatus.DONE);
 
         // 3) 면접 종료 → AI 요약 이벤트 발행
-        applicationEventPublisher.publishEvent(
+        eventPublisher.publishEvent(
                 new InterviewFinishedAiEvent(interview.getId())
         );
     }

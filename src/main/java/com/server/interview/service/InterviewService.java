@@ -198,10 +198,6 @@ public class InterviewService {
         return e == null ? null : e.name();
     }
 
-    private record JdInfo(Long jdId, String jdTitle) {}
-    private record ResumeInfo(Long resumeId) {}
-
-
 
     private JobDescription getJobDescription(Long jdId) {
         return jobDescriptionRepository.findById(jdId)
@@ -352,7 +348,7 @@ public class InterviewService {
         return new InterviewListResponseDto(page, nextCursor, hasNext);
     }
 
-    private record SearchParams(String status, Long cursor, String sort, int limit) {}
+
 
 
     private User getUserOrThrow(Long userId) {
@@ -473,5 +469,10 @@ public class InterviewService {
 
         return result;
     }
+
+    private record JdInfo(Long jdId, String jdTitle) {}
+    private record ResumeInfo(Long resumeId) {}
+    private record SearchParams(String status, Long cursor, String sort, int limit) {}
+
 
 }

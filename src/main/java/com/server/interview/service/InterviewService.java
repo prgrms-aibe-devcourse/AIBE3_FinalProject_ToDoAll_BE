@@ -19,6 +19,7 @@ import com.server.match.repository.MatchRepository;
 import com.server.mcp.dto.InterviewCreatedAiEvent;
 import com.server.mcp.dto.InterviewFinishedAiEvent;
 import com.server.resume.domain.Resume;
+import com.server.resume.domain.ResumeExperience;
 import com.server.resume.domain.ResumeSkill;
 import com.server.resume.exception.ResumeErrorCase;
 import com.server.resume.repository.ResumeRepository;
@@ -104,8 +105,7 @@ public class InterviewService {
     @Transactional
     public void finishInterview(Long interviewId) {
         // 1) 인터뷰 조회
-        Interview interview = interviewRepository.findById(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+        Interview interview = getInterviewOrThrow(interviewId);
 
         // 2) 상태를 DONE 으로 변경
         interview.updateStatus(InterviewStatus.DONE);
@@ -116,79 +116,21 @@ public class InterviewService {
         );
     }
 
-    private void validateStatus(String status) {
-        if (status == null || status.equals("ALL")) return;
-
-        try {
-            InterviewStatus.valueOf(status);
-        } catch (IllegalArgumentException e) {
-            throw new ApplicationException(InterviewErrorCase.INVALID_STATUS);
-        }
-    }
 
     public InterviewProfileResponseDto getInterviewProfile(Long interviewId) {
-        Interview interview = interviewRepository.findById(interviewId)
-                .orElseThrow(() -> new ApplicationException(InterviewErrorCase.INTERVIEW_NOT_FOUND));
+
+        Interview interview = getInterviewOrThrow(interviewId);
 
         Resume resume = interview.getResume();
         JobDescription jd = interview.getJobDescription();
 
-        // 1) 보유 스킬 (ResumeSkill -> Skill.name)
-        List<String> ownedSkills = resume.getSkills().stream()
-                .map(ResumeSkill::getSkill)
-                .map(Skill::getName)
-                .toList();
-        List<String> requiredSkills = jd.getRequiredSkillNames().stream()
-                .toList();
+        List<String> ownedSkills = extractOwnedSkills(resume);
+        List<String> requiredSkills = extractRequiredSkills(jd);
+        List<String> missingSkills = computeMissingSkills(ownedSkills, requiredSkills);
 
-        // 3) 부족 스킬 = JD 필요 스킬 - 보유 스킬
-        Set<String> ownedLower = ownedSkills.stream()
-                .map(s -> s.toLowerCase(Locale.ROOT))
-                .collect(Collectors.toSet());
-        List<String> missingSkills = requiredSkills.stream()
-                .filter(req -> !ownedLower.contains(req.toLowerCase(Locale.ROOT)))
-                .toList();
-
-        // 4) 경력 문자열 만들기 (ResumeExperience 사용)
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        List<String> experiences = resume.getExperiences().stream()
-                .sorted((e1, e2) -> {
-                    // 시작일 기준 오름차순 정렬 (null 처리 포함)
-                    if (e1.getStartDate() == null && e2.getStartDate() == null) return 0;
-                    if (e1.getStartDate() == null) return 1;
-                    if (e2.getStartDate() == null) return -1;
-                    return e1.getStartDate().compareTo(e2.getStartDate());
-                })
-                .map(exp -> {
-                    String period;
-
-                    if (exp.getStartDate() == null && exp.getEndDate() == null) {
-                        period = "";
-                    } else if (exp.getEndDate() == null) {
-                        period = String.format("(%s ~ 현재)",
-                                exp.getStartDate() != null ? exp.getStartDate().format(fmt) : "");
-                    } else {
-                        period = String.format("(%s ~ %s)",
-                                exp.getStartDate() != null ? exp.getStartDate().format(fmt) : "",
-                                exp.getEndDate().format(fmt));
-                    }
-
-                    // 프론트에서 보기 좋게 한 줄로
-                    return String.format(
-                            "%s %s %s %s",
-                            nullToEmpty(exp.getCompanyName()),   // EX
-                            nullToEmpty(exp.getDepartment()),    // 개발부
-                            nullToEmpty(exp.getPosition()),      // 사원
-                            period
-                    ).trim();
-                })
-                .toList();
+        List<String> experiences = buildExperienceStrings(resume);
 
         return new InterviewProfileResponseDto(ownedSkills, missingSkills, experiences);
-    }
-    private String nullToEmpty(String s) {
-        return s == null ? "" : s;
     }
 
     @Transactional
@@ -378,6 +320,16 @@ public class InterviewService {
         return new SearchParams(normalizedStatus, cursor, sort, limit);
     }
 
+    private void validateStatus(String status) {
+        if (status == null || status.equals("ALL")) return;
+
+        try {
+            InterviewStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new ApplicationException(InterviewErrorCase.INVALID_STATUS);
+        }
+    }
+
     private List<InterviewSummaryDto> searchInterviews(Long userId, SearchParams params, Long jdId) {
         return interviewRepository.searchInterviews(
                 userId,
@@ -441,5 +393,74 @@ public class InterviewService {
     private void deleteInterviewEntity(Interview interview) {
         interviewRepository.delete(interview);
     }
+
+
+    private List<String> extractOwnedSkills(Resume resume) {
+        return resume.getSkills().stream()
+                .map(ResumeSkill::getSkill)
+                .map(Skill::getName)
+                .toList();
+    }
+
+    private List<String> extractRequiredSkills(JobDescription jd) {
+        return jd.getRequiredSkillNames().stream().toList();
+    }
+
+    private List<String> computeMissingSkills(List<String> ownedSkills, List<String> requiredSkills) {
+        Set<String> ownedLower = ownedSkills.stream()
+                .map(s -> s.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+
+        return requiredSkills.stream()
+                .filter(req -> !ownedLower.contains(req.toLowerCase(Locale.ROOT)))
+                .toList();
+    }
+
+
+    private List<String> buildExperienceStrings(Resume resume) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        return resume.getExperiences().stream()
+                .sorted(this::compareByStartDateNullSafe)
+                .map(exp -> formatExperienceLine(exp, fmt))
+                .toList();
+    }
+
+    private int compareByStartDateNullSafe(ResumeExperience e1, ResumeExperience e2) {
+        if (e1.getStartDate() == null && e2.getStartDate() == null) return 0;
+        if (e1.getStartDate() == null) return 1;
+        if (e2.getStartDate() == null) return -1;
+        return e1.getStartDate().compareTo(e2.getStartDate());
+    }
+
+    private String formatExperienceLine(ResumeExperience exp, DateTimeFormatter fmt) {
+        String period = formatPeriod(exp, fmt);
+
+        return String.format(
+                "%s %s %s %s",
+                nullToEmpty(exp.getCompanyName()),
+                nullToEmpty(exp.getDepartment()),
+                nullToEmpty(exp.getPosition()),
+                period
+        ).trim();
+    }
+
+    private String formatPeriod(ResumeExperience exp, DateTimeFormatter fmt) {
+        if (exp.getStartDate() == null && exp.getEndDate() == null) {
+            return "";
+        }
+        if (exp.getEndDate() == null) {
+            return String.format("(%s ~ 현재)",
+                    exp.getStartDate() != null ? exp.getStartDate().format(fmt) : "");
+        }
+        return String.format("(%s ~ %s)",
+                exp.getStartDate() != null ? exp.getStartDate().format(fmt) : "",
+                exp.getEndDate().format(fmt));
+    }
+
+    private String nullToEmpty(String s) {
+        return s == null ? "" : s;
+    }
+
 
 }

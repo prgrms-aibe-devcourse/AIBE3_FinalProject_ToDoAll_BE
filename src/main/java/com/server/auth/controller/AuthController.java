@@ -1,5 +1,7 @@
 package com.server.auth.controller;
 
+
+import com.server.auth.config.AuthCookieProperties;
 import com.server.auth.dto.*;
 import com.server.auth.service.AuthService;
 import com.server.auth.service.PasswordResetService;
@@ -27,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
+
+    private final AuthCookieProperties authCookieProperties;
 
     // 비밀번호 재설정 이메일 발송
 
@@ -58,9 +62,9 @@ public class AuthController {
     }
 
 
-     //로그인
-     @Operation(
-             summary = "로그인 및 토큰 발급")
+    //로그인
+    @Operation(
+            summary = "로그인 및 토큰 발급")
     @PostMapping("/token")
     public CommonResponse<UserLoginResponseDto> login(
             @Valid @RequestBody UserLoginRequestDto request,
@@ -74,37 +78,69 @@ public class AuthController {
         // Access Token 쿠키
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", response.getAccessToken())
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .maxAge(60 * 60) // 1시간
+                .secure(authCookieProperties.isSecure())
+                .sameSite(authCookieProperties.getSameSite())
+                .path(authCookieProperties.getPath())
+                .maxAge(authCookieProperties.getAccessMaxAgeSeconds())
                 .build();
 
         // Refresh Token 쿠키
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", response.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .maxAge(60L * 60 * 24 * 7) // 7일
+                .secure(authCookieProperties.isSecure())
+                .sameSite(authCookieProperties.getSameSite())
+                .path(authCookieProperties.getPath())
+                .maxAge(authCookieProperties.getRefreshMaxAgeSeconds())
                 .build();
 
         httpServletResponse.addHeader("Set-Cookie", accessCookie.toString());
         httpServletResponse.addHeader("Set-Cookie", refreshCookie.toString());
 
-        return CommonResponse.success(response);
+        UserLoginResponseDto body = UserLoginResponseDto.of(response.getAccessToken(), null);
+
+
+        return CommonResponse.success(body);
     }
     @Operation(
             summary = "Access Token 재발급")
     @PostMapping("/token/refresh")
     public CommonResponse<UserLoginResponseDto> refresh(
-            @Valid @RequestBody TokenRefreshRequestDto request
+            // 쿠키 기반으로 바꾸기 위해 Request/Response를 받음
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse
     ) {
-        UserLoginResponseDto response = authService.reissueAccessToken(
-                request.refreshToken()
-        );
-        return CommonResponse.success(response);
+        // refreshToken을 요청 바디가 아니라 쿠키에서 꺼냄
+        String refreshToken = extractCookie(httpServletRequest, "refreshToken");
+
+        // 쿠키에서 꺼낸 refreshToken으로 재발급
+        UserLoginResponseDto response = authService.reissueAccessToken(refreshToken);
+
+        // Access 쿠키
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", response.getAccessToken())
+                .httpOnly(true)
+                .secure(authCookieProperties.isSecure())
+                .sameSite(authCookieProperties.getSameSite())
+                .path(authCookieProperties.getPath())
+                .maxAge(authCookieProperties.getAccessMaxAgeSeconds())
+                .build();
+
+        // Refresh 쿠키
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", response.getRefreshToken())
+                .httpOnly(true)
+                .secure(authCookieProperties.isSecure())
+                .sameSite(authCookieProperties.getSameSite())
+                .path(authCookieProperties.getPath())
+                .maxAge(authCookieProperties.getRefreshMaxAgeSeconds())
+                .build();
+
+        httpServletResponse.addHeader("Set-Cookie", accessCookie.toString());
+        httpServletResponse.addHeader("Set-Cookie", refreshCookie.toString());
+
+        UserLoginResponseDto body = UserLoginResponseDto.of(response.getAccessToken(), null);
+
+        return CommonResponse.success(body);
     }
+
 
     //로그아웃
     @Operation(
@@ -123,17 +159,17 @@ public class AuthController {
         // 쿠키 삭제 (accessToken / refreshToken 둘 다 만료시킴)
         ResponseCookie clearAccess = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .maxAge(0)// 즉시 만료
+                .secure(authCookieProperties.isSecure())
+                .sameSite(authCookieProperties.getSameSite())
+                .path(authCookieProperties.getPath())
+                .maxAge(0)
                 .build();
 
         ResponseCookie clearRefresh = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
+                .secure(authCookieProperties.isSecure())
+                .sameSite(authCookieProperties.getSameSite())
+                .path(authCookieProperties.getPath())
                 .maxAge(0)
                 .build();
 

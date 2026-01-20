@@ -70,35 +70,13 @@ public class AuthController {
             @Valid @RequestBody UserLoginRequestDto request,
             HttpServletResponse httpServletResponse
     ) {
-        UserLoginResponseDto response = authService.login(
-                request.email(),
-                request.password()
-        );
+        UserLoginResponseDto issued = authService.login(request.email(), request.password());
 
-        // Access Token 쿠키
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", response.getAccessToken())
-                .httpOnly(true)
-                .secure(authCookieProperties.isSecure())
-                .sameSite(authCookieProperties.getSameSite())
-                .path(authCookieProperties.getPath())
-                .maxAge(authCookieProperties.getAccessMaxAgeSeconds())
-                .build();
+        // 쿠키 세팅 로직
+        setAuthCookies(httpServletResponse, issued.getAccessToken(), issued.getRefreshToken());
 
-        // Refresh Token 쿠키
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", response.getRefreshToken())
-                .httpOnly(true)
-                .secure(authCookieProperties.isSecure())
-                .sameSite(authCookieProperties.getSameSite())
-                .path(authCookieProperties.getPath())
-                .maxAge(authCookieProperties.getRefreshMaxAgeSeconds())
-                .build();
-
-        httpServletResponse.addHeader("Set-Cookie", accessCookie.toString());
-        httpServletResponse.addHeader("Set-Cookie", refreshCookie.toString());
-
-        UserLoginResponseDto body = UserLoginResponseDto.of(response.getAccessToken(), null);
-
-
+        // refreshToken 바디 제거
+        UserLoginResponseDto body = UserLoginResponseDto.of(issued.getAccessToken(), null);
         return CommonResponse.success(body);
     }
     @Operation(
@@ -113,31 +91,13 @@ public class AuthController {
         String refreshToken = extractCookie(httpServletRequest, "refreshToken");
 
         // 쿠키에서 꺼낸 refreshToken으로 재발급
-        UserLoginResponseDto response = authService.reissueAccessToken(refreshToken);
+        UserLoginResponseDto reissued = authService.reissueAccessToken(refreshToken);
 
-        // Access 쿠키
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", response.getAccessToken())
-                .httpOnly(true)
-                .secure(authCookieProperties.isSecure())
-                .sameSite(authCookieProperties.getSameSite())
-                .path(authCookieProperties.getPath())
-                .maxAge(authCookieProperties.getAccessMaxAgeSeconds())
-                .build();
+        // 쿠키 세팅 로직
+        setAuthCookies(httpServletResponse, reissued.getAccessToken(), reissued.getRefreshToken());
 
-        // Refresh 쿠키
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", response.getRefreshToken())
-                .httpOnly(true)
-                .secure(authCookieProperties.isSecure())
-                .sameSite(authCookieProperties.getSameSite())
-                .path(authCookieProperties.getPath())
-                .maxAge(authCookieProperties.getRefreshMaxAgeSeconds())
-                .build();
-
-        httpServletResponse.addHeader("Set-Cookie", accessCookie.toString());
-        httpServletResponse.addHeader("Set-Cookie", refreshCookie.toString());
-
-        UserLoginResponseDto body = UserLoginResponseDto.of(response.getAccessToken(), null);
-
+        // refreshToken 바디 제거
+        UserLoginResponseDto body = UserLoginResponseDto.of(reissued.getAccessToken(), null);
         return CommonResponse.success(body);
     }
 
@@ -156,32 +116,49 @@ public class AuthController {
         // 실제 쿠키 삭제 등의 로그아웃 처리 로직은 서비스에 위임
         authService.logout(refreshToken);
 
-        // 쿠키 삭제 (accessToken / refreshToken 둘 다 만료시킴)
-        ResponseCookie clearAccess = ResponseCookie.from("accessToken", "")
-                .httpOnly(true)
-                .secure(authCookieProperties.isSecure())
-                .sameSite(authCookieProperties.getSameSite())
-                .path(authCookieProperties.getPath())
-                .maxAge(0)
-                .build();
-
-        ResponseCookie clearRefresh = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true)
-                .secure(authCookieProperties.isSecure())
-                .sameSite(authCookieProperties.getSameSite())
-                .path(authCookieProperties.getPath())
-                .maxAge(0)
-                .build();
-
-        response.addHeader("Set-Cookie", clearAccess.toString());
-        response.addHeader("Set-Cookie", clearRefresh.toString());
-
+        // 쿠키 삭제 로직 통일
+        clearAuthCookies(response);
 
         // 로그아웃은 별도의 데이터가 필요 없으므로 data = null로 응답
         return CommonResponse.success("로그아웃 되었습니다.");
     }
 
-    // 요청 쿠키에서 name 에 해당하는 쿠키 값을 꺼내는 헬퍼 메서드
+    // 헬퍼 메서드: 인증 쿠키 처리 공통화(중복 제거)
+
+    private void setAuthCookies(HttpServletResponse response, String accessToken, String refreshToken) {
+        ResponseCookie accessCookie = buildCookie(
+                "accessToken",
+                accessToken,
+                authCookieProperties.getAccessMaxAgeSeconds()
+        );
+
+        ResponseCookie refreshCookie = buildCookie(
+                "refreshToken",
+                refreshToken,
+                authCookieProperties.getRefreshMaxAgeSeconds()
+        );
+
+        response.addHeader("Set-Cookie", accessCookie.toString());
+        response.addHeader("Set-Cookie", refreshCookie.toString());
+    }
+
+    private void clearAuthCookies(HttpServletResponse response) {
+        ResponseCookie clearAccess = buildCookie("accessToken", "", 0);
+        ResponseCookie clearRefresh = buildCookie("refreshToken", "", 0);
+
+        response.addHeader("Set-Cookie", clearAccess.toString());
+        response.addHeader("Set-Cookie", clearRefresh.toString());
+    }
+
+    private ResponseCookie buildCookie(String name, String value, long maxAgeSeconds) {
+        return ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(authCookieProperties.isSecure())
+                .sameSite(authCookieProperties.getSameSite())
+                .path(authCookieProperties.getPath())
+                .maxAge(maxAgeSeconds)
+                .build();
+    }
 
     private String extractCookie(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();

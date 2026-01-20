@@ -6,7 +6,7 @@ import com.server.auth.dto.PasswordResetResponseDto;
 import com.server.auth.exception.AuthErrorCase;
 import com.server.auth.repository.PasswordResetTokenRepository;
 import com.server.global.exception.ApplicationException;
-import com.server.user.domain.PasswordResetToken;
+import com.server.auth.domain.PasswordResetToken;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import com.server.user.util.PasswordValidator;

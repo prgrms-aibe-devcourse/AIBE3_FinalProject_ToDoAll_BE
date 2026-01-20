@@ -1,14 +1,11 @@
 package com.server.auth.repository;
 
-import com.server.user.domain.PasswordResetToken;
-import org.springframework.data.domain.Pageable;
+import com.server.auth.domain.PasswordResetToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 // 비밀번호 재설정 토큰 저장소

@@ -6,7 +6,7 @@ import com.server.auth.dto.PasswordResetResponseDto;
 import com.server.auth.exception.AuthErrorCase;
 import com.server.auth.repository.PasswordResetTokenRepository;
 import com.server.global.exception.ApplicationException;
-import com.server.user.domain.PasswordResetToken;
+import com.server.auth.domain.PasswordResetToken;
 import com.server.user.domain.User;
 import com.server.user.repository.UserRepository;
 import com.server.user.util.PasswordValidator;
@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,7 +28,6 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.Base64;
-import java.util.List;
 
 @Slf4j
 @Service

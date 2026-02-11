@@ -85,6 +85,7 @@ jobs:
             echo "AWS_ACCESS_SECRET_KEY=${{ secrets.AWS_ACCESS_SECRET_KEY }}" >> .env
             echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
             echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" >> .env
+            echo "EC2_ES_PRIVATE_HOST=${{ secrets.EC2_ES_PRIVATE_HOST }}" >> .env
 
             echo "=== 배포 시작: 태그 $LATEST_TAG ==="
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin

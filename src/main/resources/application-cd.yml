@@ -28,7 +28,7 @@ spring:
       password:
 
   elasticsearch:
-    uris: http://3.39.210.5:9200
+    uris: http://${EC2_ES_PRIVATE_HOST}:9200
 
   cache:
     redis:

@@ -44,6 +44,7 @@ jobs:
           port: ${{ secrets.AWS_SSH_PORT }}
           source: "infra/deploy/deploy.sh"
           target: /home/ubuntu/deploy/
+          strip_components: 2
           overwrite: true
 
       # Blue/Green 배포 실행

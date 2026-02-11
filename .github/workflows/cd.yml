@@ -42,7 +42,7 @@ jobs:
           username: ${{ secrets.AWS_SSH_USERNAME }}
           key: ${{ secrets.AWS_SSH_KEY }}
           port: ${{ secrets.AWS_SSH_PORT }}
-          source: "/infra/deploy/deploy.sh"
+          source: "infra/deploy/deploy.sh"
           target: /home/ubuntu/deploy/
           overwrite: true
 

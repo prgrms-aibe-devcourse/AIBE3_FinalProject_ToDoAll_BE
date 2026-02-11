@@ -47,6 +47,16 @@ jobs:
           strip_components: 2
           overwrite: true
 
+      - name: Make deploy.sh executable
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.AWS_SSH_HOST }}
+          username: ${{ secrets.AWS_SSH_USERNAME }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          port: ${{ secrets.AWS_SSH_PORT }}
+          script: |
+            chmod +x /home/ubuntu/deploy/deploy.sh
+
       # Blue/Green 배포 실행
       - name: Deploy Blue/Green via SSH
         uses: appleboy/ssh-action@v1
